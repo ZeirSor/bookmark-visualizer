@@ -28,12 +28,10 @@ function readManifest(): ExtensionManifest {
 }
 
 describe("extension manifest", () => {
-  it("keeps the new tab override as the primary app surface", () => {
+  it("does not override the browser new tab page", () => {
     const manifest = readManifest();
 
-    expect(manifest.chrome_url_overrides).toEqual({
-      newtab: "index.html"
-    });
+    expect(manifest.chrome_url_overrides).toBeUndefined();
   });
 
   it("configures a toolbar action that opens through the service worker", () => {

@@ -56,7 +56,7 @@
 - `bookmarkVisualizerMetadata`：保存 `metadataVersion` 和 `bookmarkMetadata`，当前只写入手动备注。
 - `bookmarkVisualizerSettings`：保存 `showBookmarksInTree`、`theme`、`cardDensity`、`cardSize`、`sidebarWidth`。
 
-当前操作日志只保存在页面运行时内存中，用于本次会话撤回移动、编辑、删除等操作；它不是持久化审计日志，刷新新标签页后会清空。
+当前操作日志只保存在页面运行时内存中，用于本次会话撤回移动、编辑、删除等操作；它不是持久化审计日志，刷新扩展页面后会清空。
 
 ## 导出和导入
 
