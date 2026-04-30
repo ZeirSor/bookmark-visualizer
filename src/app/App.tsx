@@ -10,7 +10,7 @@ import {
 import { BookmarkCard } from "../components/BookmarkCard";
 import { FolderTree } from "../components/FolderTree";
 import { SearchBar } from "../components/SearchBar";
-import { bookmarksAdapter, canUseChromeBookmarks } from "../lib/chrome";
+import { bookmarksAdapter } from "../lib/chrome";
 import {
   collectFolderIds,
   getDisplayTitle,
@@ -21,9 +21,14 @@ import {
 import { getContextMenuPlacement, type ContextMenuPlacement } from "../features/context-menu";
 import {
   canDropBookmarkOnFolder,
+  canDropFolderOnIntent,
   canMoveBookmarkToFolder,
   createDraggedBookmarkSnapshot,
-  type DraggedBookmarkSnapshot
+  createDraggedFolderSnapshot,
+  getFolderMoveDestination,
+  type DraggedBookmarkSnapshot,
+  type DraggedFolderSnapshot,
+  type FolderDropIntent
 } from "../features/drag-drop";
 import { useMetadata } from "../features/metadata";
 import { searchBookmarks } from "../features/search";
@@ -48,6 +53,10 @@ interface BookmarkContextMenuState extends ContextMenuPlacement {
   bookmark: BookmarkNode;
 }
 
+interface FolderContextMenuState extends ContextMenuPlacement {
+  folder: BookmarkNode;
+}
+
 interface BookmarkEditState {
   bookmark: BookmarkNode;
   title: string;
@@ -55,18 +64,27 @@ interface BookmarkEditState {
   note: string;
 }
 
+interface NewFolderDialogState {
+  parentFolder: BookmarkNode;
+  name: string;
+  bookmarkToMove?: BookmarkNode;
+}
+
 const CONTEXT_MENU_CLOSE_DELAY_MS = 220;
 
 export function App() {
   const [query, setQuery] = useState("");
   const [draggedBookmark, setDraggedBookmark] = useState<DraggedBookmarkSnapshot>();
+  const [draggedFolder, setDraggedFolder] = useState<DraggedFolderSnapshot>();
   const [highlightedBookmarkId, setHighlightedBookmarkId] = useState<string>();
   const [highlightPulseId, setHighlightPulseId] = useState<string>();
   const [operationLogOpen, setOperationLogOpen] = useState(false);
   const [operationLog, setOperationLog] = useState<OperationLogEntry[]>([]);
   const operationLogRef = useRef<OperationLogEntry[]>([]);
   const [contextMenu, setContextMenu] = useState<BookmarkContextMenuState>();
+  const [folderContextMenu, setFolderContextMenu] = useState<FolderContextMenuState>();
   const [editingBookmark, setEditingBookmark] = useState<BookmarkEditState>();
+  const [newFolderDialog, setNewFolderDialog] = useState<NewFolderDialogState>();
   const [expandedFolderIds, setExpandedFolderIds] = useState<Set<string>>(new Set());
   const [toast, setToast] = useState<ToastState>();
   const { metadata, updateNote } = useMetadata();
@@ -117,7 +135,9 @@ export function App() {
       }
 
       setContextMenu(undefined);
+      setFolderContextMenu(undefined);
       setEditingBookmark(undefined);
+      setNewFolderDialog(undefined);
     }
 
     window.addEventListener("keydown", handleKeyDown);
@@ -139,8 +159,6 @@ export function App() {
         folderPath: result.folderPath
       }))
     : selectedBookmarks.map((bookmark) => ({ bookmark, folderPath: undefined }));
-  const canLoadRealBookmarks = canUseChromeBookmarks();
-
   useEffect(() => {
     if (!highlightedBookmarkId || isSearching) {
       return;
@@ -183,15 +201,6 @@ export function App() {
           </div>
         </div>
 
-        <button
-          className="load-real-bookmarks-button"
-          type="button"
-          onClick={() => void handleLoadRealBookmarks()}
-        >
-          加载真实书签
-          <span>{canLoadRealBookmarks ? "Extension" : "Mock 模式"}</span>
-        </button>
-
         <label className="tree-toggle">
           <input
             type="checkbox"
@@ -225,10 +234,15 @@ export function App() {
             showBookmarksInTree={settings.showBookmarksInTree}
             expandedFolderIds={expandedFolderIds}
             draggedBookmark={draggedBookmark}
+            draggedFolder={draggedFolder}
             onSelectFolder={handleSelectFolder}
             onToggleFolder={toggleFolderExpanded}
             onSelectBookmark={handleSelectTreeBookmark}
             onDropBookmark={(folder) => void handleDropBookmark(folder)}
+            onFolderDragStart={(folder) => setDraggedFolder(createDraggedFolderSnapshot(folder))}
+            onFolderDragEnd={() => setDraggedFolder(undefined)}
+            onDropFolder={(intent) => void handleDropFolder(intent)}
+            onFolderContextMenu={handleFolderContextMenu}
           />
         ) : null}
       </aside>
@@ -305,7 +319,15 @@ export function App() {
           onClose={() => setContextMenu(undefined)}
           onEdit={(bookmark) => openBookmarkEditor(bookmark)}
           onMove={(bookmark, folder) => void handleContextMoveBookmark(bookmark, folder)}
+          onCreateFolder={(bookmark, parentFolder) => openNewFolderDialog(parentFolder, bookmark)}
           onDelete={(bookmark) => void handleDeleteBookmark(bookmark)}
+        />
+      ) : null}
+      {folderContextMenu ? (
+        <FolderContextMenu
+          state={folderContextMenu}
+          onClose={() => setFolderContextMenu(undefined)}
+          onCreateFolder={(folder) => openNewFolderDialog(folder)}
         />
       ) : null}
       {editingBookmark ? (
@@ -314,6 +336,14 @@ export function App() {
           onChange={setEditingBookmark}
           onClose={() => setEditingBookmark(undefined)}
           onSubmit={(state) => void handleSaveBookmarkDetails(state)}
+        />
+      ) : null}
+      {newFolderDialog ? (
+        <NewFolderDialog
+          state={newFolderDialog}
+          onChange={setNewFolderDialog}
+          onClose={() => setNewFolderDialog(undefined)}
+          onSubmit={(state) => void handleCreateFolder(state)}
         />
       ) : null}
       {toast ? <Toast toast={toast} onClose={() => setToast(undefined)} /> : null}
@@ -372,22 +402,6 @@ export function App() {
       await updateSettings(nextSettings);
     } catch (cause) {
       setToast({ message: getErrorMessage(cause, "设置保存失败。") });
-    }
-  }
-
-  async function handleLoadRealBookmarks() {
-    if (!canLoadRealBookmarks) {
-      setToast({
-        message: "当前是 Vite Mock 模式。请将 dist 作为 Chrome / Edge 未打包扩展加载后读取真实书签。"
-      });
-      return;
-    }
-
-    try {
-      await reload();
-      setToast({ message: "已重新加载浏览器真实书签。" });
-    } catch (cause) {
-      setToast({ message: getErrorMessage(cause, "真实书签加载失败。") });
     }
   }
 
@@ -464,6 +478,17 @@ export function App() {
     await moveBookmarkWithUndo(snapshot, folder);
   }
 
+  async function handleDropFolder(intent: FolderDropIntent) {
+    const snapshot = draggedFolder;
+
+    if (!snapshot || !canDropFolderOnIntent(snapshot, intent, tree)) {
+      return;
+    }
+
+    setDraggedFolder(undefined);
+    await moveFolderWithUndo(snapshot, intent);
+  }
+
   async function moveBookmarkWithUndo(snapshot: DraggedBookmarkSnapshot, folder: BookmarkNode) {
     if (!canDropBookmarkOnFolder(snapshot, folder)) {
       setToast({ message: "不能移动到这个文件夹。" });
@@ -499,6 +524,49 @@ export function App() {
     }
   }
 
+  async function moveFolderWithUndo(snapshot: DraggedFolderSnapshot, intent: FolderDropIntent) {
+    if (!canDropFolderOnIntent(snapshot, intent, tree)) {
+      setToast({ message: "不能移动到这个文件夹位置。" });
+      return;
+    }
+
+    const destination = getFolderMoveDestination(snapshot, intent);
+
+    try {
+      await bookmarksAdapter.move(snapshot.id, destination);
+      await reload();
+      expandFolders(destination.parentId, intent.position === "inside" ? intent.targetFolder.id : undefined);
+      selectFolder(snapshot.id);
+
+      const operationId = addOperation({
+        title: "移动文件夹",
+        detail: `“${snapshot.title || "Untitled"}”已移动。`,
+        undo: async () => {
+          if (!snapshot.parentId) {
+            return;
+          }
+
+          await bookmarksAdapter.move(snapshot.id, {
+            parentId: snapshot.parentId,
+            index: snapshot.index
+          });
+          await reload();
+          expandFolders(snapshot.parentId);
+          selectFolder(snapshot.id);
+        }
+      });
+
+      setToast({
+        message: `已移动文件夹“${snapshot.title || "Untitled"}”。`,
+        actionLabel: "撤销",
+        action: async () => undoOperation(operationId)
+      });
+    } catch (cause) {
+      await reload();
+      setToast({ message: getErrorMessage(cause, "移动文件夹失败。") });
+    }
+  }
+
   function handleBookmarkContextMenu(
     bookmark: BookmarkNode,
     event: ReactMouseEvent<HTMLElement>
@@ -512,6 +580,65 @@ export function App() {
     );
 
     setContextMenu({ bookmark, ...placement });
+    setFolderContextMenu(undefined);
+  }
+
+  function handleFolderContextMenu(folder: BookmarkNode, event: ReactMouseEvent<HTMLElement>) {
+    event.preventDefault();
+    event.stopPropagation();
+
+    if (!folder.parentId || folder.unmodifiable) {
+      return;
+    }
+
+    const placement = getContextMenuPlacement(
+      { x: event.clientX, y: event.clientY },
+      { width: window.innerWidth, height: window.innerHeight }
+    );
+
+    setFolderContextMenu({ folder, ...placement });
+    setContextMenu(undefined);
+  }
+
+  function openNewFolderDialog(parentFolder: BookmarkNode, bookmarkToMove?: BookmarkNode) {
+    setContextMenu(undefined);
+    setFolderContextMenu(undefined);
+    setNewFolderDialog({
+      parentFolder,
+      name: "",
+      bookmarkToMove
+    });
+  }
+
+  async function handleCreateFolder(state: NewFolderDialogState) {
+    const title = state.name.trim();
+
+    if (!title) {
+      setToast({ message: "文件夹名称不能为空。" });
+      return;
+    }
+
+    try {
+      const createdFolder = await bookmarksAdapter.create({
+        parentId: state.parentFolder.id,
+        title
+      });
+
+      setNewFolderDialog(undefined);
+      expandFolders(state.parentFolder.id, createdFolder.id);
+      selectFolder(createdFolder.id);
+
+      if (state.bookmarkToMove) {
+        await moveBookmarkWithUndo(createDraggedBookmarkSnapshot(state.bookmarkToMove), createdFolder);
+        return;
+      }
+
+      await reload();
+      setToast({ message: `已新建文件夹“${title}”。` });
+    } catch (cause) {
+      await reload();
+      setToast({ message: getErrorMessage(cause, "新建文件夹失败。") });
+    }
   }
 
   function openBookmarkEditor(bookmark: BookmarkNode) {
@@ -594,6 +721,20 @@ export function App() {
     }
 
     window.open(bookmark.url, "_blank", "noopener,noreferrer");
+  }
+
+  function expandFolders(...folderIds: Array<string | undefined>) {
+    setExpandedFolderIds((current) => {
+      const next = new Set(current);
+
+      folderIds.forEach((folderId) => {
+        if (folderId) {
+          next.add(folderId);
+        }
+      });
+
+      return next;
+    });
   }
 
   async function handleSaveTitle(bookmark: BookmarkNode, title: string) {
@@ -852,6 +993,7 @@ function BookmarkContextMenu({
   onClose,
   onEdit,
   onMove,
+  onCreateFolder,
   onDelete
 }: {
   state: BookmarkContextMenuState;
@@ -859,6 +1001,7 @@ function BookmarkContextMenu({
   onClose(): void;
   onEdit(bookmark: BookmarkNode): void;
   onMove(bookmark: BookmarkNode, folder: BookmarkNode): void;
+  onCreateFolder(bookmark: BookmarkNode, parentFolder: BookmarkNode): void;
   onDelete(bookmark: BookmarkNode): void;
 }) {
   const snapshot = createDraggedBookmarkSnapshot(state.bookmark);
@@ -903,6 +1046,7 @@ function BookmarkContextMenu({
               nodes={tree}
               snapshot={snapshot}
               onMove={(folder) => onMove(state.bookmark, folder)}
+              onCreateFolder={(parentFolder) => onCreateFolder(state.bookmark, parentFolder)}
             />
           </div>
         </div>
@@ -919,14 +1063,45 @@ function BookmarkContextMenu({
   );
 }
 
+function FolderContextMenu({
+  state,
+  onClose,
+  onCreateFolder
+}: {
+  state: FolderContextMenuState;
+  onClose(): void;
+  onCreateFolder(folder: BookmarkNode): void;
+}) {
+  return (
+    <div
+      className="context-menu-layer"
+      onClick={onClose}
+      onContextMenu={(event) => event.preventDefault()}
+    >
+      <div
+        className={`context-menu-panel opens-${state.submenuDirection}`}
+        style={{ left: state.x, top: state.y }}
+        role="menu"
+        onClick={(event) => event.stopPropagation()}
+      >
+        <button type="button" role="menuitem" onClick={() => onCreateFolder(state.folder)}>
+          新建文件夹
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function MoveFolderMenu({
   nodes,
   snapshot,
-  onMove
+  onMove,
+  onCreateFolder
 }: {
   nodes: BookmarkNode[];
   snapshot: DraggedBookmarkSnapshot;
   onMove(folder: BookmarkNode): void;
+  onCreateFolder(parentFolder: BookmarkNode): void;
 }) {
   const folders = nodes.filter(isFolder);
 
@@ -939,7 +1114,7 @@ function MoveFolderMenu({
       {folders.map((folder) => {
         const canMove = canMoveBookmarkToFolder(snapshot, folder);
         const nestedFolders = folder.children?.filter(isFolder) ?? [];
-        const hasNestedFolders = nestedFolders.length > 0;
+        const hasSubmenu = Boolean(folder.parentId);
         const isCurrentParent = snapshot.parentId === folder.id;
         const title = folder.parentId ? getDisplayTitle(folder) : "Root";
 
@@ -950,6 +1125,7 @@ function MoveFolderMenu({
               nodes={folder.children ?? []}
               snapshot={snapshot}
               onMove={onMove}
+              onCreateFolder={onCreateFolder}
             />
           );
         }
@@ -957,14 +1133,14 @@ function MoveFolderMenu({
         return (
           <div
             key={folder.id}
-            className={`move-folder-row ${hasNestedFolders ? "has-children" : ""} ${
+            className={`move-folder-row ${hasSubmenu ? "has-children" : ""} ${
               isCurrentParent ? "is-current-parent" : ""
             }`}
           >
             <button
               type="button"
               aria-disabled={!canMove}
-              disabled={!canMove && !hasNestedFolders}
+              disabled={!canMove && !hasSubmenu}
               onClick={() => {
                 if (canMove) {
                   onMove(folder);
@@ -974,16 +1150,81 @@ function MoveFolderMenu({
               <span className="folder-glyph" aria-hidden="true" />
               <span>{title}</span>
               {isCurrentParent ? <span className="move-menu-note">当前位置</span> : null}
-              {hasNestedFolders ? <span className="menu-chevron" aria-hidden="true" /> : null}
+              {hasSubmenu ? <span className="menu-chevron" aria-hidden="true" /> : null}
             </button>
-            {hasNestedFolders ? (
+            {hasSubmenu ? (
               <div className="context-submenu nested-submenu" role="menu">
-                <MoveFolderMenu nodes={nestedFolders} snapshot={snapshot} onMove={onMove} />
+                <MoveFolderMenu
+                  nodes={nestedFolders}
+                  snapshot={snapshot}
+                  onMove={onMove}
+                  onCreateFolder={onCreateFolder}
+                />
+                <button
+                  className="move-folder-create"
+                  type="button"
+                  role="menuitem"
+                  onClick={() => onCreateFolder(folder)}
+                >
+                  新建文件夹...
+                </button>
               </div>
             ) : null}
           </div>
         );
       })}
+    </div>
+  );
+}
+
+function NewFolderDialog({
+  state,
+  onChange,
+  onClose,
+  onSubmit
+}: {
+  state: NewFolderDialogState;
+  onChange(state: NewFolderDialogState): void;
+  onClose(): void;
+  onSubmit(state: NewFolderDialogState): void;
+}) {
+  function handleSubmit(event: FormEvent) {
+    event.preventDefault();
+    onSubmit(state);
+  }
+
+  return (
+    <div className="dialog-layer" role="presentation" onMouseDown={onClose}>
+      <form
+        className="bookmark-edit-dialog"
+        onSubmit={handleSubmit}
+        onMouseDown={(event) => event.stopPropagation()}
+        aria-label={state.bookmarkToMove ? "新建文件夹并移动书签" : "新建文件夹"}
+      >
+        <div className="dialog-heading">
+          <div>
+            <h3>{state.bookmarkToMove ? "新建并移动" : "新建文件夹"}</h3>
+            <span>位置：{getDisplayTitle(state.parentFolder)}</span>
+          </div>
+          <button type="button" aria-label="关闭新建文件夹窗口" onClick={onClose}>
+            Close
+          </button>
+        </div>
+        <label>
+          文件夹名称
+          <input
+            value={state.name}
+            autoFocus
+            onChange={(event) => onChange({ ...state, name: event.target.value })}
+          />
+        </label>
+        <div className="dialog-actions">
+          <button type="button" onClick={onClose}>
+            Cancel
+          </button>
+          <button type="submit">{state.bookmarkToMove ? "新建并移动" : "新建"}</button>
+        </div>
+      </form>
     </div>
   );
 }

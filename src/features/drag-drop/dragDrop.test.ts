@@ -1,6 +1,14 @@
 import { describe, expect, it } from "vitest";
 import { findNodeById } from "../bookmarks";
-import { canDropBookmarkOnFolder, canMoveBookmarkToFolder, createDraggedBookmarkSnapshot } from "./index";
+import {
+  canDragFolder,
+  canDropBookmarkOnFolder,
+  canDropFolderOnIntent,
+  canMoveBookmarkToFolder,
+  createDraggedBookmarkSnapshot,
+  createDraggedFolderSnapshot,
+  getFolderMoveDestination
+} from "./index";
 import { mockBookmarkTree } from "../../lib/chrome/mockBookmarks";
 import type { BookmarkNode } from "../bookmarks";
 
@@ -47,5 +55,87 @@ describe("drag-drop rules", () => {
     };
 
     expect(canMoveBookmarkToFolder(createDraggedBookmarkSnapshot(bookmark), childFolder)).toBe(true);
+  });
+
+  it("allows dragging regular folders but blocks root and top-level special folders", () => {
+    expect(canDragFolder(findNodeById(mockBookmarkTree, "10"))).toBe(true);
+    expect(canDragFolder(findNodeById(mockBookmarkTree, "0"))).toBe(false);
+    expect(canDragFolder(findNodeById(mockBookmarkTree, "1"))).toBe(false);
+  });
+
+  it("allows dropping a folder inside another editable folder", () => {
+    const source = createDraggedFolderSnapshot(findNodeById(mockBookmarkTree, "10")!);
+    const target = findNodeById(mockBookmarkTree, "11")!;
+
+    expect(
+      canDropFolderOnIntent(source, { targetFolder: target, position: "inside" }, mockBookmarkTree)
+    ).toBe(true);
+    expect(getFolderMoveDestination(source, { targetFolder: target, position: "inside" })).toEqual({
+      parentId: "11"
+    });
+  });
+
+  it("blocks moving a folder into itself or its descendant", () => {
+    const tree: BookmarkNode[] = [
+      {
+        id: "root",
+        title: "",
+        syncing: false,
+        children: [
+          {
+            id: "parent",
+            parentId: "root",
+            index: 0,
+            title: "Parent",
+            syncing: false,
+            children: [
+              {
+                id: "child",
+                parentId: "parent",
+                index: 0,
+                title: "Child",
+                syncing: false,
+                children: []
+              }
+            ]
+          }
+        ]
+      }
+    ];
+    const source = createDraggedFolderSnapshot(tree[0].children![0]);
+    const child = tree[0].children![0].children![0];
+
+    expect(
+      canDropFolderOnIntent(source, { targetFolder: tree[0].children![0], position: "inside" }, tree)
+    ).toBe(false);
+    expect(canDropFolderOnIntent(source, { targetFolder: child, position: "inside" }, tree)).toBe(
+      false
+    );
+  });
+
+  it("blocks sibling drops next to browser top-level folders", () => {
+    const source = createDraggedFolderSnapshot(findNodeById(mockBookmarkTree, "10")!);
+    const topLevelFolder = findNodeById(mockBookmarkTree, "2")!;
+
+    expect(
+      canDropFolderOnIntent(
+        source,
+        { targetFolder: topLevelFolder, position: "before" },
+        mockBookmarkTree
+      )
+    ).toBe(false);
+  });
+
+  it("adjusts same-parent move indexes after the source folder is removed", () => {
+    const source = createDraggedFolderSnapshot(findNodeById(mockBookmarkTree, "10")!);
+    const target = findNodeById(mockBookmarkTree, "11")!;
+
+    expect(getFolderMoveDestination(source, { targetFolder: target, position: "after" })).toEqual({
+      parentId: "1",
+      index: 1
+    });
+    expect(
+      canDropFolderOnIntent(source, { targetFolder: target, position: "before" }, mockBookmarkTree)
+    ).toBe(false);
   });
 });

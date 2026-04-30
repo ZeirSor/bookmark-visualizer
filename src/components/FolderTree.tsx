@@ -1,5 +1,21 @@
-import { useEffect, useRef, useState, type CSSProperties, type DragEvent } from "react";
-import { canDropBookmarkOnFolder, type DraggedBookmarkSnapshot } from "../features/drag-drop";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type DragEvent,
+  type MouseEvent as ReactMouseEvent
+} from "react";
+import {
+  canDragFolder,
+  canDropBookmarkOnFolder,
+  canDropFolderOnIntent,
+  createDraggedFolderSnapshot,
+  type DraggedBookmarkSnapshot,
+  type DraggedFolderSnapshot,
+  type FolderDropIntent,
+  type FolderDropPosition
+} from "../features/drag-drop";
 import { getDisplayTitle, isBookmark, isFolder } from "../features/bookmarks";
 import type { BookmarkNode } from "../features/bookmarks";
 
@@ -9,10 +25,15 @@ interface FolderTreeProps {
   showBookmarksInTree: boolean;
   expandedFolderIds: Set<string>;
   draggedBookmark?: DraggedBookmarkSnapshot;
+  draggedFolder?: DraggedFolderSnapshot;
   onSelectFolder(folderId: string): void;
   onToggleFolder(folderId: string): void;
   onSelectBookmark(bookmark: BookmarkNode): void;
   onDropBookmark(folder: BookmarkNode): void;
+  onFolderDragStart(folder: BookmarkNode): void;
+  onFolderDragEnd(): void;
+  onDropFolder(intent: FolderDropIntent): void;
+  onFolderContextMenu(folder: BookmarkNode, event: ReactMouseEvent<HTMLElement>): void;
 }
 
 export function FolderTree({
@@ -21,23 +42,29 @@ export function FolderTree({
   showBookmarksInTree,
   expandedFolderIds,
   draggedBookmark,
+  draggedFolder,
   onSelectFolder,
   onToggleFolder,
   onSelectBookmark,
-  onDropBookmark
+  onDropBookmark,
+  onFolderDragStart,
+  onFolderDragEnd,
+  onDropFolder,
+  onFolderContextMenu
 }: FolderTreeProps) {
-  const [activeDropFolderId, setActiveDropFolderId] = useState<string>();
+  const [activeBookmarkDropFolderId, setActiveBookmarkDropFolderId] = useState<string>();
+  const [activeFolderDropIntent, setActiveFolderDropIntent] = useState<FolderDropIntent>();
   const treeRef = useRef<HTMLElement>(null);
   const pointerYRef = useRef<number | undefined>(undefined);
   const animationFrameRef = useRef<number | undefined>(undefined);
 
   useEffect(() => {
-    if (!draggedBookmark) {
+    if (!draggedBookmark && !draggedFolder) {
       stopAutoScroll();
     }
 
     return stopAutoScroll;
-  }, [draggedBookmark]);
+  }, [draggedBookmark, draggedFolder]);
 
   function stopAutoScroll() {
     pointerYRef.current = undefined;
@@ -49,7 +76,7 @@ export function FolderTree({
   }
 
   function updateAutoScroll(clientY: number) {
-    if (!draggedBookmark) {
+    if (!draggedBookmark && !draggedFolder) {
       stopAutoScroll();
       return;
     }
@@ -99,12 +126,14 @@ export function FolderTree({
       onDragLeave={(event) => {
         const nextTarget = event.relatedTarget;
         if (!(nextTarget instanceof Node) || !event.currentTarget.contains(nextTarget)) {
-          setActiveDropFolderId(undefined);
+          setActiveBookmarkDropFolderId(undefined);
+          setActiveFolderDropIntent(undefined);
           stopAutoScroll();
         }
       }}
       onDrop={() => {
-        setActiveDropFolderId(undefined);
+        setActiveBookmarkDropFolderId(undefined);
+        setActiveFolderDropIntent(undefined);
         stopAutoScroll();
       }}
     >
@@ -117,12 +146,20 @@ export function FolderTree({
           showBookmarksInTree={showBookmarksInTree}
           expandedFolderIds={expandedFolderIds}
           draggedBookmark={draggedBookmark}
-          activeDropFolderId={activeDropFolderId}
+          draggedFolder={draggedFolder}
+          activeBookmarkDropFolderId={activeBookmarkDropFolderId}
+          activeFolderDropIntent={activeFolderDropIntent}
+          tree={nodes}
           onSelectFolder={onSelectFolder}
           onToggleFolder={onToggleFolder}
           onSelectBookmark={onSelectBookmark}
           onDropBookmark={onDropBookmark}
-          onActiveDropFolderChange={setActiveDropFolderId}
+          onFolderDragStart={onFolderDragStart}
+          onFolderDragEnd={onFolderDragEnd}
+          onDropFolder={onDropFolder}
+          onFolderContextMenu={onFolderContextMenu}
+          onActiveBookmarkDropFolderChange={setActiveBookmarkDropFolderId}
+          onActiveFolderDropIntentChange={setActiveFolderDropIntent}
         />
       ))}
     </nav>
@@ -132,8 +169,11 @@ export function FolderTree({
 interface FolderTreeNodeProps extends Omit<FolderTreeProps, "nodes"> {
   node: BookmarkNode;
   level: number;
-  activeDropFolderId?: string;
-  onActiveDropFolderChange(folderId?: string): void;
+  tree: BookmarkNode[];
+  activeBookmarkDropFolderId?: string;
+  activeFolderDropIntent?: FolderDropIntent;
+  onActiveBookmarkDropFolderChange(folderId?: string): void;
+  onActiveFolderDropIntentChange(intent?: FolderDropIntent): void;
 }
 
 function FolderTreeNode({
@@ -143,12 +183,20 @@ function FolderTreeNode({
   showBookmarksInTree,
   expandedFolderIds,
   draggedBookmark,
-  activeDropFolderId,
+  draggedFolder,
+  tree,
+  activeBookmarkDropFolderId,
+  activeFolderDropIntent,
   onSelectFolder,
   onToggleFolder,
   onSelectBookmark,
   onDropBookmark,
-  onActiveDropFolderChange
+  onFolderDragStart,
+  onFolderDragEnd,
+  onDropFolder,
+  onFolderContextMenu,
+  onActiveBookmarkDropFolderChange,
+  onActiveFolderDropIntentChange
 }: FolderTreeNodeProps) {
   if (isBookmark(node) && !showBookmarksInTree) {
     return null;
@@ -175,34 +223,67 @@ function FolderTreeNode({
   const isSelected = selectedFolderId === node.id;
   const displayTitle = node.parentId ? getDisplayTitle(node) : "Root";
   const expanded = expandedFolderIds.has(node.id);
-  const canDrop = canDropBookmarkOnFolder(draggedBookmark, node);
-  const isDropTarget = canDrop && activeDropFolderId === node.id;
+  const canDropBookmark = canDropBookmarkOnFolder(draggedBookmark, node);
+  const isBookmarkDropTarget = canDropBookmark && activeBookmarkDropFolderId === node.id;
+  const canDragCurrentFolder = canDragFolder(node);
+  const activeFolderDropPosition =
+    activeFolderDropIntent?.targetFolder.id === node.id ? activeFolderDropIntent.position : undefined;
   const visibleChildren = !node.parentId || expanded ? node.children : [];
 
   function handleDragEnter(event: DragEvent<HTMLButtonElement>) {
     event.stopPropagation();
 
-    if (!canDrop) {
+    if (draggedFolder) {
+      handleFolderDragOver(event);
+      return;
+    }
+
+    if (!canDropBookmark) {
       return;
     }
 
     event.preventDefault();
     event.dataTransfer.dropEffect = "move";
-    onActiveDropFolderChange(node.id);
+    onActiveBookmarkDropFolderChange(node.id);
   }
 
   function handleDragOver(event: DragEvent<HTMLButtonElement>) {
     event.stopPropagation();
 
-    if (!canDrop) {
+    if (draggedFolder) {
+      handleFolderDragOver(event);
+      return;
+    }
+
+    if (!canDropBookmark) {
       return;
     }
 
     event.preventDefault();
     event.dataTransfer.dropEffect = "move";
-    if (activeDropFolderId !== node.id) {
-      onActiveDropFolderChange(node.id);
+    if (activeBookmarkDropFolderId !== node.id) {
+      onActiveBookmarkDropFolderChange(node.id);
     }
+  }
+
+  function handleFolderDragOver(event: DragEvent<HTMLButtonElement>) {
+    if (!draggedFolder) {
+      return;
+    }
+
+    const intent = {
+      targetFolder: node,
+      position: getFolderDropPosition(event)
+    };
+
+    if (!canDropFolderOnIntent(draggedFolder, intent, tree)) {
+      onActiveFolderDropIntentChange(undefined);
+      return;
+    }
+
+    event.preventDefault();
+    event.dataTransfer.dropEffect = "move";
+    onActiveFolderDropIntentChange(intent);
   }
 
   function handleDragLeave(event: DragEvent<HTMLButtonElement>) {
@@ -213,16 +294,34 @@ function FolderTreeNode({
       return;
     }
 
-    if (activeDropFolderId === node.id) {
-      onActiveDropFolderChange(undefined);
+    if (activeBookmarkDropFolderId === node.id) {
+      onActiveBookmarkDropFolderChange(undefined);
+    }
+
+    if (activeFolderDropIntent?.targetFolder.id === node.id) {
+      onActiveFolderDropIntentChange(undefined);
     }
   }
 
   function handleDrop(event: DragEvent<HTMLButtonElement>) {
     event.stopPropagation();
-    onActiveDropFolderChange(undefined);
 
-    if (!canDrop) {
+    if (draggedFolder) {
+      const intent = activeFolderDropIntent;
+      onActiveFolderDropIntentChange(undefined);
+
+      if (!intent || !canDropFolderOnIntent(draggedFolder, intent, tree)) {
+        return;
+      }
+
+      event.preventDefault();
+      onDropFolder(intent);
+      return;
+    }
+
+    onActiveBookmarkDropFolderChange(undefined);
+
+    if (!canDropBookmark) {
       return;
     }
 
@@ -235,17 +334,35 @@ function FolderTreeNode({
     onToggleFolder(node.id);
   }
 
+  function handleFolderDragStart(event: DragEvent<HTMLButtonElement>) {
+    if (!canDragCurrentFolder) {
+      event.preventDefault();
+      return;
+    }
+
+    event.stopPropagation();
+    event.dataTransfer.effectAllowed = "move";
+    event.dataTransfer.setData("text/plain", node.id);
+    onFolderDragStart(node);
+  }
+
   return (
     <div>
       {node.parentId ? (
         <button
           className={`tree-row folder-row ${isSelected ? "is-selected" : ""} ${
-            canDrop ? "can-drop" : ""
-          } ${isDropTarget ? "is-drop-target" : ""
+            canDropBookmark ? "can-drop" : ""
+          } ${isBookmarkDropTarget ? "is-drop-target" : ""} ${
+            canDragCurrentFolder ? "can-drag-folder" : ""
+          } ${activeFolderDropPosition ? `is-folder-drop-${activeFolderDropPosition}` : ""
           }`}
           style={{ "--level": level } as CSSProperties}
           type="button"
+          draggable={canDragCurrentFolder}
           onClick={handleFolderClick}
+          onContextMenu={(event) => onFolderContextMenu(node, event)}
+          onDragStart={handleFolderDragStart}
+          onDragEnd={onFolderDragEnd}
           onDragEnter={handleDragEnter}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
@@ -268,14 +385,37 @@ function FolderTreeNode({
           showBookmarksInTree={showBookmarksInTree}
           expandedFolderIds={expandedFolderIds}
           draggedBookmark={draggedBookmark}
-          activeDropFolderId={activeDropFolderId}
+          draggedFolder={draggedFolder}
+          tree={tree}
+          activeBookmarkDropFolderId={activeBookmarkDropFolderId}
+          activeFolderDropIntent={activeFolderDropIntent}
           onSelectFolder={onSelectFolder}
           onToggleFolder={onToggleFolder}
           onSelectBookmark={onSelectBookmark}
           onDropBookmark={onDropBookmark}
-          onActiveDropFolderChange={onActiveDropFolderChange}
+          onFolderDragStart={onFolderDragStart}
+          onFolderDragEnd={onFolderDragEnd}
+          onDropFolder={onDropFolder}
+          onFolderContextMenu={onFolderContextMenu}
+          onActiveBookmarkDropFolderChange={onActiveBookmarkDropFolderChange}
+          onActiveFolderDropIntentChange={onActiveFolderDropIntentChange}
         />
       ))}
     </div>
   );
+}
+
+function getFolderDropPosition(event: DragEvent<HTMLElement>): FolderDropPosition {
+  const bounds = event.currentTarget.getBoundingClientRect();
+  const ratio = (event.clientY - bounds.top) / bounds.height;
+
+  if (ratio < 0.25) {
+    return "before";
+  }
+
+  if (ratio > 0.75) {
+    return "after";
+  }
+
+  return "inside";
 }

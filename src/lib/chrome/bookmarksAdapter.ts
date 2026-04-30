@@ -15,7 +15,7 @@ export interface BookmarkCreateDetails {
   parentId: string;
   index?: number;
   title: string;
-  url: string;
+  url?: string;
 }
 
 export interface BookmarksAdapter {
@@ -87,10 +87,16 @@ function createMockBookmark(details: BookmarkCreateDetails): chrome.bookmarks.Bo
     parentId: details.parentId,
     index: 0,
     title: details.title,
-    url: details.url,
     syncing: false,
     dateAdded: Date.now()
   };
+
+  if (details.url) {
+    nextBookmark.url = details.url;
+  } else {
+    nextBookmark.children = [];
+    nextBookmark.dateGroupModified = Date.now();
+  }
 
   const nextIndex =
     typeof details.index === "number"

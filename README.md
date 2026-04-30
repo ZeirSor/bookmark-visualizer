@@ -37,6 +37,8 @@ The new tab page is the primary surface. The toolbar icon is a secondary entry t
 - Drag bookmark cards into folders to move them in the browser's native bookmark tree.
 - Edit bookmark title, URL, and note.
 - Move or delete bookmarks from the card context menu.
+- Create folders from the folder tree or while choosing a move destination.
+- Drag folders in the tree to move them as children or siblings.
 - Undo supported bookmark moves, edits, note changes, and deletions from toast/session history.
 - Adjust theme, card size, sidebar width, and tree bookmark visibility.
 - Use the toolbar icon as a quick way to open the workspace.
@@ -129,7 +131,7 @@ docs/                  Product, architecture, interaction, and acceptance docume
 
 ## Roadmap
 
-- Folder context menu and folder drag/drop management.
+- Folder rename and delete flows.
 - Create bookmarks and folders from the workspace.
 - Metadata import/export.
 - On-demand summary fetching with optional host permissions.

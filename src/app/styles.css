@@ -165,34 +165,6 @@ button {
   font-size: 0.75rem;
 }
 
-.load-real-bookmarks-button {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  min-height: 36px;
-  padding: 0 10px;
-  color: var(--text);
-  font-size: 0.82rem;
-  font-weight: 700;
-  background: var(--panel);
-  border: 1px solid var(--line-strong);
-  border-radius: 8px;
-  cursor: pointer;
-}
-
-.load-real-bookmarks-button:hover,
-.load-real-bookmarks-button:focus-visible {
-  border-color: var(--accent);
-  outline: 0;
-}
-
-.load-real-bookmarks-button span {
-  color: var(--muted);
-  font-size: 0.7rem;
-  font-weight: 700;
-}
-
 .tree-toggle {
   display: flex;
   align-items: center;
@@ -283,10 +255,51 @@ button {
   cursor: copy;
 }
 
+.folder-row.can-drag-folder {
+  cursor: grab;
+}
+
+.folder-row.can-drag-folder:active {
+  cursor: grabbing;
+}
+
 .folder-row.is-drop-target {
   color: var(--text);
   background: var(--accent-soft);
   border-color: var(--accent);
+}
+
+.folder-row.is-folder-drop-inside {
+  color: var(--text);
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}
+
+.folder-row.is-folder-drop-before,
+.folder-row.is-folder-drop-after {
+  position: relative;
+  color: var(--text);
+  background: var(--panel);
+  border-color: var(--line-strong);
+}
+
+.folder-row.is-folder-drop-before::before,
+.folder-row.is-folder-drop-after::after {
+  position: absolute;
+  right: 8px;
+  left: calc(9px + var(--level, 0) * 18px);
+  height: 2px;
+  content: "";
+  background: var(--accent);
+  border-radius: 999px;
+}
+
+.folder-row.is-folder-drop-before::before {
+  top: -3px;
+}
+
+.folder-row.is-folder-drop-after::after {
+  bottom: -3px;
 }
 
 .bookmark-row {
@@ -646,6 +659,11 @@ button {
 .move-folder-row button:disabled:hover,
 .move-folder-row button[aria-disabled="true"]:hover {
   background: var(--panel-subtle);
+}
+
+.move-folder-create {
+  color: var(--accent) !important;
+  font-weight: 800;
 }
 
 .move-folder-row.is-current-parent > button {

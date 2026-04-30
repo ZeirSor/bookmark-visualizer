@@ -22,16 +22,6 @@ Bookmark Visualizer 管理的是浏览器当前 Profile 的原生书签。文件
 
 当前实现已经保存备注、主题、卡片尺寸、侧栏宽度和“显示树内书签”开关。摘要、导入导出和持久化展开状态仍是后续规划。
 
-## 与 CleanBook CLI 的关系
-
-CleanBook CLI 负责离线清理、去重、分类浏览器书签 HTML 导出文件。Bookmark Visualizer 负责在浏览器内可视化和管理当前书签。
-
-两者可以在未来互补，但第一版不做直接集成：
-
-- 不调用 CleanBook Python 代码。
-- 不依赖 CleanBook 的分类模型。
-- 不复用 CleanBook 的输出文件格式作为运行时数据源。
-
 ## 成功标准
 
 - 用户无需导出书签 HTML，就能看到当前浏览器书签层级。
