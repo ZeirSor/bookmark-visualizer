@@ -55,6 +55,8 @@ interface BookmarkEditState {
   note: string;
 }
 
+const CONTEXT_MENU_CLOSE_DELAY_MS = 220;
+
 export function App() {
   const [query, setQuery] = useState("");
   const [draggedBookmark, setDraggedBookmark] = useState<DraggedBookmarkSnapshot>();
@@ -860,6 +862,21 @@ function BookmarkContextMenu({
   onDelete(bookmark: BookmarkNode): void;
 }) {
   const snapshot = createDraggedBookmarkSnapshot(state.bookmark);
+  const closeTimerRef = useRef<number | undefined>(undefined);
+
+  function clearCloseTimer() {
+    if (closeTimerRef.current) {
+      window.clearTimeout(closeTimerRef.current);
+      closeTimerRef.current = undefined;
+    }
+  }
+
+  function scheduleClose() {
+    clearCloseTimer();
+    closeTimerRef.current = window.setTimeout(onClose, CONTEXT_MENU_CLOSE_DELAY_MS);
+  }
+
+  useEffect(() => clearCloseTimer, []);
 
   return (
     <div
@@ -872,7 +889,8 @@ function BookmarkContextMenu({
         style={{ left: state.x, top: state.y }}
         role="menu"
         onClick={(event) => event.stopPropagation()}
-        onMouseLeave={onClose}
+        onMouseEnter={clearCloseTimer}
+        onMouseLeave={scheduleClose}
       >
         <button type="button" role="menuitem" onClick={() => onEdit(state.bookmark)}>
           编辑

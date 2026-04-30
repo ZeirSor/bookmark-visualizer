@@ -588,6 +588,22 @@ button {
   position: relative;
 }
 
+.has-submenu::after,
+.move-folder-row.has-children::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: -10px;
+  bottom: 0;
+  width: 12px;
+}
+
+.context-menu-panel.opens-left .has-submenu::after,
+.context-menu-panel.opens-left .move-folder-row.has-children::after {
+  right: auto;
+  left: -10px;
+}
+
 .has-submenu:hover > .context-submenu,
 .has-submenu:focus-within > .context-submenu,
 .move-folder-row:hover > .context-submenu,
