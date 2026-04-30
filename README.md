@@ -1,0 +1,139 @@
+<p align="center">
+  <a href="README.md">English</a> | <a href="README.zh-CN.md">简体中文</a>
+</p>
+
+<p align="center">
+  <img src="public/icons/icon-128.png" width="96" height="96" alt="Bookmark Visualizer icon" />
+</p>
+
+<h1 align="center">Bookmark Visualizer</h1>
+
+<p align="center">
+  A Chrome and Edge new tab workspace for visually browsing, searching, and organizing native browser bookmarks.
+</p>
+
+<p align="center">
+  <img alt="Status: preview" src="https://img.shields.io/badge/status-preview-f59e0b" />
+  <img alt="Chrome and Edge" src="https://img.shields.io/badge/browser-Chrome%20%7C%20Edge-2563eb" />
+  <img alt="Manifest V3" src="https://img.shields.io/badge/manifest-v3-16a34a" />
+  <img alt="React" src="https://img.shields.io/badge/React-19-61dafb" />
+  <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-5.8-3178c6" />
+  <img alt="Vite" src="https://img.shields.io/badge/Vite-7-646cff" />
+</p>
+
+## Overview
+
+Bookmark Visualizer is a Manifest V3 browser extension for people with large bookmark collections. It replaces the new tab page with a spacious bookmark workspace: a folder tree on the left, bookmark cards on the right, and search plus management actions around the edges.
+
+The extension uses `chrome.bookmarks` as the source of truth. Moves, edits, and deletes operate on the browser's native bookmark tree instead of a private copy. Extension-only data such as notes, summaries, settings, and UI state belong in `chrome.storage.local`.
+
+The new tab page is the primary surface. The toolbar icon is a secondary entry that opens the same full-page workspace in a tab.
+
+## Features
+
+- Browse the native bookmark folder tree in a dedicated new tab workspace.
+- View bookmarks as readable cards with title, URL, favicon, and note/summary space.
+- Search bookmarks by title and URL.
+- Drag bookmark cards into folders to move them in the browser's native bookmark tree.
+- Edit bookmark title, URL, and note.
+- Move or delete bookmarks from the card context menu.
+- Undo supported bookmark moves, edits, note changes, and deletions from toast/session history.
+- Adjust theme, card size, sidebar width, and tree bookmark visibility.
+- Use the toolbar icon as a quick way to open the workspace.
+
+## Preview
+
+A maintained screenshot or demo GIF will be added before the first public release. The current visual identity uses the extension icon in `public/icons/`.
+
+## Installation
+
+Clone the repository and install dependencies:
+
+```bash
+git clone <your-repo-url>
+cd bookmark-visualizer
+npm install
+```
+
+## Development
+
+Start the Vite development server:
+
+```bash
+npm run dev
+```
+
+Run the validation commands:
+
+```bash
+npm run typecheck
+npm run test
+npm run build
+```
+
+## Loading The Extension
+
+Build the extension first:
+
+```bash
+npm run build
+```
+
+Then load the generated `dist` folder:
+
+1. Open `chrome://extensions` in Chrome or `edge://extensions` in Edge.
+2. Enable Developer mode.
+3. Choose Load unpacked.
+4. Select the `dist` folder from this repository.
+5. Open a new tab to launch Bookmark Visualizer.
+6. Optionally pin the extension and click the toolbar icon to open the same workspace.
+
+Use a test browser profile when trying destructive bookmark actions such as move, edit, or delete.
+
+## Usage
+
+- Select a folder in the left tree to show its direct bookmarks.
+- Toggle tree bookmark visibility if you want bookmark items inside the folder tree.
+- Type in the search box to search all bookmarks by title or URL.
+- Drag a bookmark card onto a writable folder to move it.
+- Right-click a bookmark card to edit, move, or delete it.
+- Use the undo toast or session operation log after supported operations.
+
+## Project Structure
+
+```text
+src/
+  app/                 React app shell and global styles
+  components/          Shared UI components
+  features/            Bookmark, search, metadata, drag-drop, menu, summary, settings logic
+  lib/chrome/          Chrome API adapters and mock browser data
+public/
+  manifest.json        Manifest V3 extension manifest
+  icons/               Extension icons
+docs/                  Product, architecture, interaction, and acceptance documents
+```
+
+## Documentation
+
+- [Requirements](docs/01-requirements.md)
+- [Architecture](docs/02-architecture.md)
+- [UI design](docs/03-ui-design.md)
+- [Data and storage](docs/04-data-storage.md)
+- [Module boundaries](docs/05-module-boundaries.md)
+- [Interactions](docs/06-interactions.md)
+- [Testing and acceptance](docs/07-testing-and-acceptance.md)
+- [Roadmap](docs/08-roadmap.md)
+- [Architecture decision records](docs/adr/)
+
+## Roadmap
+
+- Folder context menu and folder drag/drop management.
+- Create bookmarks and folders from the workspace.
+- Metadata import/export.
+- On-demand summary fetching with optional host permissions.
+- Component-level UI tests.
+- First public release packaging and maintained screenshots.
+
+## License
+
+No license has been specified yet.
