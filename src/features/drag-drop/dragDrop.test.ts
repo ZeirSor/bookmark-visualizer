@@ -5,8 +5,11 @@ import {
   canDropBookmarkOnFolder,
   canDropFolderOnIntent,
   canMoveBookmarkToFolder,
+  canReorderBookmarkOnIntent,
   createDraggedBookmarkSnapshot,
   createDraggedFolderSnapshot,
+  getBookmarkCardDropPosition,
+  getBookmarkReorderDestination,
   getFolderMoveDestination
 } from "./index";
 import { mockBookmarkTree } from "../../lib/chrome/mockBookmarks";
@@ -137,5 +140,66 @@ describe("drag-drop rules", () => {
     expect(
       canDropFolderOnIntent(source, { targetFolder: target, position: "before" }, mockBookmarkTree)
     ).toBe(false);
+  });
+
+  it("allows reordering bookmarks within the same parent folder", () => {
+    const source = createDraggedBookmarkSnapshot(findNodeById(mockBookmarkTree, "100")!);
+    const target = findNodeById(mockBookmarkTree, "102")!;
+
+    expect(canReorderBookmarkOnIntent(source, { targetBookmark: target, position: "after" })).toBe(
+      true
+    );
+    expect(getBookmarkReorderDestination(source, { targetBookmark: target, position: "after" })).toEqual({
+      parentId: "10",
+      index: 3
+    });
+  });
+
+  it("blocks bookmark reordering across folders and no-op adjacent positions", () => {
+    const source = createDraggedBookmarkSnapshot(findNodeById(mockBookmarkTree, "100")!);
+    const nextSibling = findNodeById(mockBookmarkTree, "101")!;
+    const otherFolderBookmark = findNodeById(mockBookmarkTree, "110")!;
+
+    expect(
+      canReorderBookmarkOnIntent(source, { targetBookmark: otherFolderBookmark, position: "before" })
+    ).toBe(false);
+    expect(
+      canReorderBookmarkOnIntent(source, { targetBookmark: nextSibling, position: "before" })
+    ).toBe(false);
+  });
+
+  it("uses the nearest card edge to decide bookmark drop position", () => {
+    const wideCard = { top: 100, right: 480, bottom: 278, left: 100 };
+
+    expect(getBookmarkCardDropPosition({ x: 300, y: 108 }, wideCard)).toBe("before");
+    expect(getBookmarkCardDropPosition({ x: 140, y: 270 }, wideCard)).toBe("after");
+    expect(getBookmarkCardDropPosition({ x: 108, y: 190 }, wideCard)).toBe("before");
+    expect(getBookmarkCardDropPosition({ x: 472, y: 190 }, wideCard)).toBe("after");
+  });
+
+  it("allows moving the second bookmark before the first when hovering near the first card top edge", () => {
+    const source = createDraggedBookmarkSnapshot(findNodeById(mockBookmarkTree, "101")!);
+    const target = findNodeById(mockBookmarkTree, "100")!;
+    const position = getBookmarkCardDropPosition(
+      { x: 300, y: 108 },
+      { top: 100, right: 480, bottom: 278, left: 100 }
+    );
+
+    expect(position).toBe("before");
+    expect(canReorderBookmarkOnIntent(source, { targetBookmark: target, position })).toBe(true);
+    expect(getBookmarkReorderDestination(source, { targetBookmark: target, position })).toEqual({
+      parentId: "10",
+      index: 0
+    });
+  });
+
+  it("uses raw target indexes so moving the first bookmark after the last reaches the end", () => {
+    const source = createDraggedBookmarkSnapshot(findNodeById(mockBookmarkTree, "100")!);
+    const target = findNodeById(mockBookmarkTree, "109")!;
+
+    expect(getBookmarkReorderDestination(source, { targetBookmark: target, position: "after" })).toEqual({
+      parentId: "10",
+      index: 10
+    });
   });
 });

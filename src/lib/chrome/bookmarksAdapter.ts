@@ -124,11 +124,16 @@ function moveMockBookmark(
     throw new Error("Target folder was not found.");
   }
 
+  const sameParent = source.parentId === destination.parentId;
+  const requestedIndex =
+    typeof destination.index === "number" ? destination.index : targetFolder.children.length;
+  const adjustedIndex =
+    sameParent && typeof source.index === "number" && source.index < requestedIndex
+      ? requestedIndex - 1
+      : requestedIndex;
+
   source.parentId = destination.parentId;
-  const nextIndex =
-    typeof destination.index === "number"
-      ? Math.max(0, Math.min(destination.index, targetFolder.children.length))
-      : targetFolder.children.length;
+  const nextIndex = Math.max(0, Math.min(adjustedIndex, targetFolder.children.length));
 
   targetFolder.children.splice(nextIndex, 0, source);
   reindex(targetFolder.children);

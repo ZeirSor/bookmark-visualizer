@@ -24,11 +24,14 @@ interface FolderTreeProps {
   selectedFolderId?: string;
   showBookmarksInTree: boolean;
   expandedFolderIds: Set<string>;
+  renamingFolderId?: string;
   draggedBookmark?: DraggedBookmarkSnapshot;
   draggedFolder?: DraggedFolderSnapshot;
   onSelectFolder(folderId: string): void;
   onToggleFolder(folderId: string): void;
   onSelectBookmark(bookmark: BookmarkNode): void;
+  onRenameFolder(folder: BookmarkNode, title: string): Promise<void>;
+  onCancelRenameFolder(): void;
   onDropBookmark(folder: BookmarkNode): void;
   onFolderDragStart(folder: BookmarkNode): void;
   onFolderDragEnd(): void;
@@ -41,11 +44,14 @@ export function FolderTree({
   selectedFolderId,
   showBookmarksInTree,
   expandedFolderIds,
+  renamingFolderId,
   draggedBookmark,
   draggedFolder,
   onSelectFolder,
   onToggleFolder,
   onSelectBookmark,
+  onRenameFolder,
+  onCancelRenameFolder,
   onDropBookmark,
   onFolderDragStart,
   onFolderDragEnd,
@@ -145,6 +151,7 @@ export function FolderTree({
           selectedFolderId={selectedFolderId}
           showBookmarksInTree={showBookmarksInTree}
           expandedFolderIds={expandedFolderIds}
+          renamingFolderId={renamingFolderId}
           draggedBookmark={draggedBookmark}
           draggedFolder={draggedFolder}
           activeBookmarkDropFolderId={activeBookmarkDropFolderId}
@@ -153,6 +160,8 @@ export function FolderTree({
           onSelectFolder={onSelectFolder}
           onToggleFolder={onToggleFolder}
           onSelectBookmark={onSelectBookmark}
+          onRenameFolder={onRenameFolder}
+          onCancelRenameFolder={onCancelRenameFolder}
           onDropBookmark={onDropBookmark}
           onFolderDragStart={onFolderDragStart}
           onFolderDragEnd={onFolderDragEnd}
@@ -182,6 +191,7 @@ function FolderTreeNode({
   selectedFolderId,
   showBookmarksInTree,
   expandedFolderIds,
+  renamingFolderId,
   draggedBookmark,
   draggedFolder,
   tree,
@@ -190,6 +200,8 @@ function FolderTreeNode({
   onSelectFolder,
   onToggleFolder,
   onSelectBookmark,
+  onRenameFolder,
+  onCancelRenameFolder,
   onDropBookmark,
   onFolderDragStart,
   onFolderDragEnd,
@@ -223,6 +235,7 @@ function FolderTreeNode({
   const isSelected = selectedFolderId === node.id;
   const displayTitle = node.parentId ? getDisplayTitle(node) : "Root";
   const expanded = expandedFolderIds.has(node.id);
+  const isRenaming = renamingFolderId === node.id;
   const canDropBookmark = canDropBookmarkOnFolder(draggedBookmark, node);
   const isBookmarkDropTarget = canDropBookmark && activeBookmarkDropFolderId === node.id;
   const canDragCurrentFolder = canDragFolder(node);
@@ -348,7 +361,25 @@ function FolderTreeNode({
 
   return (
     <div>
-      {node.parentId ? (
+      {node.parentId && isRenaming ? (
+        <div
+          className={`tree-row folder-row is-selected is-renaming ${
+            canDragCurrentFolder ? "can-drag-folder" : ""
+          }`}
+          style={{ "--level": level } as CSSProperties}
+        >
+          <span
+            className={`tree-caret ${expanded ? "is-expanded" : ""}`}
+            aria-hidden="true"
+          />
+          <span className="folder-glyph" aria-hidden="true" />
+          <FolderRenameInput
+            folder={node}
+            onSave={onRenameFolder}
+            onCancel={onCancelRenameFolder}
+          />
+        </div>
+      ) : node.parentId ? (
         <button
           className={`tree-row folder-row ${isSelected ? "is-selected" : ""} ${
             canDropBookmark ? "can-drop" : ""
@@ -384,6 +415,7 @@ function FolderTreeNode({
           selectedFolderId={selectedFolderId}
           showBookmarksInTree={showBookmarksInTree}
           expandedFolderIds={expandedFolderIds}
+          renamingFolderId={renamingFolderId}
           draggedBookmark={draggedBookmark}
           draggedFolder={draggedFolder}
           tree={tree}
@@ -392,6 +424,8 @@ function FolderTreeNode({
           onSelectFolder={onSelectFolder}
           onToggleFolder={onToggleFolder}
           onSelectBookmark={onSelectBookmark}
+          onRenameFolder={onRenameFolder}
+          onCancelRenameFolder={onCancelRenameFolder}
           onDropBookmark={onDropBookmark}
           onFolderDragStart={onFolderDragStart}
           onFolderDragEnd={onFolderDragEnd}
@@ -402,6 +436,69 @@ function FolderTreeNode({
         />
       ))}
     </div>
+  );
+}
+
+function FolderRenameInput({
+  folder,
+  onSave,
+  onCancel
+}: {
+  folder: BookmarkNode;
+  onSave(folder: BookmarkNode, title: string): Promise<void>;
+  onCancel(): void;
+}) {
+  const [value, setValue] = useState(folder.title);
+  const [saving, setSaving] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    inputRef.current?.focus();
+    inputRef.current?.select();
+  }, []);
+
+  async function save() {
+    if (saving) {
+      return;
+    }
+
+    setSaving(true);
+    try {
+      await onSave(folder, value);
+    } catch {
+      // The app shows validation feedback; keep the inline editor active.
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <span className="folder-rename-editor">
+      <input
+        ref={inputRef}
+        value={value}
+        aria-label="重命名文件夹"
+        onClick={(event) => event.stopPropagation()}
+        onMouseDown={(event) => event.stopPropagation()}
+        onBlur={() => void save()}
+        onChange={(event) => setValue(event.target.value)}
+        onKeyDown={(event) => {
+          event.stopPropagation();
+
+          if (event.key === "Escape") {
+            event.preventDefault();
+            onCancel();
+            return;
+          }
+
+          if (event.key === "Enter") {
+            event.preventDefault();
+            void save();
+          }
+        }}
+      />
+      <span>{saving ? "保存中..." : "Enter 保存，Esc 取消"}</span>
+    </span>
   );
 }
 

@@ -27,6 +27,13 @@ describe("bookmarksAdapter mock behavior", () => {
     expect(findNodeById(tree, "100")?.title).toBe("Updated docs");
   });
 
+  it("updates a folder title", async () => {
+    await bookmarksAdapter.update("10", { title: "Updated folder" });
+    const tree = await bookmarksAdapter.getTree();
+
+    expect(findNodeById(tree, "10")?.title).toBe("Updated folder");
+  });
+
   it("creates and removes a bookmark in mock mode", async () => {
     const created = await bookmarksAdapter.create({
       parentId: "10",
@@ -77,6 +84,39 @@ describe("bookmarksAdapter mock behavior", () => {
     expect(newParent?.children?.[1]?.id).toBe("10");
     expect(newParent?.children?.map((child) => child.index)).toEqual(
       newParent?.children?.map((_, index) => index)
+    );
+  });
+
+  it("moves a bookmark to a specific same-parent raw index and reindexes the parent", async () => {
+    await bookmarksAdapter.move("100", { parentId: "10", index: 4 });
+    const tree = await bookmarksAdapter.getTree();
+    const parent = findNodeById(tree, "10");
+
+    expect(parent?.children?.[3]?.id).toBe("100");
+    expect(parent?.children?.map((child) => child.index)).toEqual(
+      parent?.children?.map((_, index) => index)
+    );
+  });
+
+  it("moves the first bookmark after the last sibling", async () => {
+    await bookmarksAdapter.move("100", { parentId: "10", index: 10 });
+    const tree = await bookmarksAdapter.getTree();
+    const parent = findNodeById(tree, "10");
+
+    expect(parent?.children?.at(-1)?.id).toBe("100");
+    expect(parent?.children?.map((child) => child.index)).toEqual(
+      parent?.children?.map((_, index) => index)
+    );
+  });
+
+  it("moves a later bookmark before the first sibling", async () => {
+    await bookmarksAdapter.move("101", { parentId: "10", index: 0 });
+    const tree = await bookmarksAdapter.getTree();
+    const parent = findNodeById(tree, "10");
+
+    expect(parent?.children?.[0]?.id).toBe("101");
+    expect(parent?.children?.map((child) => child.index)).toEqual(
+      parent?.children?.map((_, index) => index)
     );
   });
 });

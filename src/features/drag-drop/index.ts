@@ -15,10 +15,28 @@ export interface DraggedFolderSnapshot {
 }
 
 export type FolderDropPosition = "before" | "inside" | "after";
+export type BookmarkDropPosition = "before" | "after";
 
 export interface FolderDropIntent {
   targetFolder: BookmarkNode;
   position: FolderDropPosition;
+}
+
+export interface BookmarkDropIntent {
+  targetBookmark: BookmarkNode;
+  position: BookmarkDropPosition;
+}
+
+export interface BookmarkDropPointer {
+  x: number;
+  y: number;
+}
+
+export interface BookmarkDropRect {
+  top: number;
+  right: number;
+  bottom: number;
+  left: number;
 }
 
 export interface FolderMoveDestination {
@@ -64,6 +82,66 @@ export function canMoveBookmarkToFolder(
   }
 
   return dragged.parentId !== targetFolder.id;
+}
+
+export function canReorderBookmarkOnIntent(
+  dragged: DraggedBookmarkSnapshot | undefined,
+  intent: BookmarkDropIntent | undefined
+): boolean {
+  if (!dragged || !intent || !dragged.parentId || !intent.targetBookmark.parentId) {
+    return false;
+  }
+
+  if (dragged.id === intent.targetBookmark.id) {
+    return false;
+  }
+
+  if (dragged.parentId !== intent.targetBookmark.parentId) {
+    return false;
+  }
+
+  const sourceIndex = dragged.index ?? -1;
+  const targetIndex = intent.targetBookmark.index ?? -1;
+
+  if (intent.position === "before" && sourceIndex === targetIndex - 1) {
+    return false;
+  }
+
+  if (intent.position === "after" && sourceIndex === targetIndex + 1) {
+    return false;
+  }
+
+  return true;
+}
+
+export function getBookmarkReorderDestination(
+  dragged: DraggedBookmarkSnapshot,
+  intent: BookmarkDropIntent
+): FolderMoveDestination {
+  if (!intent.targetBookmark.parentId) {
+    throw new Error("Cannot reorder a bookmark without a parent folder.");
+  }
+
+  const targetIndex = intent.targetBookmark.index ?? 0;
+  const rawIndex = intent.position === "before" ? targetIndex : targetIndex + 1;
+
+  return { parentId: intent.targetBookmark.parentId, index: rawIndex };
+}
+
+export function getBookmarkCardDropPosition(
+  pointer: BookmarkDropPointer,
+  rect: BookmarkDropRect
+): BookmarkDropPosition {
+  const beforeDistance = Math.min(
+    Math.abs(pointer.x - rect.left),
+    Math.abs(pointer.y - rect.top)
+  );
+  const afterDistance = Math.min(
+    Math.abs(rect.right - pointer.x),
+    Math.abs(rect.bottom - pointer.y)
+  );
+
+  return beforeDistance <= afterDistance ? "before" : "after";
 }
 
 export function canDragFolder(folder: BookmarkNode | undefined): boolean {

@@ -2,11 +2,13 @@ import {
   useEffect,
   useState,
   type ChangeEvent,
+  type DragEvent,
   type FocusEvent,
   type KeyboardEvent,
   type MouseEvent
 } from "react";
 import type { BookmarkNode } from "../features/bookmarks";
+import type { BookmarkDropPosition } from "../features/drag-drop";
 
 interface BookmarkCardProps {
   bookmark: BookmarkNode;
@@ -14,10 +16,16 @@ interface BookmarkCardProps {
   note?: string;
   highlighted: boolean;
   highlightPulse: boolean;
+  editRequestId?: number;
+  activeDropPosition?: BookmarkDropPosition;
   onDragStart(bookmark: BookmarkNode): void;
   onDragEnd(): void;
+  onDragOverBookmark(bookmark: BookmarkNode, event: DragEvent<HTMLElement>): void;
+  onDragLeaveBookmark(bookmark: BookmarkNode, event: DragEvent<HTMLElement>): void;
+  onDropOnBookmark(bookmark: BookmarkNode, event: DragEvent<HTMLElement>): void;
   onOpen(bookmark: BookmarkNode): void;
   onSaveTitle(bookmark: BookmarkNode, title: string): Promise<void>;
+  onSaveUrl(bookmark: BookmarkNode, url: string): Promise<void>;
   onSaveNote(bookmark: BookmarkNode, note: string): Promise<void>;
   onContextMenu(bookmark: BookmarkNode, event: MouseEvent<HTMLElement>): void;
 }
@@ -28,18 +36,26 @@ export function BookmarkCard({
   note,
   highlighted,
   highlightPulse,
+  editRequestId,
+  activeDropPosition,
   onDragStart,
   onDragEnd,
+  onDragOverBookmark,
+  onDragLeaveBookmark,
+  onDropOnBookmark,
   onOpen,
   onSaveTitle,
+  onSaveUrl,
   onSaveNote,
   onContextMenu
 }: BookmarkCardProps) {
   const url = bookmark.url ?? "";
   const hostname = getHostname(url);
   const [editingTitle, setEditingTitle] = useState(false);
+  const [editingUrl, setEditingUrl] = useState(false);
   const [editingNote, setEditingNote] = useState(false);
   const [titleValue, setTitleValue] = useState(bookmark.title);
+  const [urlValue, setUrlValue] = useState(url);
   const [noteValue, setNoteValue] = useState(note ?? "");
 
   useEffect(() => {
@@ -47,13 +63,28 @@ export function BookmarkCard({
   }, [bookmark.title]);
 
   useEffect(() => {
+    setUrlValue(url);
+  }, [url]);
+
+  useEffect(() => {
     setNoteValue(note ?? "");
   }, [note]);
+
+  useEffect(() => {
+    if (editRequestId === undefined) {
+      return;
+    }
+
+    setEditingTitle(true);
+    setEditingUrl(true);
+    setEditingNote(true);
+  }, [editRequestId]);
 
   return (
     <article
       className={`bookmark-card ${highlighted ? "is-highlighted" : ""} ${
         highlightPulse ? "is-highlight-pulse" : ""
+      } ${activeDropPosition ? `is-card-drop-${activeDropPosition}` : ""
       }`}
       data-bookmark-id={bookmark.id}
       draggable
@@ -71,6 +102,9 @@ export function BookmarkCard({
         onDragStart(bookmark);
       }}
       onDragEnd={onDragEnd}
+      onDragOver={(event) => onDragOverBookmark(bookmark, event)}
+      onDragLeave={(event) => onDragLeaveBookmark(bookmark, event)}
+      onDrop={(event) => onDropOnBookmark(bookmark, event)}
       aria-label={`打开书签 ${bookmark.title || hostname}`}
     >
       <button
@@ -123,7 +157,38 @@ export function BookmarkCard({
             {bookmark.title || "Untitled bookmark"}
           </button>
         )}
-        <span className="bookmark-url">{hostname || url}</span>
+        {editingUrl ? (
+          <InlineInput
+            ariaLabel="编辑书签 URL"
+            value={urlValue}
+            multiline={false}
+            onChange={setUrlValue}
+            onCancel={() => {
+              setUrlValue(url);
+              setEditingUrl(false);
+            }}
+            onSave={async () => {
+              if (urlValue.trim() === url.trim()) {
+                setEditingUrl(false);
+                return;
+              }
+
+              await onSaveUrl(bookmark, urlValue);
+              setEditingUrl(false);
+            }}
+          />
+        ) : (
+          <button
+            className="inline-edit-url"
+            type="button"
+            onClick={(event) => {
+              event.stopPropagation();
+              setEditingUrl(true);
+            }}
+          >
+            {hostname || url}
+          </button>
+        )}
         {editingNote ? (
           <InlineInput
             ariaLabel="编辑备注"
@@ -208,6 +273,8 @@ function InlineInput({
     setSaving(true);
     try {
       await onSave();
+    } catch {
+      // The parent owns validation messages; keep the inline editor open.
     } finally {
       setSaving(false);
     }

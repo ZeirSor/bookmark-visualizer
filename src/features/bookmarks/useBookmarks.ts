@@ -19,6 +19,7 @@ interface UseBookmarksState {
   error?: string;
   reload(): Promise<void>;
   selectFolder(folderId: string): void;
+  updateTree(updater: (tree: BookmarkNode[]) => BookmarkNode[]): void;
 }
 
 export function useBookmarks(): UseBookmarksState {
@@ -41,6 +42,10 @@ export function useBookmarks(): UseBookmarksState {
     } finally {
       setLoading(false);
     }
+  }, []);
+
+  const updateTree = useCallback((updater: (tree: BookmarkNode[]) => BookmarkNode[]) => {
+    setTree((current) => updater(current));
   }, []);
 
   useEffect(() => {
@@ -79,6 +84,7 @@ export function useBookmarks(): UseBookmarksState {
     loading,
     error,
     reload: loadBookmarks,
-    selectFolder: setSelectedFolderId
+    selectFolder: setSelectedFolderId,
+    updateTree
   };
 }
