@@ -1,8 +1,12 @@
 import { describe, expect, it } from "vitest";
 import {
+  canCreateBookmarkInFolder,
   canRenameFolder,
   collectFolderIds,
+  filterFolderOptions,
   findNodeById,
+  flattenFolders,
+  getFolderEndIndex,
   insertNodeInBookmarkTree,
   moveNodeInBookmarkTree,
   removeNodeFromBookmarkTree
@@ -69,6 +73,43 @@ describe("bookmark tree helpers", () => {
         unmodifiable: "managed"
       })
     ).toBe(false);
+  });
+
+  it("allows creating bookmarks in writable folders including browser top-level folders", () => {
+    expect(canCreateBookmarkInFolder(findNodeById(mockBookmarkTree, "1"))).toBe(true);
+    expect(canCreateBookmarkInFolder(findNodeById(mockBookmarkTree, "10"))).toBe(true);
+    expect(canCreateBookmarkInFolder(findNodeById(mockBookmarkTree, "0"))).toBe(false);
+    expect(
+      canCreateBookmarkInFolder({
+        ...findNodeById(mockBookmarkTree, "10")!,
+        unmodifiable: "managed"
+      })
+    ).toBe(false);
+  });
+
+  it("uses the full folder child count for end insertion indexes", () => {
+    expect(getFolderEndIndex(findNodeById(mockBookmarkTree, "1"))).toBe(12);
+    expect(getFolderEndIndex(findNodeById(mockBookmarkTree, "10"))).toBe(10);
+    expect(
+      getFolderEndIndex({
+        id: "empty",
+        parentId: "1",
+        index: 0,
+        title: "Empty",
+        syncing: false,
+        children: []
+      })
+    ).toBe(0);
+  });
+
+  it("filters folder picker options by title or full path", () => {
+    const options = flattenFolders(mockBookmarkTree);
+
+    expect(filterFolderOptions(options, "design").map((option) => option.id)).toContain("11");
+    expect(filterFolderOptions(options, "bookmarks bar / product").map((option) => option.id)).toContain(
+      "10"
+    );
+    expect(filterFolderOptions(options, "missing")).toEqual([]);
   });
 
   it("moves the second bookmark before the first without reloading the tree", () => {

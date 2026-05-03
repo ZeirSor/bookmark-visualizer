@@ -30,6 +30,8 @@ interface FolderTreeProps {
   onSelectFolder(folderId: string): void;
   onToggleFolder(folderId: string): void;
   onSelectBookmark(bookmark: BookmarkNode): void;
+  onBookmarkDragStart(bookmark: BookmarkNode): void;
+  onBookmarkDragEnd(): void;
   onRenameFolder(folder: BookmarkNode, title: string): Promise<void>;
   onCancelRenameFolder(): void;
   onDropBookmark(folder: BookmarkNode): void;
@@ -50,6 +52,8 @@ export function FolderTree({
   onSelectFolder,
   onToggleFolder,
   onSelectBookmark,
+  onBookmarkDragStart,
+  onBookmarkDragEnd,
   onRenameFolder,
   onCancelRenameFolder,
   onDropBookmark,
@@ -160,6 +164,8 @@ export function FolderTree({
           onSelectFolder={onSelectFolder}
           onToggleFolder={onToggleFolder}
           onSelectBookmark={onSelectBookmark}
+          onBookmarkDragStart={onBookmarkDragStart}
+          onBookmarkDragEnd={onBookmarkDragEnd}
           onRenameFolder={onRenameFolder}
           onCancelRenameFolder={onCancelRenameFolder}
           onDropBookmark={onDropBookmark}
@@ -200,6 +206,8 @@ function FolderTreeNode({
   onSelectFolder,
   onToggleFolder,
   onSelectBookmark,
+  onBookmarkDragStart,
+  onBookmarkDragEnd,
   onRenameFolder,
   onCancelRenameFolder,
   onDropBookmark,
@@ -215,12 +223,22 @@ function FolderTreeNode({
   }
 
   if (isBookmark(node)) {
+    function handleBookmarkDragStart(event: DragEvent<HTMLButtonElement>) {
+      event.stopPropagation();
+      event.dataTransfer.effectAllowed = "move";
+      event.dataTransfer.setData("text/plain", node.id);
+      onBookmarkDragStart(node);
+    }
+
     return (
       <button
-        className="tree-row bookmark-row"
+        className="tree-row bookmark-row can-drag-bookmark"
         style={{ "--level": level } as CSSProperties}
         type="button"
+        draggable
         onClick={() => onSelectBookmark(node)}
+        onDragStart={handleBookmarkDragStart}
+        onDragEnd={onBookmarkDragEnd}
       >
         <span className="bookmark-glyph" aria-hidden="true" />
         <span className="tree-title">{getDisplayTitle(node)}</span>
@@ -424,6 +442,8 @@ function FolderTreeNode({
           onSelectFolder={onSelectFolder}
           onToggleFolder={onToggleFolder}
           onSelectBookmark={onSelectBookmark}
+          onBookmarkDragStart={onBookmarkDragStart}
+          onBookmarkDragEnd={onBookmarkDragEnd}
           onRenameFolder={onRenameFolder}
           onCancelRenameFolder={onCancelRenameFolder}
           onDropBookmark={onDropBookmark}

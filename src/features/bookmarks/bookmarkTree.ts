@@ -23,6 +23,10 @@ export function canRenameFolder(node: BookmarkNode | undefined): boolean {
   );
 }
 
+export function canCreateBookmarkInFolder(node: BookmarkNode | undefined): boolean {
+  return Boolean(node && isFolder(node) && node.parentId && !node.unmodifiable);
+}
+
 export function getDisplayTitle(node: BookmarkNode): string {
   return node.title.trim() || "Untitled";
 }
@@ -81,6 +85,24 @@ export function getDirectBookmarks(folder?: BookmarkNode): BookmarkNode[] {
   }
 
   return folder.children.filter(isBookmark);
+}
+
+export function getFolderEndIndex(folder?: BookmarkNode): number {
+  return folder?.children?.length ?? 0;
+}
+
+export function filterFolderOptions(options: FolderOption[], query: string): FolderOption[] {
+  const normalizedQuery = query.trim().toLocaleLowerCase();
+
+  if (!normalizedQuery) {
+    return options;
+  }
+
+  return options.filter((option) => {
+    const title = option.title.toLocaleLowerCase();
+    const path = option.path.toLocaleLowerCase();
+    return title.includes(normalizedQuery) || path.includes(normalizedQuery);
+  });
 }
 
 export function buildFolderPathMap(nodes: BookmarkNode[]): Map<string, string> {

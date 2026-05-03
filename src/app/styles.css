@@ -335,6 +335,14 @@ button {
   cursor: pointer;
 }
 
+.bookmark-row.can-drag-bookmark {
+  cursor: grab;
+}
+
+.bookmark-row.can-drag-bookmark:active {
+  cursor: grabbing;
+}
+
 .bookmark-row:hover {
   color: var(--text);
   background: var(--panel);
@@ -690,6 +698,11 @@ button {
   font-weight: 800;
 }
 
+.move-folder-search {
+  color: var(--accent) !important;
+  font-weight: 800;
+}
+
 .move-folder-row.is-current-parent > button {
   background: linear-gradient(90deg, var(--accent-soft), transparent 76%);
 }
@@ -797,6 +810,140 @@ button {
   color: #ffffff;
   background: var(--accent);
   border-color: var(--accent);
+}
+
+.folder-picker-dialog {
+  width: min(640px, 100%);
+}
+
+.folder-picker-search {
+  display: grid;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.folder-picker-create {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px;
+  background: var(--panel-subtle);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.folder-picker-create div {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.folder-picker-create strong {
+  font-size: 0.86rem;
+}
+
+.folder-picker-create span {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 0.76rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.folder-picker-create button {
+  min-height: 34px;
+  padding: 0 11px;
+  white-space: nowrap;
+  color: #ffffff;
+  background: var(--accent);
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.folder-picker-create button:disabled {
+  color: var(--muted);
+  background: var(--panel);
+  border-color: var(--line-strong);
+  cursor: default;
+}
+
+.folder-picker-list {
+  display: grid;
+  gap: 6px;
+  max-height: min(48vh, 420px);
+  overflow: auto;
+}
+
+.folder-picker-row {
+  display: grid;
+  grid-template-columns: 14px minmax(0, 1fr) auto;
+  gap: 9px;
+  align-items: center;
+  width: 100%;
+  padding: 10px;
+  color: var(--text);
+  text-align: left;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.folder-picker-row:hover,
+.folder-picker-row:focus-visible,
+.folder-picker-row.is-selected {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  outline: 0;
+}
+
+.folder-picker-row:disabled {
+  color: var(--faint);
+  background: var(--panel-subtle);
+  border-color: var(--line);
+  cursor: default;
+}
+
+.folder-picker-row span:not(.folder-glyph) {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.folder-picker-row strong,
+.folder-picker-row small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.folder-picker-row strong {
+  font-size: 0.86rem;
+}
+
+.folder-picker-row small,
+.folder-picker-row em,
+.folder-picker-empty {
+  color: var(--muted);
+  font-size: 0.76rem;
+}
+
+.folder-picker-row em {
+  font-style: normal;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.folder-picker-empty {
+  padding: 14px;
+  text-align: center;
+  background: var(--panel-subtle);
+  border: 1px dashed var(--line-strong);
+  border-radius: 8px;
 }
 
 @keyframes menu-in {
@@ -1013,6 +1160,35 @@ button {
 .section-heading span {
   color: var(--muted);
   font-size: 0.84rem;
+}
+
+.section-heading-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.section-action-button,
+.empty-state-action {
+  min-height: 36px;
+  padding: 0 12px;
+  color: #ffffff;
+  font-size: 0.8rem;
+  font-weight: 800;
+  background: var(--accent);
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.section-action-button:hover,
+.section-action-button:focus-visible,
+.empty-state-action:hover,
+.empty-state-action:focus-visible {
+  outline: 0;
+  box-shadow: 0 8px 22px rgba(79, 70, 229, 0.22);
 }
 
 .card-grid {
@@ -1420,6 +1596,11 @@ button {
 .empty-state p {
   max-width: 420px;
   margin: 0;
+}
+
+.empty-state-action {
+  justify-self: center;
+  margin-top: 16px;
 }
 
 .error-message {

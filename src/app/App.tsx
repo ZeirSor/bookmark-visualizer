@@ -14,9 +14,14 @@ import { FolderTree } from "../components/FolderTree";
 import { SearchBar } from "../components/SearchBar";
 import { bookmarksAdapter } from "../lib/chrome";
 import {
+  canCreateBookmarkInFolder,
   collectFolderIds,
   canRenameFolder,
+  filterFolderOptions,
+  findNodeById,
+  flattenFolders,
   getDisplayTitle,
+  getFolderEndIndex,
   insertNodeInBookmarkTree,
   isFolder,
   moveNodeInBookmarkTree,
@@ -81,6 +86,12 @@ interface NewBookmarkDraftState {
   url: string;
 }
 
+interface FolderPickerDialogState {
+  bookmark: BookmarkNode;
+  query: string;
+  selectedFolderId?: string;
+}
+
 const CONTEXT_MENU_CLOSE_DELAY_MS = 220;
 
 export function App() {
@@ -98,6 +109,7 @@ export function App() {
   const [renamingFolderId, setRenamingFolderId] = useState<string>();
   const [newFolderDialog, setNewFolderDialog] = useState<NewFolderDialogState>();
   const [newBookmarkDraft, setNewBookmarkDraft] = useState<NewBookmarkDraftState>();
+  const [folderPickerDialog, setFolderPickerDialog] = useState<FolderPickerDialogState>();
   const [activeBookmarkDropIntent, setActiveBookmarkDropIntent] = useState<BookmarkDropIntent>();
   const [expandedFolderIds, setExpandedFolderIds] = useState<Set<string>>(new Set());
   const [toast, setToast] = useState<ToastState>();
@@ -153,6 +165,7 @@ export function App() {
       setFolderContextMenu(undefined);
       setNewFolderDialog(undefined);
       setNewBookmarkDraft(undefined);
+      setFolderPickerDialog(undefined);
       setRenamingFolderId(undefined);
       setActiveBookmarkDropIntent(undefined);
     }
@@ -169,6 +182,7 @@ export function App() {
       ? getDisplayTitle(selectedFolder)
       : "选择一个文件夹";
   const activePath = selectedFolderId ? folderPathMap.get(selectedFolderId) : undefined;
+  const canCreateBookmarkHere = !isSearching && canCreateBookmarkInFolder(selectedFolder);
 
   const displayedBookmarks = isSearching
     ? searchResults.map((result) => ({
@@ -256,6 +270,8 @@ export function App() {
             onSelectFolder={handleSelectFolder}
             onToggleFolder={toggleFolderExpanded}
             onSelectBookmark={handleSelectTreeBookmark}
+            onBookmarkDragStart={(bookmark) => setDraggedBookmark(createDraggedBookmarkSnapshot(bookmark))}
+            onBookmarkDragEnd={handleBookmarkDragEnd}
             onRenameFolder={handleRenameFolder}
             onCancelRenameFolder={() => setRenamingFolderId(undefined)}
             onDropBookmark={(folder) => void handleDropBookmark(folder)}
@@ -316,7 +332,18 @@ export function App() {
               <p>{isSearching ? "Title and URL" : "Current folder"}</p>
               <h2>{heading}</h2>
             </div>
-            <span>{isSearching ? "只读搜索" : `${selectedBookmarks.length} 个直接书签`}</span>
+            <div className="section-heading-actions">
+              <span>{isSearching ? "只读搜索" : `${selectedBookmarks.length} 个直接书签`}</span>
+              {canCreateBookmarkHere && selectedFolder ? (
+                <button
+                  className="section-action-button"
+                  type="button"
+                  onClick={() => openNewBookmarkDraftAtEnd(selectedFolder)}
+                >
+                  新建书签
+                </button>
+              ) : null}
+            </div>
           </div>
 
           {renderContent()}
@@ -338,6 +365,7 @@ export function App() {
           onMove={(bookmark, folder) => void handleContextMoveBookmark(bookmark, folder)}
           onCreateFolder={(bookmark, parentFolder) => openNewFolderDialog(parentFolder, bookmark)}
           onCreateBookmark={(bookmark, position) => openNewBookmarkDraft(bookmark, position)}
+          onSearchMove={(bookmark) => openFolderPicker(bookmark)}
           onDelete={(bookmark) => void handleDeleteBookmark(bookmark)}
         />
       ) : null}
@@ -355,6 +383,16 @@ export function App() {
           onChange={setNewFolderDialog}
           onClose={() => setNewFolderDialog(undefined)}
           onSubmit={(state) => void handleCreateFolder(state)}
+        />
+      ) : null}
+      {folderPickerDialog ? (
+        <FolderPickerDialog
+          state={folderPickerDialog}
+          tree={tree}
+          onChange={setFolderPickerDialog}
+          onClose={() => setFolderPickerDialog(undefined)}
+          onMove={(bookmark, folder) => void handleFolderPickerMove(bookmark, folder)}
+          onCreateFolder={(bookmark, parentFolder) => openNewFolderDialog(parentFolder, bookmark)}
         />
       ) : null}
       {toast ? <Toast toast={toast} onClose={() => setToast(undefined)} /> : null}
@@ -382,7 +420,20 @@ export function App() {
       selectedBookmarks.length === 0 &&
       (!newBookmarkDraft || newBookmarkDraft.parentId !== selectedFolderId)
     ) {
-      return <EmptyState title="当前文件夹没有直接书签" body="子文件夹中的书签会在搜索中出现。" />;
+      return (
+        <EmptyState
+          title="当前文件夹没有直接书签"
+          body="子文件夹中的书签会在搜索中出现。"
+          action={
+            canCreateBookmarkHere && selectedFolder
+              ? {
+                  label: "新建书签",
+                  onClick: () => openNewBookmarkDraftAtEnd(selectedFolder)
+                }
+              : undefined
+          }
+        />
+      );
     }
 
     return renderCards(displayedBookmarks);
@@ -764,6 +815,7 @@ export function App() {
   function openNewFolderDialog(parentFolder: BookmarkNode, bookmarkToMove?: BookmarkNode) {
     setContextMenu(undefined);
     setFolderContextMenu(undefined);
+    setFolderPickerDialog(undefined);
     setNewFolderDialog({
       parentFolder,
       name: "",
@@ -805,6 +857,35 @@ export function App() {
       title: "",
       url: ""
     });
+  }
+
+  function openNewBookmarkDraftAtEnd(folder: BookmarkNode) {
+    if (!canCreateBookmarkInFolder(folder)) {
+      setToast({ message: "不能在这个文件夹中新建书签。" });
+      return;
+    }
+
+    setNewBookmarkDraft({
+      parentId: folder.id,
+      index: getFolderEndIndex(folder),
+      title: "",
+      url: ""
+    });
+    selectFolder(folder.id);
+  }
+
+  function openFolderPicker(bookmark: BookmarkNode) {
+    setContextMenu(undefined);
+    setFolderPickerDialog({
+      bookmark,
+      query: "",
+      selectedFolderId: bookmark.parentId ?? selectedFolderId
+    });
+  }
+
+  async function handleFolderPickerMove(bookmark: BookmarkNode, folder: BookmarkNode) {
+    setFolderPickerDialog(undefined);
+    await moveBookmarkWithUndo(createDraggedBookmarkSnapshot(bookmark), folder);
   }
 
   async function handleCreateFolder(state: NewFolderDialogState) {
@@ -1191,11 +1272,24 @@ function CardSizeControl({
   );
 }
 
-function EmptyState({ title, body }: { title: string; body: string }) {
+function EmptyState({
+  title,
+  body,
+  action
+}: {
+  title: string;
+  body: string;
+  action?: { label: string; onClick(): void };
+}) {
   return (
     <div className="empty-state">
       <h3>{title}</h3>
       <p>{body}</p>
+      {action ? (
+        <button className="empty-state-action" type="button" onClick={action.onClick}>
+          {action.label}
+        </button>
+      ) : null}
     </div>
   );
 }
@@ -1257,6 +1351,7 @@ function BookmarkContextMenu({
   onMove,
   onCreateFolder,
   onCreateBookmark,
+  onSearchMove,
   onDelete
 }: {
   state: BookmarkContextMenuState;
@@ -1267,6 +1362,7 @@ function BookmarkContextMenu({
   onMove(bookmark: BookmarkNode, folder: BookmarkNode): void;
   onCreateFolder(bookmark: BookmarkNode, parentFolder: BookmarkNode): void;
   onCreateBookmark(bookmark: BookmarkNode, position: BookmarkDropPosition): void;
+  onSearchMove(bookmark: BookmarkNode): void;
   onDelete(bookmark: BookmarkNode): void;
 }) {
   const snapshot = createDraggedBookmarkSnapshot(state.bookmark);
@@ -1317,6 +1413,14 @@ function BookmarkContextMenu({
           <span>移动</span>
           <span className="menu-chevron" aria-hidden="true" />
           <div className="context-submenu move-submenu" role="menu" aria-label="移动到文件夹">
+            <button
+              className="move-folder-search"
+              type="button"
+              role="menuitem"
+              onClick={() => onSearchMove(state.bookmark)}
+            >
+              搜索文件夹...
+            </button>
             <MoveFolderMenu
               nodes={tree}
               snapshot={snapshot}
@@ -1455,6 +1559,121 @@ function MoveFolderMenu({
           </div>
         );
       })}
+    </div>
+  );
+}
+
+function FolderPickerDialog({
+  state,
+  tree,
+  onChange,
+  onClose,
+  onMove,
+  onCreateFolder
+}: {
+  state: FolderPickerDialogState;
+  tree: BookmarkNode[];
+  onChange(state: FolderPickerDialogState): void;
+  onClose(): void;
+  onMove(bookmark: BookmarkNode, folder: BookmarkNode): void;
+  onCreateFolder(bookmark: BookmarkNode, parentFolder: BookmarkNode): void;
+}) {
+  const snapshot = createDraggedBookmarkSnapshot(state.bookmark);
+  const folders = filterFolderOptions(flattenFolders(tree), state.query);
+  const selectedFolder = state.selectedFolderId
+    ? findNodeById(tree, state.selectedFolderId)
+    : undefined;
+  const canCreateInSelectedFolder = canCreateBookmarkInFolder(selectedFolder);
+  const selectedFolderTitle = selectedFolder ? getDisplayTitle(selectedFolder) : "未选择位置";
+
+  return (
+    <div className="dialog-layer" role="presentation" onMouseDown={onClose}>
+      <section
+        className="bookmark-edit-dialog folder-picker-dialog"
+        aria-label="搜索移动目标文件夹"
+        onMouseDown={(event) => event.stopPropagation()}
+      >
+        <div className="dialog-heading">
+          <div>
+            <h3>移动到文件夹</h3>
+            <span>{state.bookmark.title || "Untitled"}</span>
+          </div>
+          <button type="button" aria-label="关闭文件夹搜索窗口" onClick={onClose}>
+            Close
+          </button>
+        </div>
+        <label className="folder-picker-search">
+          搜索文件夹
+          <input
+            value={state.query}
+            autoFocus
+            placeholder="输入文件夹名称或路径"
+            onChange={(event) => onChange({ ...state, query: event.target.value })}
+          />
+        </label>
+        <div className="folder-picker-create">
+          <div>
+            <strong>新建目标文件夹</strong>
+            <span>位置：{selectedFolderTitle}</span>
+          </div>
+          <button
+            type="button"
+            disabled={!canCreateInSelectedFolder || !selectedFolder}
+            onClick={() => {
+              if (selectedFolder && canCreateInSelectedFolder) {
+                onCreateFolder(state.bookmark, selectedFolder);
+              }
+            }}
+          >
+            新建目标文件夹...
+          </button>
+        </div>
+        <div className="folder-picker-list" role="listbox" aria-label="文件夹搜索结果">
+          {folders.length === 0 ? (
+            <div className="folder-picker-empty">没有匹配的文件夹</div>
+          ) : (
+            folders.map((option) => {
+              const canMove = canMoveBookmarkToFolder(snapshot, option.node);
+              const isCurrentParent = snapshot.parentId === option.id;
+              const selected = state.selectedFolderId === option.id;
+
+              return (
+                <button
+                  key={option.id}
+                  className={`folder-picker-row ${selected ? "is-selected" : ""}`}
+                  type="button"
+                  role="option"
+                  aria-selected={selected}
+                  aria-disabled={!canMove}
+                  disabled={!canMove}
+                  onMouseEnter={() => {
+                    if (canCreateBookmarkInFolder(option.node)) {
+                      onChange({ ...state, selectedFolderId: option.id });
+                    }
+                  }}
+                  onFocus={() => {
+                    if (canCreateBookmarkInFolder(option.node)) {
+                      onChange({ ...state, selectedFolderId: option.id });
+                    }
+                  }}
+                  onClick={() => {
+                    if (canMove) {
+                      onMove(state.bookmark, option.node);
+                    }
+                  }}
+                >
+                  <span className="folder-glyph" aria-hidden="true" />
+                  <span>
+                    <strong>{option.title}</strong>
+                    <small>{option.path}</small>
+                  </span>
+                  {isCurrentParent ? <em>当前位置</em> : null}
+                </button>
+              );
+            })
+          )}
+        </div>
+      </section>
     </div>
   );
 }

@@ -23,6 +23,17 @@ describe("drag-drop rules", () => {
     expect(canDropBookmarkOnFolder(createDraggedBookmarkSnapshot(bookmark!), folder)).toBe(true);
   });
 
+  it("creates the same draggable bookmark snapshot for tree and card drag sources", () => {
+    const bookmark = findNodeById(mockBookmarkTree, "100")!;
+
+    expect(createDraggedBookmarkSnapshot(bookmark)).toEqual({
+      id: "100",
+      title: "Chrome Extensions Docs",
+      parentId: "10",
+      index: 0
+    });
+  });
+
   it("blocks dropping onto the current parent folder", () => {
     const bookmark = findNodeById(mockBookmarkTree, "100");
     const folder = findNodeById(mockBookmarkTree, "10");
