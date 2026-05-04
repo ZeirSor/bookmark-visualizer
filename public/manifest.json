@@ -22,6 +22,15 @@
     "service_worker": "service-worker.js",
     "type": "module"
   },
-  "permissions": ["bookmarks", "storage"],
+  "commands": {
+    "open-quick-save": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+S",
+        "mac": "Command+Shift+S"
+      },
+      "description": "Save the current page to Bookmark Visualizer"
+    }
+  },
+  "permissions": ["bookmarks", "storage", "activeTab", "scripting", "tabs"],
   "optional_host_permissions": ["http://*/*", "https://*/*"]
 }

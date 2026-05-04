@@ -1,5 +1,6 @@
 export interface BookmarkMetadata {
   note?: string;
+  previewImageUrl?: string;
   summary?: string;
   summarySource?: "manual" | "meta-description" | "ai";
   updatedAt?: number;

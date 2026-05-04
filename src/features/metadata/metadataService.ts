@@ -20,12 +20,22 @@ export async function saveBookmarkNote(
   bookmarkId: string,
   note: string
 ): Promise<ExtensionMetadataState> {
+  return saveBookmarkMetadata(bookmarkId, { note });
+}
+
+export async function saveBookmarkMetadata(
+  bookmarkId: string,
+  metadata: Pick<BookmarkMetadata, "note" | "previewImageUrl">
+): Promise<ExtensionMetadataState> {
   const state = await loadMetadataState();
-  const trimmedNote = note.trim();
+  const trimmedNote = metadata.note?.trim();
+  const previewImageUrl = metadata.previewImageUrl?.trim();
+  const existing = state.bookmarkMetadata[bookmarkId];
   const nextMetadata: BookmarkMetadata = {
-    ...state.bookmarkMetadata[bookmarkId],
-    note: trimmedNote,
-    summarySource: state.bookmarkMetadata[bookmarkId]?.summarySource,
+    ...existing,
+    note: trimmedNote ?? existing?.note,
+    previewImageUrl: previewImageUrl || existing?.previewImageUrl,
+    summarySource: existing?.summarySource,
     updatedAt: Date.now()
   };
 

@@ -18,6 +18,13 @@ type ExtensionManifest = {
   icons?: Record<string, string>;
   optional_host_permissions?: string[];
   permissions?: string[];
+  commands?: Record<
+    string,
+    {
+      suggested_key?: string | Record<string, string>;
+      description?: string;
+    }
+  >;
 };
 
 const root = resolve(fileURLToPath(new URL("../../..", import.meta.url)));
@@ -49,8 +56,26 @@ describe("extension manifest", () => {
   it("declares only expected permissions", () => {
     const manifest = readManifest();
 
-    expect(manifest.permissions).toEqual(["bookmarks", "storage"]);
+    expect(manifest.permissions).toEqual([
+      "bookmarks",
+      "storage",
+      "activeTab",
+      "scripting",
+      "tabs"
+    ]);
     expect(manifest.optional_host_permissions).toEqual(["http://*/*", "https://*/*"]);
+  });
+
+  it("declares the quick-save keyboard command", () => {
+    const manifest = readManifest();
+
+    expect(manifest.commands?.["open-quick-save"]).toEqual({
+      suggested_key: {
+        default: "Ctrl+Shift+S",
+        mac: "Command+Shift+S"
+      },
+      description: "Save the current page to Bookmark Visualizer"
+    });
   });
 
   it("uses existing PNG assets for manifest and toolbar icons", () => {

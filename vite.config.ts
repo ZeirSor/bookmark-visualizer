@@ -9,11 +9,18 @@ export default defineConfig({
     rollupOptions: {
       input: {
         index: fileURLToPath(new URL("index.html", import.meta.url)),
-        "service-worker": fileURLToPath(new URL("src/service-worker.ts", import.meta.url))
+        "service-worker": fileURLToPath(new URL("src/service-worker.ts", import.meta.url)),
+        "quick-save-content": fileURLToPath(
+          new URL("src/features/quick-save/content.tsx", import.meta.url)
+        )
       },
       output: {
         entryFileNames: (chunkInfo) =>
-          chunkInfo.name === "service-worker" ? "service-worker.js" : "assets/[name]-[hash].js"
+          chunkInfo.name === "service-worker"
+            ? "service-worker.js"
+            : chunkInfo.name === "quick-save-content"
+              ? "quick-save-content.js"
+              : "assets/[name]-[hash].js"
       }
     }
   },

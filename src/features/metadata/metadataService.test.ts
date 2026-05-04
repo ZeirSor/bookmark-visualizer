@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { storageAdapter } from "../../lib/chrome";
-import { loadMetadataState, saveBookmarkNote } from "./metadataService";
+import { loadMetadataState, saveBookmarkMetadata, saveBookmarkNote } from "./metadataService";
 
 describe("metadataService", () => {
   beforeEach(() => {
@@ -24,6 +24,19 @@ describe("metadataService", () => {
           note: "Useful docs"
         }
       }
+    });
+  });
+
+  it("saves quick-save metadata without losing notes", async () => {
+    await saveBookmarkNote("100", "Useful docs");
+    const state = await saveBookmarkMetadata("100", {
+      note: "Updated note",
+      previewImageUrl: "https://example.com/cover.png"
+    });
+
+    expect(state.bookmarkMetadata["100"]).toMatchObject({
+      note: "Updated note",
+      previewImageUrl: "https://example.com/cover.png"
     });
   });
 });
