@@ -31,6 +31,7 @@
   "bookmarkMetadata": {
     "<bookmarkId>": {
       "note": "用户手动备注",
+      "previewImageUrl": "https://example.com/cover.png",
       "summary": "网页 description 或未来 AI 摘要",
       "summarySource": "manual | meta-description | ai",
       "updatedAt": 1760000000000
@@ -53,7 +54,7 @@
 
 当前实现已经落地 `bookmarkVisualizerMetadata` 和 `bookmarkVisualizerSettings` 两个 storage key：
 
-- `bookmarkVisualizerMetadata`：保存 `metadataVersion` 和 `bookmarkMetadata`，当前只写入手动备注。
+- `bookmarkVisualizerMetadata`：保存 `metadataVersion` 和 `bookmarkMetadata`，当前写入手动备注和快捷保存预览图片 URL。
 - `bookmarkVisualizerSettings`：保存 `showBookmarksInTree`、`theme`、`cardDensity`、`cardSize`、`sidebarWidth`。
 
 当前操作日志只保存在页面运行时内存中，用于本次会话撤回移动、编辑、删除等操作；它不是持久化审计日志，刷新扩展页面后会清空。
@@ -75,5 +76,6 @@
 ## 隐私
 
 - 备注和摘要默认只保存在本地。
+- 快捷保存只记录页面 URL、标题、用户备注和候选预览图片 URL；不下载或转存网页图片。
 - 摘要抓取只有用户主动触发时才访问网页。
 - 不上传书签树和备注到远程服务。

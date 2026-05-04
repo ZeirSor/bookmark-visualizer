@@ -32,6 +32,7 @@ The toolbar icon is the launch entry. Bookmark Visualizer opens as a full-page e
 ## Features
 
 - Browse the native bookmark folder tree in a dedicated full-page workspace.
+- Navigate folders from clickable breadcrumb paths.
 - View bookmarks as readable cards with title, URL, favicon, and note/summary space.
 - Search bookmarks by title and URL.
 - Drag bookmark cards into folders or reorder them inside the current folder.
@@ -43,6 +44,7 @@ The toolbar icon is the launch entry. Bookmark Visualizer opens as a full-page e
 - Undo supported bookmark moves, edits, note changes, and deletions from toast/session history.
 - Adjust theme, card size, sidebar width, and tree bookmark visibility.
 - Use the toolbar icon as a quick way to open the workspace.
+- Save the current webpage from the default Ctrl+Shift+S extension shortcut.
 
 ## Preview
 
@@ -98,13 +100,16 @@ Use a test browser profile when trying destructive bookmark actions such as move
 ## Usage
 
 - Select a folder in the left tree to show its direct bookmarks.
+- Click a breadcrumb segment to jump directly to that folder.
 - Toggle tree bookmark visibility if you want bookmark items inside the folder tree.
+- Drag visible tree bookmark rows above or below sibling bookmark rows to reorder them from the tree.
 - Type in the search box to search all bookmarks by title or URL.
 - Drag a bookmark card onto a writable folder to move it.
 - Drag a bookmark card before or after another card in the current folder to reorder it.
 - Right-click a bookmark card to edit, insert a new bookmark, move, or delete it.
 - Right-click a writable folder to create a child folder or rename it inline.
 - Use the undo toast or session operation log after supported operations.
+- Press Ctrl+Shift+S on a normal webpage to open the quick-save panel, choose or create a folder, add a note, and save the page as a native browser bookmark. Closing the panel does not consume the page; the shortcut can open it again.
 
 ## Project Structure
 
@@ -130,6 +135,7 @@ docs/                  Product, architecture, interaction, and acceptance docume
 - [Interactions](docs/06-interactions.md)
 - [Testing and acceptance](docs/07-testing-and-acceptance.md)
 - [Roadmap](docs/08-roadmap.md)
+- [Right-click move menu](docs/09-right-click-move-menu.md)
 - [Architecture decision records](docs/adr/)
 
 ## Roadmap
