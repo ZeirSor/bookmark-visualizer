@@ -11,7 +11,7 @@ export default defineConfig({
         index: fileURLToPath(new URL("index.html", import.meta.url)),
         "service-worker": fileURLToPath(new URL("src/service-worker.ts", import.meta.url)),
         "quick-save-content": fileURLToPath(
-          new URL("src/features/quick-save/content.tsx", import.meta.url)
+          new URL("src/features/quick-save/content.ts", import.meta.url)
         )
       },
       output: {

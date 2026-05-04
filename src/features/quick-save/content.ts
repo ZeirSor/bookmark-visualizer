@@ -1,26 +1,9 @@
-import { StrictMode, useEffect, useMemo, useState, type FormEvent } from "react";
-import { createRoot, type Root } from "react-dom/client";
-import { FolderCascadeMenu } from "../../components/FolderCascadeMenu";
-import {
-  canCreateBookmarkInFolder,
-  findNodeById,
-  getDisplayTitle,
-  isFolder,
-  type BookmarkNode
-} from "../bookmarks";
-import {
-  QUICK_SAVE_CASCADE_EDGE_GAP,
-  QUICK_SAVE_CASCADE_MIN_HEIGHT,
-  getQuickSaveCascadeButtonClassName,
-} from "./cascadeMenu";
-import {
-  QUICK_SAVE_CREATE_BOOKMARK,
-  QUICK_SAVE_CREATE_FOLDER,
-  QUICK_SAVE_GET_INITIAL_STATE,
-  type QuickSaveCreatePayload,
-  type QuickSaveInitialState,
-  type QuickSavePageDetails,
-  type QuickSaveResponse
+import type { BookmarkNode } from "../bookmarks";
+import type {
+  QuickSaveCreatePayload,
+  QuickSaveInitialState,
+  QuickSavePageDetails,
+  QuickSaveResponse
 } from "./types";
 import type { QuickSaveCreateFolderPayload } from "./createFolder";
 
@@ -31,9 +14,40 @@ declare global {
 }
 
 (() => {
+const QUICK_SAVE_GET_INITIAL_STATE = "bookmark-visualizer.quickSave.getInitialState";
+const QUICK_SAVE_CREATE_BOOKMARK = "bookmark-visualizer.quickSave.createBookmark";
+const QUICK_SAVE_CREATE_FOLDER = "bookmark-visualizer.quickSave.createFolder";
 const HOST_ID = "bookmark-visualizer-quick-save";
-const MENU_EDGE_GAP = QUICK_SAVE_CASCADE_EDGE_GAP;
-const MIN_CASCADE_MENU_HEIGHT = QUICK_SAVE_CASCADE_MIN_HEIGHT;
+const SUBMENU_CLOSE_DELAY_MS = 320;
+const MENU_EDGE_GAP = 12;
+const SUBMENU_GAP = 6;
+const MIN_CASCADE_MENU_HEIGHT = 140;
+const FLOATING_CASCADE_WIDTH = 260;
+const FLOATING_CASCADE_MIN_HEIGHT = 180;
+const FLOATING_CASCADE_ROW_HEIGHT = 34;
+const FLOATING_CASCADE_PADDING = 12;
+const QUICK_SAVE_CASCADE_ROW_BUTTON_CLASS = "move-folder-button";
+
+interface CascadeAnchorRect {
+  top: number;
+  right: number;
+  bottom: number;
+  left: number;
+}
+
+interface CascadeSize {
+  width: number;
+  height: number;
+}
+
+interface CascadePlacement {
+  x: number;
+  y: number;
+  maxHeight: number;
+  needsScroll: boolean;
+  submenuDirection: "left" | "right";
+  submenuBlockDirection: "up" | "down";
+}
 
 if (window.__bookmarkVisualizerQuickSaveOpen__) {
   window.__bookmarkVisualizerQuickSaveOpen__();
@@ -86,6 +100,9 @@ function openQuickSave() {
     </section>
   `;
   shadow.append(shell);
+  const floatingRoot = document.createElement("div");
+  floatingRoot.className = "quick-save-floating-root";
+  shell.append(floatingRoot);
 
   const dialog = shadow.querySelector<HTMLElement>(".quick-save-dialog")!;
   const form = shadow.querySelector<HTMLFormElement>("form")!;
@@ -97,22 +114,31 @@ function openQuickSave() {
   const selectedFolder = shadow.querySelector<HTMLElement>('[data-role="selected-folder"]')!;
   const folderMenu = shadow.querySelector<HTMLElement>('[data-role="folder-menu"]')!;
   const saveButton = shadow.querySelector<HTMLButtonElement>(".primary-button")!;
-  const folderMenuRoot = document.createElement("div");
-  folderMenuRoot.dataset.role = "folder-menu-root";
-  folderMenu.append(folderMenuRoot);
   let selectedFolderId = "";
   let selectedFolderTitle = "";
   let tree: BookmarkNode[] = [];
   let closed = false;
-  let folderMenuApp: Root | undefined;
+  let submenuCloseTimer: number | undefined;
+  let activeFolderPath: string[] = [];
+  let folderMap = new Map<string, BookmarkNode>();
+  let cascadeAnchors = new Map<string, CascadeAnchorRect>();
+  let cascadeMenuSizes = new Map<string, CascadeSize>();
+  let cascadeLayers = new Map<string, HTMLElement>();
 
   titleInput.value = pageDetails.title;
   urlInput.value = pageDetails.url;
-  folderMenu.addEventListener("wheel", stopWheelPropagation, { passive: false });
+  folderMenu.addEventListener("wheel", handleMenuWheel, { passive: false });
+  folderMenu.addEventListener("pointerenter", clearSubmenuCloseTimer);
+  folderMenu.addEventListener("pointerleave", scheduleCloseOpenSubmenus);
+  folderMenu.addEventListener("focusin", clearSubmenuCloseTimer);
+  folderMenu.addEventListener("focusout", (event) => {
+    const nextTarget = event.relatedTarget;
+    if (!(nextTarget instanceof Node) || !folderMenu.contains(nextTarget)) {
+      scheduleCloseOpenSubmenus();
+    }
+  });
   const cleanupDrag = enableDialogDrag(dialog, {
-    onDragStart: () => {
-      renderFolderMenu();
-    },
+    onDragStart: closeOpenSubmenus,
     onDragMove: handleWindowResize
   });
   window.addEventListener("resize", handleWindowResize);
@@ -150,14 +176,6 @@ function openQuickSave() {
   void loadFolders();
   window.setTimeout(() => titleInput.focus(), 0);
 
-  function ensureFolderMenuApp() {
-    if (!folderMenuApp) {
-      folderMenuApp = createRoot(folderMenuRoot);
-    }
-
-    return folderMenuApp;
-  }
-
   async function loadFolders() {
     const response = await sendMessage({ type: QUICK_SAVE_GET_INITIAL_STATE });
     if (!response.ok || !("state" in response)) {
@@ -177,46 +195,268 @@ function openQuickSave() {
   }
 
   function renderFolderMenu(state: QuickSaveInitialState = { tree }) {
-    ensureFolderMenuApp().render(
-      <StrictMode>
-        <QuickSaveFolderMenu
-          tree={state.tree}
-          selectedFolderId={selectedFolderId}
-          portalContainer={shadow}
-          onSelect={(folder) => {
-            selectFolder(folder);
-            renderFolderMenu();
-          }}
-          onCreateFolder={async (parentFolder, title) => {
-            const payload: QuickSaveCreateFolderPayload = {
-              parentId: parentFolder.id,
-              title
-            };
+    folderMenu.textContent = "";
+    closeOpenSubmenus();
+    folderMap = buildFolderMap(state.tree);
+    const root = document.createElement("div");
+    root.className = "move-menu-list";
+    renderFolderRows(root, getMenuFolders(state.tree), [], undefined);
 
-            status.textContent = "";
-            const response = await sendMessage({ type: QUICK_SAVE_CREATE_FOLDER, payload });
-            if (!response.ok || !("folder" in response)) {
-              status.textContent = response.ok ? "新建文件夹失败。" : response.error;
-              return;
-            }
+    if (!root.hasChildNodes()) {
+      const empty = document.createElement("div");
+      empty.className = "move-menu-empty";
+      empty.textContent = "没有可用文件夹";
+      root.append(empty);
+    }
 
-            tree = response.state.tree;
-            selectFolder(response.folder);
-            renderFolderMenu(response.state);
-            status.textContent = `已新建文件夹“${getDisplayTitle(response.folder)}”。`;
-          }}
-        />
-      </StrictMode>
-    );
+    folderMenu.append(root);
     updateRootFolderMenuLayout();
   }
 
-  function stopWheelPropagation(event: WheelEvent) {
+  function renderFolderRows(
+    parent: HTMLElement,
+    folders: BookmarkNode[],
+    parentPath: string[],
+    createParent?: BookmarkNode
+  ) {
+    folders.forEach((folder) => {
+      const row = document.createElement("div");
+      const writable = canCreateBookmarkInFolder(folder);
+      const nestedFolders = folder.children?.filter(isFolder) ?? [];
+      const canCreateFolder = writable;
+      const hasSubmenu = nestedFolders.length > 0 || canCreateFolder;
+      const buttonDisabled = !writable && !hasSubmenu;
+      row.className = `move-folder-row ${hasSubmenu ? "has-children" : ""} ${
+        selectedFolderId === folder.id ? "is-selected" : ""
+      }`;
+
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = getCascadeButtonClassName();
+      button.disabled = buttonDisabled;
+      button.setAttribute("aria-disabled", String(!writable));
+      button.innerHTML = `<span class="folder-glyph" aria-hidden="true"></span><span>${escapeHtml(
+        getFolderTitle(folder)
+      )}</span>${
+        !writable ? '<span class="move-menu-note">不可保存</span>' : ""
+      }${hasSubmenu ? '<span class="menu-chevron" aria-hidden="true"></span>' : ""}`;
+      button.addEventListener("click", () => {
+        if (writable) {
+          selectFolder(folder);
+          renderFolderMenu();
+        }
+      });
+      row.append(button);
+
+      attachCascadeRowBehavior(row, parentPath, folder, hasSubmenu);
+
+      parent.append(row);
+    });
+
+    if (createParent && canCreateBookmarkInFolder(createParent)) {
+      parent.append(createCreateFolderRow(createParent));
+    }
+  }
+
+  function createCreateFolderRow(parentFolder: BookmarkNode): HTMLElement {
+    const row = document.createElement("div");
+    row.className = "move-folder-row move-folder-create-row";
+
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = getCascadeButtonClassName("move-folder-create");
+    button.textContent = "新建文件夹...";
+    button.addEventListener("click", () => showInlineCreateFolder(row, parentFolder));
+    row.append(button);
+
+    return row;
+  }
+
+  function showInlineCreateFolder(row: HTMLElement, parentFolder: BookmarkNode) {
+    row.textContent = "";
+    row.classList.add("is-creating");
+
+    const form = document.createElement("form");
+    form.className = "create-folder-form";
+    form.innerHTML = `
+      <input name="folderName" autocomplete="off" placeholder="文件夹名称" />
+      <button class="primary-button" type="submit">Save</button>
+      <button type="button" data-action="cancel-create">Cancel</button>
+    `;
+    row.append(form);
+
+    const input = form.elements.namedItem("folderName") as HTMLInputElement;
+    const cancelButton = form.querySelector<HTMLButtonElement>('[data-action="cancel-create"]')!;
+    cancelButton.addEventListener("click", () => renderFolderMenu());
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      void createFolder(parentFolder, input.value);
+    });
+    window.setTimeout(() => input.focus(), 0);
+  }
+
+  async function createFolder(parentFolder: BookmarkNode, title: string) {
+    const payload: QuickSaveCreateFolderPayload = {
+      parentId: parentFolder.id,
+      title
+    };
+
+    status.textContent = "";
+    const response = await sendMessage({ type: QUICK_SAVE_CREATE_FOLDER, payload });
+    if (!response.ok || !("folder" in response)) {
+      status.textContent = response.ok ? "新建文件夹失败。" : response.error;
+      return;
+    }
+
+    tree = response.state.tree;
+    selectFolder(response.folder);
+    renderFolderMenu(response.state);
+    status.textContent = `已新建文件夹“${getFolderTitle(response.folder)}”。`;
+  }
+
+  function attachCascadeRowBehavior(
+    row: HTMLElement,
+    parentPath: string[],
+    folder: BookmarkNode,
+    hasSubmenu: boolean
+  ) {
+    function openCascadeRow() {
+      clearSubmenuCloseTimer();
+      cascadeAnchors.set(folder.id, rectToAnchor(row.getBoundingClientRect()));
+      const nextPath = getCascadePathOnRowEnter(parentPath, folder.id, hasSubmenu);
+
+      if (!pathsEqual(activeFolderPath, nextPath)) {
+        activeFolderPath = nextPath;
+      }
+
+      syncFloatingCascadeLayers();
+    }
+
+    row.addEventListener("pointerenter", openCascadeRow);
+    row.addEventListener("focusin", openCascadeRow);
+  }
+
+  function syncFloatingCascadeLayers() {
+    const activeLayerKeys = new Set<string>();
+
+    activeFolderPath.forEach((folderId, index) => {
+      const folder = folderMap.get(folderId);
+      const anchor = cascadeAnchors.get(folderId);
+
+      if (!folder || !anchor) {
+        return;
+      }
+
+      const parentPath = activeFolderPath.slice(0, index + 1);
+      const layerKey = getCascadeLayerKey(parentPath);
+      const layer = cascadeLayers.get(layerKey) ?? createFloatingCascadeLayer(folder, parentPath, layerKey);
+      activeLayerKeys.add(layerKey);
+      positionFloatingCascadeLayer(layer, anchor, folderId, index);
+    });
+
+    removeStaleFloatingCascadeLayers(activeLayerKeys);
+  }
+
+  function removeFloatingCascadeLayers() {
+    cascadeLayers.forEach((layer) => {
+      layer.remove();
+    });
+    cascadeLayers.clear();
+  }
+
+  function createFloatingCascadeLayer(
+    folder: BookmarkNode,
+    parentPath: string[],
+    layerKey: string
+  ): HTMLElement {
+    const layer = document.createElement("div");
+    layer.className = "context-submenu nested-submenu is-floating-cascade";
+    layer.setAttribute("role", "menu");
+    layer.dataset.cascadeLayer = "true";
+    layer.dataset.cascadeLayerKey = layerKey;
+    layer.addEventListener("pointerenter", clearSubmenuCloseTimer);
+    layer.addEventListener("pointerleave", scheduleCloseOpenSubmenus);
+    layer.addEventListener("focusin", clearSubmenuCloseTimer);
+    layer.addEventListener("focusout", (event) => {
+      const nextTarget = event.relatedTarget;
+      if (!(nextTarget instanceof Node) || !layer.contains(nextTarget)) {
+        scheduleCloseOpenSubmenus();
+      }
+    });
+    layer.addEventListener("wheel", handleMenuWheel, { passive: false });
+
+    renderFolderRows(layer, getMenuFolders(folder.children ?? []), parentPath, folder);
+    floatingRoot.append(layer);
+    cascadeLayers.set(layerKey, layer);
+
+    return layer;
+  }
+
+  function removeStaleFloatingCascadeLayers(activeLayerKeys: Set<string>) {
+    cascadeLayers.forEach((layer, layerKey) => {
+      if (!activeLayerKeys.has(layerKey)) {
+        layer.remove();
+        cascadeLayers.delete(layerKey);
+      }
+    });
+  }
+
+  function positionFloatingCascadeLayer(
+    layer: HTMLElement,
+    anchor: CascadeAnchorRect,
+    folderId: string,
+    index: number
+  ) {
+    const previousSize = cascadeMenuSizes.get(folderId);
+    const estimatedSize = previousSize ?? estimateCascadeLayerSize(folderMap.get(folderId));
+    const firstPlacement = getCascadeMenuPlacement(
+      anchor,
+      { width: window.innerWidth, height: window.innerHeight },
+      estimatedSize
+    );
+    applyFloatingCascadePlacement(layer, firstPlacement, index);
+
+    const measuredSize = {
+      width: Math.max(layer.offsetWidth || FLOATING_CASCADE_WIDTH, FLOATING_CASCADE_WIDTH),
+      height: Math.max(
+        layer.scrollHeight || layer.offsetHeight || FLOATING_CASCADE_MIN_HEIGHT,
+        FLOATING_CASCADE_MIN_HEIGHT
+      )
+    };
+    cascadeMenuSizes.set(folderId, measuredSize);
+
+    const measuredPlacement = getCascadeMenuPlacement(
+      anchor,
+      { width: window.innerWidth, height: window.innerHeight },
+      measuredSize
+    );
+    applyFloatingCascadePlacement(layer, measuredPlacement, index);
+  }
+
+  function applyFloatingCascadePlacement(
+    layer: HTMLElement,
+    placement: CascadePlacement,
+    index: number
+  ) {
+    layer.classList.remove("opens-left", "opens-right", "opens-up", "opens-down");
+    layer.classList.add(
+      `opens-${placement.submenuDirection}`,
+      `opens-${placement.submenuBlockDirection}`
+    );
+    layer.style.left = `${placement.x}px`;
+    layer.style.top = `${placement.y}px`;
+    layer.style.maxHeight = `${placement.maxHeight}px`;
+    layer.style.overflowY = placement.needsScroll ? "auto" : "visible";
+    layer.style.overflowX = "hidden";
+    layer.style.zIndex = String(30 + index);
+  }
+
+  function handleMenuWheel(event: WheelEvent) {
     event.stopPropagation();
   }
 
   function updateRootFolderMenuLayout() {
-    const list = folderMenu.querySelector<HTMLElement>(".move-menu-list");
+    const list = folderMenu.firstElementChild as HTMLElement | null;
     if (!list) {
       return;
     }
@@ -235,9 +475,27 @@ function openQuickSave() {
     folderMenu.style.overflowX = "hidden";
   }
 
+  function closeOpenSubmenus() {
+    clearSubmenuCloseTimer();
+    activeFolderPath = [];
+    removeFloatingCascadeLayers();
+  }
+
+  function clearSubmenuCloseTimer() {
+    if (submenuCloseTimer) {
+      window.clearTimeout(submenuCloseTimer);
+      submenuCloseTimer = undefined;
+    }
+  }
+
+  function scheduleCloseOpenSubmenus() {
+    clearSubmenuCloseTimer();
+    submenuCloseTimer = window.setTimeout(closeOpenSubmenus, SUBMENU_CLOSE_DELAY_MS);
+  }
+
   function selectFolder(folder: BookmarkNode) {
     selectedFolderId = folder.id;
-    selectedFolderTitle = getDisplayTitle(folder);
+    selectedFolderTitle = getFolderTitle(folder);
     selectedFolder.textContent = selectedFolderTitle;
   }
 
@@ -274,8 +532,8 @@ function openQuickSave() {
       return;
     }
     closed = true;
-    folderMenuApp?.unmount();
-    folderMenuApp = undefined;
+    clearSubmenuCloseTimer();
+    removeFloatingCascadeLayers();
     cleanupDrag();
     window.removeEventListener("resize", handleWindowResize);
 
@@ -290,7 +548,7 @@ function openQuickSave() {
 
   function handleWindowResize() {
     updateRootFolderMenuLayout();
-    renderFolderMenu();
+    syncFloatingCascadeLayers();
   }
 }
 
@@ -456,9 +714,8 @@ function createStyle(): HTMLStyleElement {
     * { box-sizing: border-box; }
     .quick-save-layer {
       position: fixed;
-      z-index: 1;
-      inset: 0;
       z-index: 2147483647;
+      inset: 0;
       display: grid;
       place-items: center;
       padding: 24px;
@@ -466,6 +723,8 @@ function createStyle(): HTMLStyleElement {
       background: rgba(15, 23, 42, 0.18);
     }
     .quick-save-dialog {
+      position: relative;
+      z-index: 1;
       display: grid;
       gap: 18px;
       width: min(640px, calc(100vw - 32px));
@@ -478,6 +737,12 @@ function createStyle(): HTMLStyleElement {
       border-radius: 8px;
       box-shadow: 0 24px 80px rgba(15, 23, 42, 0.22);
       touch-action: none;
+    }
+    .quick-save-floating-root {
+      position: fixed;
+      z-index: 2;
+      inset: 0;
+      pointer-events: none;
     }
     .quick-save-dialog.is-dragging {
       cursor: grabbing;
@@ -665,14 +930,6 @@ function createStyle(): HTMLStyleElement {
     .context-submenu.is-floating-cascade.opens-down {
       transform: translateX(0);
     }
-    .move-folder-row.has-children:hover > .context-submenu,
-    .move-folder-row.has-children:focus-within > .context-submenu,
-    .move-folder-row.has-children.is-open > .context-submenu {
-      visibility: visible;
-      pointer-events: auto;
-      opacity: 1;
-      transform: translateX(0);
-    }
     .move-folder-create {
       color: #4f46e5 !important;
       font-weight: 900;
@@ -729,11 +986,6 @@ function createStyle(): HTMLStyleElement {
         margin: 0;
         box-shadow: 0 18px 48px rgba(15, 23, 42, 0.16);
       }
-      .move-folder-row.has-children:hover > .context-submenu,
-      .move-folder-row.has-children:focus-within > .context-submenu,
-      .move-folder-row.has-children.is-open > .context-submenu {
-        display: block;
-      }
     }
   `;
   return style;
@@ -774,8 +1026,145 @@ function findFirstWritableFolder(nodes: BookmarkNode[]): BookmarkNode | undefine
 }
 
 function findFolder(nodes: BookmarkNode[], id: string): BookmarkNode | undefined {
-  const node = findNodeById(nodes, id);
-  return node && isFolder(node) ? node : undefined;
+  for (const node of nodes) {
+    if (node.id === id && isFolder(node)) {
+      return node;
+    }
+
+    const nested = node.children ? findFolder(node.children, id) : undefined;
+    if (nested) {
+      return nested;
+    }
+  }
+
+  return undefined;
+}
+
+function getMenuFolders(nodes: BookmarkNode[]): BookmarkNode[] {
+  return nodes.flatMap((node) => {
+    if (!isFolder(node)) {
+      return [];
+    }
+
+    if (!node.parentId) {
+      return getMenuFolders(node.children ?? []);
+    }
+
+    return [node];
+  });
+}
+
+function buildFolderMap(nodes: BookmarkNode[]): Map<string, BookmarkNode> {
+  const map = new Map<string, BookmarkNode>();
+
+  function walk(folders: BookmarkNode[]) {
+    folders.forEach((folder) => {
+      map.set(folder.id, folder);
+      walk(getMenuFolders(folder.children ?? []));
+    });
+  }
+
+  walk(getMenuFolders(nodes));
+  return map;
+}
+
+function estimateCascadeLayerSize(folder: BookmarkNode | undefined): CascadeSize {
+  const rowCount = (folder ? getMenuFolders(folder.children ?? []).length : 0) + 1;
+
+  return {
+    width: FLOATING_CASCADE_WIDTH,
+    height: Math.max(
+      FLOATING_CASCADE_MIN_HEIGHT,
+      rowCount * FLOATING_CASCADE_ROW_HEIGHT + FLOATING_CASCADE_PADDING
+    )
+  };
+}
+
+function rectToAnchor(rect: DOMRect): CascadeAnchorRect {
+  return {
+    top: rect.top,
+    right: rect.right,
+    bottom: rect.bottom,
+    left: rect.left
+  };
+}
+
+function getCascadeMenuPlacement(
+  anchor: CascadeAnchorRect,
+  viewport: { width: number; height: number },
+  menuSize: CascadeSize
+): CascadePlacement {
+  const minHeight = Math.min(MIN_CASCADE_MENU_HEIGHT, viewport.height - MENU_EDGE_GAP * 2);
+  const rightSpace = viewport.width - anchor.right - SUBMENU_GAP - MENU_EDGE_GAP;
+  const leftSpace = anchor.left - SUBMENU_GAP - MENU_EDGE_GAP;
+  const opensLeft = rightSpace < menuSize.width && leftSpace > rightSpace;
+  const rawX = opensLeft
+    ? anchor.left - SUBMENU_GAP - menuSize.width
+    : anchor.right + SUBMENU_GAP;
+  const maxX = Math.max(MENU_EDGE_GAP, viewport.width - menuSize.width - MENU_EDGE_GAP);
+  const x = clamp(rawX, MENU_EDGE_GAP, maxX);
+
+  const downSpace = Math.max(0, viewport.height - anchor.top - MENU_EDGE_GAP);
+  const upSpace = Math.max(0, anchor.bottom - MENU_EDGE_GAP);
+  const opensUp = menuSize.height > downSpace && upSpace > downSpace;
+  const availableBlockSpace = Math.max(opensUp ? upSpace : downSpace, minHeight);
+  const maxHeight = Math.min(menuSize.height, availableBlockSpace);
+  const rawY = opensUp ? anchor.bottom - maxHeight : anchor.top;
+  const maxY = Math.max(MENU_EDGE_GAP, viewport.height - maxHeight - MENU_EDGE_GAP);
+
+  return {
+    x,
+    y: clamp(rawY, MENU_EDGE_GAP, maxY),
+    maxHeight,
+    needsScroll: menuSize.height > maxHeight,
+    submenuDirection: opensLeft ? "left" : "right",
+    submenuBlockDirection: opensUp ? "up" : "down"
+  };
+}
+
+function getCascadePathOnRowEnter(
+  parentPath: string[],
+  folderId: string,
+  hasSubmenu: boolean
+): string[] {
+  return hasSubmenu ? [...parentPath, folderId] : [...parentPath];
+}
+
+function getCascadeLayerKey(path: string[]): string {
+  return path.join("/");
+}
+
+function pathsEqual(left: string[], right: string[]): boolean {
+  return left.length === right.length && left.every((value, index) => value === right[index]);
+}
+
+function getCascadeButtonClassName(extraClassName?: string): string {
+  return [QUICK_SAVE_CASCADE_ROW_BUTTON_CLASS, extraClassName].filter(Boolean).join(" ");
+}
+
+function isFolder(node: BookmarkNode): boolean {
+  return !node.url && Array.isArray(node.children);
+}
+
+function canCreateBookmarkInFolder(node: BookmarkNode | undefined): boolean {
+  return Boolean(node && isFolder(node) && node.parentId && !node.unmodifiable);
+}
+
+function getFolderTitle(node: BookmarkNode): string {
+  return node.title.trim() || "Untitled";
+}
+
+function escapeHtml(value: string): string {
+  return value.replace(/[&<>"']/g, (char) => {
+    const entities: Record<string, string> = {
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#039;"
+    };
+    return entities[char] ?? char;
+  });
 }
 
 function escapeCssUrl(value: string): string {
@@ -784,128 +1173,5 @@ function escapeCssUrl(value: string): string {
 
 function clamp(value: number, min: number, max: number): number {
   return Math.min(Math.max(value, min), max);
-}
-
-function QuickSaveFolderMenu({
-  tree,
-  selectedFolderId,
-  portalContainer,
-  onSelect,
-  onCreateFolder
-}: {
-  tree: BookmarkNode[];
-  selectedFolderId?: string;
-  portalContainer: ShadowRoot;
-  onSelect(folder: BookmarkNode): void;
-  onCreateFolder(parentFolder: BookmarkNode, title: string): Promise<void>;
-}) {
-  const [creatingParentId, setCreatingParentId] = useState<string>();
-
-  useEffect(() => {
-    if (!creatingParentId) {
-      return;
-    }
-
-    const currentParent = findNodeById(tree, creatingParentId);
-    if (!currentParent || !canCreateBookmarkInFolder(currentParent)) {
-      setCreatingParentId(undefined);
-    }
-  }, [creatingParentId, tree]);
-
-  const selectedFolder = selectedFolderId ? findNodeById(tree, selectedFolderId) : undefined;
-
-  return (
-    <FolderCascadeMenu
-      nodes={tree}
-      selectedFolderId={selectedFolder?.id}
-      disabledLabel="不可保存"
-      portalContainer={portalContainer}
-      onSelect={onSelect}
-      canSelect={(folder) => canCreateBookmarkInFolder(folder)}
-      onCreateFolder={(parentFolder) => {
-        if (canCreateBookmarkInFolder(parentFolder)) {
-          setCreatingParentId(parentFolder.id);
-        }
-      }}
-      renderCreateAction={(parentFolder) =>
-        creatingParentId === parentFolder.id && canCreateBookmarkInFolder(parentFolder) ? (
-          <QuickSaveCreateFolderForm
-            key={`create-${parentFolder.id}`}
-            parentFolder={parentFolder}
-            onSubmit={async (title) => {
-              await onCreateFolder(parentFolder, title);
-              setCreatingParentId(undefined);
-            }}
-            onCancel={() => setCreatingParentId(undefined)}
-          />
-        ) : (
-          <button
-            key={`create-${parentFolder.id}`}
-            className={getQuickSaveCascadeButtonClassName("move-folder-create")}
-            type="button"
-            role="menuitem"
-            onClick={() => setCreatingParentId(parentFolder.id)}
-          >
-            新建文件夹...
-          </button>
-        )
-      }
-    />
-  );
-}
-
-function QuickSaveCreateFolderForm({
-  parentFolder,
-  onSubmit,
-  onCancel
-}: {
-  parentFolder: BookmarkNode;
-  onSubmit(title: string): Promise<void>;
-  onCancel(): void;
-}) {
-  const [title, setTitle] = useState("");
-  const [submitting, setSubmitting] = useState(false);
-  const placeholder = useMemo(() => `在“${getDisplayTitle(parentFolder)}”下新建`, [parentFolder]);
-
-  useEffect(() => {
-    return () => {
-      setSubmitting(false);
-    };
-  }, []);
-
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (submitting) {
-      return;
-    }
-
-    setSubmitting(true);
-    try {
-      await onSubmit(title);
-    } finally {
-      setSubmitting(false);
-    }
-  }
-
-  return (
-    <div className="move-folder-row move-folder-create-row is-creating">
-      <form className="create-folder-form" onSubmit={(event) => void handleSubmit(event)}>
-        <input
-          name="folderName"
-          autoFocus
-          autoComplete="off"
-          placeholder={placeholder}
-          value={title}
-          onChange={(event) => setTitle(event.target.value)}
-        />
-        <button className="primary-button" type="submit" disabled={submitting}>
-          Save
-        </button>
-        <button type="button" onClick={onCancel} disabled={submitting}>
-          Cancel
-        </button>
-      </form>
-    </div>
-  );
 }
 })();
