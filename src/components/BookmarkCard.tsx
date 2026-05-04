@@ -8,7 +8,6 @@ import {
   type MouseEvent
 } from "react";
 import type { BookmarkNode } from "../features/bookmarks";
-import type { BookmarkDropPosition } from "../features/drag-drop";
 
 interface BookmarkCardProps {
   bookmark: BookmarkNode;
@@ -17,7 +16,6 @@ interface BookmarkCardProps {
   highlighted: boolean;
   highlightPulse: boolean;
   editRequestId?: number;
-  activeDropPosition?: BookmarkDropPosition;
   onDragStart(bookmark: BookmarkNode): void;
   onDragEnd(): void;
   onDragOverBookmark(bookmark: BookmarkNode, event: DragEvent<HTMLElement>): void;
@@ -37,7 +35,6 @@ export function BookmarkCard({
   highlighted,
   highlightPulse,
   editRequestId,
-  activeDropPosition,
   onDragStart,
   onDragEnd,
   onDragOverBookmark,
@@ -84,7 +81,6 @@ export function BookmarkCard({
     <article
       className={`bookmark-card ${highlighted ? "is-highlighted" : ""} ${
         highlightPulse ? "is-highlight-pulse" : ""
-      } ${activeDropPosition ? `is-card-drop-${activeDropPosition}` : ""
       }`}
       data-bookmark-id={bookmark.id}
       draggable

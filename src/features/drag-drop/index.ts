@@ -144,6 +144,14 @@ export function getBookmarkCardDropPosition(
   return beforeDistance <= afterDistance ? "before" : "after";
 }
 
+export function getBookmarkTreeDropPosition(
+  pointer: BookmarkDropPointer,
+  rect: Pick<BookmarkDropRect, "top" | "bottom">
+): BookmarkDropPosition {
+  const midpoint = rect.top + (rect.bottom - rect.top) / 2;
+  return pointer.y <= midpoint ? "before" : "after";
+}
+
 export function canDragFolder(folder: BookmarkNode | undefined): boolean {
   return Boolean(
     folder &&

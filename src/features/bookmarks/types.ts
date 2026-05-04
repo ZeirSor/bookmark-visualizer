@@ -6,3 +6,9 @@ export interface FolderOption {
   path: string;
   node: BookmarkNode;
 }
+
+export interface FolderBreadcrumbItem {
+  id: string;
+  title: string;
+  node: BookmarkNode;
+}

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  buildFolderBreadcrumbItems,
   canCreateBookmarkInFolder,
   canRenameFolder,
   collectFolderIds,
@@ -110,6 +111,19 @@ describe("bookmark tree helpers", () => {
       "10"
     );
     expect(filterFolderOptions(options, "missing")).toEqual([]);
+  });
+
+  it("builds stable breadcrumb items for nested folders", () => {
+    expect(buildFolderBreadcrumbItems(mockBookmarkTree, "10").map((item) => item.title)).toEqual([
+      "Root",
+      "Bookmarks Bar",
+      "Product Research"
+    ]);
+    expect(buildFolderBreadcrumbItems(mockBookmarkTree, "10").map((item) => item.id)).toEqual([
+      "0",
+      "1",
+      "10"
+    ]);
   });
 
   it("moves the second bookmark before the first without reloading the tree", () => {

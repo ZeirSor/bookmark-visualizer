@@ -1,0 +1,484 @@
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+  type CSSProperties,
+  type FocusEvent,
+  type PointerEvent
+} from "react";
+import { createPortal } from "react-dom";
+import {
+  getDisplayTitle,
+  isFolder,
+  type BookmarkNode
+} from "../features/bookmarks";
+import {
+  getCascadeButtonClassName,
+  getCascadeMenuPlacement,
+  getCascadePathOnRowEnter,
+  getCascadeRowBehavior,
+  type CascadeMenuAnchorRect,
+  type CascadeMenuPlacement,
+  type CascadeMenuSize
+} from "../features/context-menu";
+
+interface FolderCascadeMenuProps {
+  nodes: BookmarkNode[];
+  selectedFolderId?: string;
+  currentFolderId?: string;
+  disabledLabel?: string;
+  onSelect(folder: BookmarkNode): void;
+  canSelect(folder: BookmarkNode): boolean;
+  onCreateFolder?(parentFolder: BookmarkNode): void;
+  onCascadeEnter?(): void;
+  onCascadeLeave?(): void;
+  portalContainer?: Element | DocumentFragment;
+  renderCreateAction?(parentFolder: BookmarkNode): ReactNode;
+}
+
+interface CascadeLayer {
+  folder: BookmarkNode;
+  path: string[];
+  placement: CascadeMenuPlacement;
+}
+
+const CASCADE_SUBMENU_CLOSE_DELAY_MS = 320;
+const FLOATING_CASCADE_WIDTH = 260;
+const FLOATING_CASCADE_MIN_HEIGHT = 180;
+const FLOATING_CASCADE_ROW_HEIGHT = 34;
+const FLOATING_CASCADE_PADDING = 12;
+
+export function FolderCascadeMenu({
+  nodes,
+  selectedFolderId,
+  currentFolderId,
+  disabledLabel,
+  onSelect,
+  canSelect,
+  onCreateFolder,
+  onCascadeEnter,
+  onCascadeLeave,
+  portalContainer,
+  renderCreateAction
+}: FolderCascadeMenuProps) {
+  const folders = useMemo(() => getMenuFolders(nodes), [nodes]);
+  const folderMap = useMemo(() => buildFolderMap(folders), [folders]);
+  const [activePath, setActivePath] = useState<string[]>([]);
+  const [anchors, setAnchors] = useState<Record<string, CascadeMenuAnchorRect>>({});
+  const [menuSizes, setMenuSizes] = useState<Record<string, CascadeMenuSize>>({});
+  const [viewport, setViewport] = useState(() => getViewport());
+  const closeTimerRef = useRef<number | undefined>(undefined);
+
+  const clearCloseTimer = useCallback(() => {
+    if (closeTimerRef.current) {
+      window.clearTimeout(closeTimerRef.current);
+      closeTimerRef.current = undefined;
+    }
+  }, []);
+
+  const closeCascade = useCallback(() => {
+    clearCloseTimer();
+    setActivePath([]);
+  }, [clearCloseTimer]);
+
+  const scheduleCloseCascade = useCallback(() => {
+    clearCloseTimer();
+    closeTimerRef.current = window.setTimeout(closeCascade, CASCADE_SUBMENU_CLOSE_DELAY_MS);
+    onCascadeLeave?.();
+  }, [clearCloseTimer, closeCascade, onCascadeLeave]);
+
+  const keepCascadeOpen = useCallback(() => {
+    clearCloseTimer();
+    onCascadeEnter?.();
+  }, [clearCloseTimer, onCascadeEnter]);
+
+  const handleRowEnter = useCallback(
+    (parentPath: string[], folder: BookmarkNode, hasSubmenu: boolean, element: HTMLElement) => {
+      keepCascadeOpen();
+      setViewport(getViewport());
+      setAnchors((current) => ({
+        ...current,
+        [folder.id]: rectToAnchor(element.getBoundingClientRect())
+      }));
+      setActivePath(getCascadePathOnRowEnter(parentPath, folder.id, hasSubmenu));
+    },
+    [keepCascadeOpen]
+  );
+
+  const handleLayerSizeChange = useCallback((folderId: string, size: CascadeMenuSize) => {
+    setMenuSizes((current) => {
+      const previous = current[folderId];
+      if (previous?.width === size.width && previous.height === size.height) {
+        return current;
+      }
+
+      return { ...current, [folderId]: size };
+    });
+  }, []);
+
+  const layers = useMemo(() => {
+    return activePath.flatMap((folderId, index) => {
+      const folder = folderMap.get(folderId);
+      const anchor = anchors[folderId];
+
+      if (!folder || !anchor) {
+        return [];
+      }
+
+      const size = menuSizes[folderId] ?? estimateLayerSize(folder, Boolean(onCreateFolder));
+      const placement = getCascadeMenuPlacement(anchor, viewport, size);
+
+      return [{ folder, path: activePath.slice(0, index + 1), placement }];
+    });
+  }, [activePath, anchors, folderMap, menuSizes, onCreateFolder, viewport]);
+
+  useEffect(() => {
+    return clearCloseTimer;
+  }, [clearCloseTimer]);
+
+  useEffect(() => {
+    setActivePath((current) => current.filter((folderId) => folderMap.has(folderId)));
+  }, [folderMap]);
+
+  useEffect(() => {
+    function handleResize() {
+      setViewport(getViewport());
+    }
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  if (folders.length === 0) {
+    return <div className="move-menu-empty">没有可用文件夹</div>;
+  }
+
+  return (
+    <>
+      <FolderCascadeList
+        folders={folders}
+        parentPath={[]}
+        selectedFolderId={selectedFolderId}
+        currentFolderId={currentFolderId}
+        disabledLabel={disabledLabel}
+        onSelect={onSelect}
+        canSelect={canSelect}
+        canCreateFolder={Boolean(onCreateFolder)}
+        onRowEnter={handleRowEnter}
+        onCascadeEnter={keepCascadeOpen}
+        onCascadeLeave={scheduleCloseCascade}
+      />
+      {typeof document === "undefined"
+        ? null
+        : createPortal(
+            layers.map((layer, index) => (
+              <FloatingCascadeLayer
+                key={layer.folder.id}
+                layer={layer}
+                zIndex={31 + index}
+                selectedFolderId={selectedFolderId}
+                currentFolderId={currentFolderId}
+                disabledLabel={disabledLabel}
+                onSelect={onSelect}
+                canSelect={canSelect}
+                onCreateFolder={onCreateFolder}
+                renderCreateAction={renderCreateAction}
+                onRowEnter={handleRowEnter}
+                onCascadeEnter={keepCascadeOpen}
+                onCascadeLeave={scheduleCloseCascade}
+                onSizeChange={handleLayerSizeChange}
+              />
+            )),
+            portalContainer ?? document.body
+          )}
+    </>
+  );
+}
+
+function FolderCascadeList({
+  folders,
+  parentPath,
+  selectedFolderId,
+  currentFolderId,
+  disabledLabel,
+  onSelect,
+  canSelect,
+  canCreateFolder,
+  onRowEnter,
+  onCascadeEnter,
+  onCascadeLeave
+}: {
+  folders: BookmarkNode[];
+  parentPath: string[];
+  selectedFolderId?: string;
+  currentFolderId?: string;
+  disabledLabel?: string;
+  onSelect(folder: BookmarkNode): void;
+  canSelect(folder: BookmarkNode): boolean;
+  canCreateFolder: boolean;
+  onRowEnter(parentPath: string[], folder: BookmarkNode, hasSubmenu: boolean, element: HTMLElement): void;
+  onCascadeEnter(): void;
+  onCascadeLeave(): void;
+}) {
+  return (
+    <div
+      className="move-menu-list"
+      onPointerEnter={onCascadeEnter}
+      onPointerLeave={onCascadeLeave}
+      onFocus={onCascadeEnter}
+      onBlur={(event) => handleCascadeBlur(event, onCascadeLeave)}
+      onWheel={(event) => event.stopPropagation()}
+    >
+      {folders.map((folder) => (
+        <FolderCascadeRow
+          key={folder.id}
+          folder={folder}
+          parentPath={parentPath}
+          selectedFolderId={selectedFolderId}
+          currentFolderId={currentFolderId}
+          disabledLabel={disabledLabel}
+          onSelect={onSelect}
+          canSelect={canSelect}
+          canCreateFolder={canCreateFolder}
+          onRowEnter={onRowEnter}
+        />
+      ))}
+    </div>
+  );
+}
+
+function FolderCascadeRow({
+  folder,
+  parentPath,
+  selectedFolderId,
+  currentFolderId,
+  disabledLabel,
+  onSelect,
+  canSelect,
+  canCreateFolder,
+  onRowEnter
+}: {
+  folder: BookmarkNode;
+  parentPath: string[];
+  selectedFolderId?: string;
+  currentFolderId?: string;
+  disabledLabel?: string;
+  onSelect(folder: BookmarkNode): void;
+  canSelect(folder: BookmarkNode): boolean;
+  canCreateFolder: boolean;
+  onRowEnter(parentPath: string[], folder: BookmarkNode, hasSubmenu: boolean, element: HTMLElement): void;
+}) {
+  const selectable = canSelect(folder);
+  const nestedFolders = folder.children?.filter(isFolder) ?? [];
+  const behavior = getCascadeRowBehavior({
+    selectable,
+    nestedFolderCount: nestedFolders.length,
+    canCreateFolder
+  });
+  const isCurrentFolder = currentFolderId === folder.id;
+  const isSelected = selectedFolderId === folder.id;
+  const title = getDisplayTitle(folder);
+
+  function handleEnter(event: PointerEvent<HTMLDivElement> | FocusEvent<HTMLDivElement>) {
+    onRowEnter(parentPath, folder, behavior.hasSubmenu, event.currentTarget);
+  }
+
+  return (
+    <div
+      className={`move-folder-row ${behavior.hasSubmenu ? "has-children" : ""} ${
+        isCurrentFolder ? "is-current-parent" : ""
+      } ${isSelected ? "is-selected" : ""}`}
+      onPointerEnter={handleEnter}
+      onFocus={handleEnter}
+    >
+      <button
+        className={getCascadeButtonClassName()}
+        type="button"
+        aria-disabled={!behavior.canSelect}
+        disabled={behavior.buttonDisabled}
+        onClick={() => {
+          if (behavior.canSelect) {
+            onSelect(folder);
+          }
+        }}
+      >
+        <span className="folder-glyph" aria-hidden="true" />
+        <span>{title}</span>
+        {isCurrentFolder ? <span className="move-menu-note">当前位置</span> : null}
+        {!behavior.canSelect && disabledLabel && !isCurrentFolder ? (
+          <span className="move-menu-note">{disabledLabel}</span>
+        ) : null}
+        {behavior.hasSubmenu ? <span className="menu-chevron" aria-hidden="true" /> : null}
+      </button>
+    </div>
+  );
+}
+
+function FloatingCascadeLayer({
+  layer,
+  zIndex,
+  selectedFolderId,
+  currentFolderId,
+  disabledLabel,
+  onSelect,
+  canSelect,
+  onCreateFolder,
+  renderCreateAction,
+  onRowEnter,
+  onCascadeEnter,
+  onCascadeLeave,
+  onSizeChange
+}: {
+  layer: CascadeLayer;
+  zIndex: number;
+  selectedFolderId?: string;
+  currentFolderId?: string;
+  disabledLabel?: string;
+  onSelect(folder: BookmarkNode): void;
+  canSelect(folder: BookmarkNode): boolean;
+  onCreateFolder?(parentFolder: BookmarkNode): void;
+  renderCreateAction?(parentFolder: BookmarkNode): ReactNode;
+  onRowEnter(parentPath: string[], folder: BookmarkNode, hasSubmenu: boolean, element: HTMLElement): void;
+  onCascadeEnter(): void;
+  onCascadeLeave(): void;
+  onSizeChange(folderId: string, size: CascadeMenuSize): void;
+}) {
+  const layerRef = useRef<HTMLDivElement>(null);
+  const nestedFolders = useMemo(() => getMenuFolders(layer.folder.children ?? []), [layer.folder]);
+  const style = getFloatingLayerStyle(layer.placement, zIndex);
+
+  useLayoutEffect(() => {
+    const element = layerRef.current;
+
+    if (!element) {
+      return;
+    }
+
+    onSizeChange(layer.folder.id, {
+      width: Math.max(element.offsetWidth || FLOATING_CASCADE_WIDTH, FLOATING_CASCADE_WIDTH),
+      height: Math.max(element.scrollHeight || element.offsetHeight || FLOATING_CASCADE_MIN_HEIGHT, FLOATING_CASCADE_MIN_HEIGHT)
+    });
+  }, [layer.folder.id, nestedFolders.length, onCreateFolder, onSizeChange]);
+
+  return (
+    <div
+      ref={layerRef}
+      className={`context-submenu nested-submenu is-floating-cascade opens-${layer.placement.submenuDirection} opens-${layer.placement.submenuBlockDirection}`}
+      role="menu"
+      style={style}
+      onPointerEnter={onCascadeEnter}
+      onPointerLeave={onCascadeLeave}
+      onFocus={onCascadeEnter}
+      onBlur={(event) => handleCascadeBlur(event, onCascadeLeave)}
+      onWheel={(event) => event.stopPropagation()}
+    >
+      <FolderCascadeList
+        folders={nestedFolders}
+        parentPath={layer.path}
+        selectedFolderId={selectedFolderId}
+        currentFolderId={currentFolderId}
+        disabledLabel={disabledLabel}
+        onSelect={onSelect}
+        canSelect={canSelect}
+        canCreateFolder={Boolean(onCreateFolder)}
+        onRowEnter={onRowEnter}
+        onCascadeEnter={onCascadeEnter}
+        onCascadeLeave={onCascadeLeave}
+      />
+      {renderCreateAction
+        ? renderCreateAction(layer.folder)
+        : onCreateFolder
+          ? (
+              <button
+                className={getCascadeButtonClassName("move-folder-create")}
+                type="button"
+                role="menuitem"
+                onClick={() => onCreateFolder(layer.folder)}
+              >
+                新建文件夹...
+              </button>
+            )
+          : null}
+    </div>
+  );
+}
+
+function getMenuFolders(nodes: BookmarkNode[]): BookmarkNode[] {
+  return nodes.flatMap((node) => {
+    if (!isFolder(node)) {
+      return [];
+    }
+
+    if (!node.parentId) {
+      return getMenuFolders(node.children ?? []);
+    }
+
+    return [node];
+  });
+}
+
+function buildFolderMap(folders: BookmarkNode[]): Map<string, BookmarkNode> {
+  const map = new Map<string, BookmarkNode>();
+
+  function walk(nodes: BookmarkNode[]) {
+    nodes.forEach((node) => {
+      map.set(node.id, node);
+      walk(getMenuFolders(node.children ?? []));
+    });
+  }
+
+  walk(folders);
+  return map;
+}
+
+function estimateLayerSize(folder: BookmarkNode, canCreateFolder: boolean): CascadeMenuSize {
+  const rowCount = getMenuFolders(folder.children ?? []).length + (canCreateFolder ? 1 : 0);
+
+  return {
+    width: FLOATING_CASCADE_WIDTH,
+    height: Math.max(
+      FLOATING_CASCADE_MIN_HEIGHT,
+      rowCount * FLOATING_CASCADE_ROW_HEIGHT + FLOATING_CASCADE_PADDING
+    )
+  };
+}
+
+function rectToAnchor(rect: DOMRect): CascadeMenuAnchorRect {
+  return {
+    top: rect.top,
+    right: rect.right,
+    bottom: rect.bottom,
+    left: rect.left
+  };
+}
+
+function getViewport() {
+  if (typeof window === "undefined") {
+    return { width: 1024, height: 768 };
+  }
+
+  return { width: window.innerWidth, height: window.innerHeight };
+}
+
+function getFloatingLayerStyle(placement: CascadeMenuPlacement, zIndex: number): CSSProperties {
+  return {
+    left: placement.x,
+    top: placement.y,
+    maxHeight: placement.maxHeight,
+    overflowY: placement.needsScroll ? "auto" : "visible",
+    overflowX: "hidden",
+    zIndex
+  };
+}
+
+function handleCascadeBlur(event: FocusEvent<HTMLElement>, onBlurOutside: () => void) {
+  const nextTarget = event.relatedTarget;
+
+  if (!(nextTarget instanceof Node) || !event.currentTarget.contains(nextTarget)) {
+    onBlurOutside();
+  }
+}

@@ -10,10 +10,13 @@ import {
   type MouseEvent as ReactMouseEvent
 } from "react";
 import { BookmarkCard } from "../components/BookmarkCard";
+import { BreadcrumbNav } from "../components/BreadcrumbNav";
+import { FolderCascadeMenu } from "../components/FolderCascadeMenu";
 import { FolderTree } from "../components/FolderTree";
 import { SearchBar } from "../components/SearchBar";
 import { bookmarksAdapter } from "../lib/chrome";
 import {
+  buildFolderBreadcrumbItems,
   canCreateBookmarkInFolder,
   collectFolderIds,
   canRenameFolder,
@@ -23,13 +26,16 @@ import {
   getDisplayTitle,
   getFolderEndIndex,
   insertNodeInBookmarkTree,
-  isFolder,
   moveNodeInBookmarkTree,
   removeNodeFromBookmarkTree,
   useBookmarks,
   type BookmarkNode
 } from "../features/bookmarks";
-import { getContextMenuPlacement, type ContextMenuPlacement } from "../features/context-menu";
+import {
+  getCascadeMenuPlacement,
+  getContextMenuPlacement,
+  type ContextMenuPlacement
+} from "../features/context-menu";
 import {
   canDropBookmarkOnFolder,
   canDropFolderOnIntent,
@@ -92,7 +98,7 @@ interface FolderPickerDialogState {
   selectedFolderId?: string;
 }
 
-const CONTEXT_MENU_CLOSE_DELAY_MS = 220;
+const CONTEXT_MENU_CLOSE_DELAY_MS = 320;
 
 export function App() {
   const [query, setQuery] = useState("");
@@ -110,6 +116,7 @@ export function App() {
   const [newFolderDialog, setNewFolderDialog] = useState<NewFolderDialogState>();
   const [newBookmarkDraft, setNewBookmarkDraft] = useState<NewBookmarkDraftState>();
   const [folderPickerDialog, setFolderPickerDialog] = useState<FolderPickerDialogState>();
+  const [shortcutDialogOpen, setShortcutDialogOpen] = useState(false);
   const [activeBookmarkDropIntent, setActiveBookmarkDropIntent] = useState<BookmarkDropIntent>();
   const [expandedFolderIds, setExpandedFolderIds] = useState<Set<string>>(new Set());
   const [toast, setToast] = useState<ToastState>();
@@ -117,6 +124,7 @@ export function App() {
   const { settings, updateSettings } = useSettings();
   const {
     tree,
+    folders,
     selectedFolder,
     selectedFolderId,
     selectedBookmarks,
@@ -131,6 +139,14 @@ export function App() {
   useEffect(() => {
     document.documentElement.dataset.theme = settings.theme;
   }, [settings.theme]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("quickSave") === "unsupported") {
+      setToast({ message: "当前页面不支持注入快捷保存浮框，请在普通网页中使用 Ctrl + Shift + S。" });
+      window.history.replaceState({}, "", window.location.pathname);
+    }
+  }, []);
 
   useEffect(() => {
     operationLogRef.current = operationLog;
@@ -166,6 +182,7 @@ export function App() {
       setNewFolderDialog(undefined);
       setNewBookmarkDraft(undefined);
       setFolderPickerDialog(undefined);
+      setShortcutDialogOpen(false);
       setRenamingFolderId(undefined);
       setActiveBookmarkDropIntent(undefined);
     }
@@ -181,7 +198,11 @@ export function App() {
     : selectedFolder
       ? getDisplayTitle(selectedFolder)
       : "选择一个文件夹";
-  const activePath = selectedFolderId ? folderPathMap.get(selectedFolderId) : undefined;
+  const breadcrumbItems = useMemo(
+    () => buildFolderBreadcrumbItems(tree, selectedFolderId),
+    [selectedFolderId, tree]
+  );
+  const homeFolderId = folders[0]?.id;
   const canCreateBookmarkHere = !isSearching && canCreateBookmarkInFolder(selectedFolder);
 
   const displayedBookmarks = isSearching
@@ -275,6 +296,7 @@ export function App() {
             onRenameFolder={handleRenameFolder}
             onCancelRenameFolder={() => setRenamingFolderId(undefined)}
             onDropBookmark={(folder) => void handleDropBookmark(folder)}
+            onDropBookmarkOnBookmark={(intent) => void handleDropBookmarkOnTreeBookmark(intent)}
             onFolderDragStart={(folder) => setDraggedFolder(createDraggedFolderSnapshot(folder))}
             onFolderDragEnd={() => setDraggedFolder(undefined)}
             onDropFolder={(intent) => void handleDropFolder(intent)}
@@ -293,7 +315,11 @@ export function App() {
 
       <section className="workspace">
         <header className="toolbar">
-          <div className="breadcrumb">首页 / {activePath ?? "书签栏"}</div>
+          <BreadcrumbNav
+            items={breadcrumbItems}
+            homeFolderId={homeFolderId}
+            onSelectFolder={handleBreadcrumbSelectFolder}
+          />
           <SearchBar value={query} onChange={setQuery} />
           <div className="toolbar-meta">
             <CardSizeControl
@@ -308,6 +334,15 @@ export function App() {
             >
               操作日志
               {operationLog.length > 0 ? <span>{operationLog.length}</span> : null}
+            </button>
+            <button
+              className="shortcut-button"
+              type="button"
+              aria-label="打开快捷键设置"
+              title="快捷键设置"
+              onClick={() => setShortcutDialogOpen(true)}
+            >
+              快捷键
             </button>
             <button
               className="theme-button"
@@ -395,6 +430,9 @@ export function App() {
           onCreateFolder={(bookmark, parentFolder) => openNewFolderDialog(parentFolder, bookmark)}
         />
       ) : null}
+      {shortcutDialogOpen ? (
+        <ShortcutSettingsDialog onClose={() => setShortcutDialogOpen(false)} />
+      ) : null}
       {toast ? <Toast toast={toast} onClose={() => setToast(undefined)} /> : null}
     </main>
   );
@@ -447,38 +485,45 @@ export function App() {
     return (
       <div className="card-grid">
         {shouldShowDraft && draftIndex === 0 ? renderNewBookmarkDraft() : null}
-        {items.map(({ bookmark, folderPath }, index) => (
-          <Fragment key={bookmark.id}>
-            <BookmarkCard
-              bookmark={bookmark}
-              folderPath={folderPath}
-              note={metadata.bookmarkMetadata[bookmark.id]?.note}
-              highlighted={highlightedBookmarkId === bookmark.id}
-              highlightPulse={highlightPulseId === bookmark.id}
-              editRequestId={
-                inlineEditRequest?.bookmarkId === bookmark.id
-                  ? inlineEditRequest.requestId
-                  : undefined
-              }
-              activeDropPosition={
-                activeBookmarkDropIntent?.targetBookmark.id === bookmark.id
-                  ? activeBookmarkDropIntent.position
-                  : undefined
-              }
-              onDragStart={(dragged) => setDraggedBookmark(createDraggedBookmarkSnapshot(dragged))}
-              onDragEnd={handleBookmarkDragEnd}
-              onDragOverBookmark={handleBookmarkCardDragOver}
-              onDragLeaveBookmark={handleBookmarkCardDragLeave}
-              onDropOnBookmark={handleDropBookmarkOnCard}
-              onOpen={openBookmark}
-              onSaveTitle={handleSaveTitle}
-              onSaveUrl={handleSaveUrl}
-              onSaveNote={handleSaveNote}
-              onContextMenu={handleBookmarkContextMenu}
-            />
-            {shouldShowDraft && draftIndex === index + 1 ? renderNewBookmarkDraft() : null}
-          </Fragment>
-        ))}
+        {items.map(({ bookmark, folderPath }, index) => {
+          const activeDropPosition =
+            activeBookmarkDropIntent?.targetBookmark.id === bookmark.id
+              ? activeBookmarkDropIntent.position
+              : undefined;
+
+          return (
+            <Fragment key={bookmark.id}>
+              <div
+                className="bookmark-card-slot"
+                data-drop-position={activeDropPosition}
+              >
+                <BookmarkCard
+                  bookmark={bookmark}
+                  folderPath={folderPath}
+                  note={metadata.bookmarkMetadata[bookmark.id]?.note}
+                  highlighted={highlightedBookmarkId === bookmark.id}
+                  highlightPulse={highlightPulseId === bookmark.id}
+                  editRequestId={
+                    inlineEditRequest?.bookmarkId === bookmark.id
+                      ? inlineEditRequest.requestId
+                      : undefined
+                  }
+                  onDragStart={(dragged) => setDraggedBookmark(createDraggedBookmarkSnapshot(dragged))}
+                  onDragEnd={handleBookmarkDragEnd}
+                  onDragOverBookmark={handleBookmarkCardDragOver}
+                  onDragLeaveBookmark={handleBookmarkCardDragLeave}
+                  onDropOnBookmark={handleDropBookmarkOnCard}
+                  onOpen={openBookmark}
+                  onSaveTitle={handleSaveTitle}
+                  onSaveUrl={handleSaveUrl}
+                  onSaveNote={handleSaveNote}
+                  onContextMenu={handleBookmarkContextMenu}
+                />
+              </div>
+              {shouldShowDraft && draftIndex === index + 1 ? renderNewBookmarkDraft() : null}
+            </Fragment>
+          );
+        })}
         {shouldShowDraft && draftIndex > items.length ? renderNewBookmarkDraft() : null}
       </div>
     );
@@ -524,6 +569,11 @@ export function App() {
     setHighlightedBookmarkId(undefined);
     setHighlightPulseId(undefined);
     selectFolder(folderId);
+  }
+
+  function handleBreadcrumbSelectFolder(folderId: string) {
+    setQuery("");
+    handleSelectFolder(folderId);
   }
 
   function toggleFolderExpanded(folderId: string) {
@@ -579,6 +629,16 @@ export function App() {
 
     setDraggedBookmark(undefined);
     await moveBookmarkWithUndo(snapshot, folder);
+  }
+
+  async function handleDropBookmarkOnTreeBookmark(intent: BookmarkDropIntent) {
+    const snapshot = draggedBookmark;
+
+    if (!snapshot || !canReorderBookmarkOnIntent(snapshot, intent)) {
+      return;
+    }
+
+    await reorderBookmarkWithUndo(snapshot, intent);
   }
 
   function handleBookmarkDragEnd() {
@@ -1367,6 +1427,10 @@ function BookmarkContextMenu({
 }) {
   const snapshot = createDraggedBookmarkSnapshot(state.bookmark);
   const closeTimerRef = useRef<number | undefined>(undefined);
+  const moveMenuCloseTimerRef = useRef<number | undefined>(undefined);
+  const moveTriggerRef = useRef<HTMLDivElement>(null);
+  const moveSubmenuRef = useRef<HTMLDivElement>(null);
+  const [moveMenuOpen, setMoveMenuOpen] = useState(false);
 
   function clearCloseTimer() {
     if (closeTimerRef.current) {
@@ -1375,12 +1439,49 @@ function BookmarkContextMenu({
     }
   }
 
+  function clearMoveMenuCloseTimer() {
+    if (moveMenuCloseTimerRef.current) {
+      window.clearTimeout(moveMenuCloseTimerRef.current);
+      moveMenuCloseTimerRef.current = undefined;
+    }
+  }
+
   function scheduleClose() {
     clearCloseTimer();
     closeTimerRef.current = window.setTimeout(onClose, CONTEXT_MENU_CLOSE_DELAY_MS);
   }
 
-  useEffect(() => clearCloseTimer, []);
+  function scheduleMoveMenuClose() {
+    clearMoveMenuCloseTimer();
+    moveMenuCloseTimerRef.current = window.setTimeout(() => {
+      setMoveMenuOpen(false);
+    }, CONTEXT_MENU_CLOSE_DELAY_MS);
+  }
+
+  function positionMoveSubmenu() {
+    clearCloseTimer();
+    clearMoveMenuCloseTimer();
+    setMoveMenuOpen(true);
+    positionNestedSubmenu(moveTriggerRef.current, moveSubmenuRef.current);
+  }
+
+  function keepMoveCascadeOpen() {
+    clearCloseTimer();
+    clearMoveMenuCloseTimer();
+    setMoveMenuOpen(true);
+  }
+
+  function scheduleMoveCascadeClose() {
+    scheduleMoveMenuClose();
+    scheduleClose();
+  }
+
+  useEffect(() => {
+    return () => {
+      clearCloseTimer();
+      clearMoveMenuCloseTimer();
+    };
+  }, []);
 
   return (
     <div
@@ -1389,7 +1490,7 @@ function BookmarkContextMenu({
       onContextMenu={(event) => event.preventDefault()}
     >
       <div
-        className={`context-menu-panel opens-${state.submenuDirection}`}
+        className={`context-menu-panel opens-${state.submenuDirection} opens-${state.submenuBlockDirection}`}
         style={{ left: state.x, top: state.y }}
         role="menu"
         onClick={(event) => event.stopPropagation()}
@@ -1409,10 +1510,23 @@ function BookmarkContextMenu({
             </button>
           </>
         ) : null}
-        <div className="context-menu-item has-submenu" role="menuitem" tabIndex={0}>
+        <div
+          ref={moveTriggerRef}
+          className={`context-menu-item has-submenu ${moveMenuOpen ? "is-open" : ""}`}
+          role="menuitem"
+          tabIndex={0}
+          onMouseEnter={positionMoveSubmenu}
+          onMouseLeave={scheduleMoveMenuClose}
+          onFocus={positionMoveSubmenu}
+        >
           <span>移动</span>
           <span className="menu-chevron" aria-hidden="true" />
-          <div className="context-submenu move-submenu" role="menu" aria-label="移动到文件夹">
+          <div
+            ref={moveSubmenuRef}
+            className="context-submenu move-submenu"
+            role="menu"
+            aria-label="移动到文件夹"
+          >
             <button
               className="move-folder-search"
               type="button"
@@ -1426,6 +1540,8 @@ function BookmarkContextMenu({
               snapshot={snapshot}
               onMove={(folder) => onMove(state.bookmark, folder)}
               onCreateFolder={(parentFolder) => onCreateFolder(state.bookmark, parentFolder)}
+              onCascadeEnter={keepMoveCascadeOpen}
+              onCascadeLeave={scheduleMoveCascadeClose}
             />
           </div>
         </div>
@@ -1440,6 +1556,26 @@ function BookmarkContextMenu({
       </div>
     </div>
   );
+}
+
+function positionNestedSubmenu(trigger: HTMLElement | null, submenu: HTMLElement | null) {
+  if (!trigger || !submenu) {
+    return;
+  }
+
+  trigger.classList.remove("opens-left", "opens-right", "opens-up", "opens-down");
+  const width = Math.max(submenu.offsetWidth || 260, 260);
+  const height = Math.max(submenu.scrollHeight || submenu.offsetHeight || 180, 180);
+  const placement = getCascadeMenuPlacement(
+    trigger.getBoundingClientRect(),
+    { width: window.innerWidth, height: window.innerHeight },
+    { width, height }
+  );
+
+  trigger.classList.add(`opens-${placement.submenuDirection}`, `opens-${placement.submenuBlockDirection}`);
+  submenu.style.maxHeight = `${placement.maxHeight}px`;
+  submenu.style.overflowY = placement.needsScroll ? "auto" : "visible";
+  submenu.style.overflowX = "hidden";
 }
 
 function FolderContextMenu({
@@ -1460,7 +1596,7 @@ function FolderContextMenu({
       onContextMenu={(event) => event.preventDefault()}
     >
       <div
-        className={`context-menu-panel opens-${state.submenuDirection}`}
+        className={`context-menu-panel opens-${state.submenuDirection} opens-${state.submenuBlockDirection}`}
         style={{ left: state.x, top: state.y }}
         role="menu"
         onClick={(event) => event.stopPropagation()}
@@ -1482,84 +1618,28 @@ function MoveFolderMenu({
   nodes,
   snapshot,
   onMove,
-  onCreateFolder
+  onCreateFolder,
+  onCascadeEnter,
+  onCascadeLeave
 }: {
   nodes: BookmarkNode[];
   snapshot: DraggedBookmarkSnapshot;
   onMove(folder: BookmarkNode): void;
   onCreateFolder(parentFolder: BookmarkNode): void;
+  onCascadeEnter(): void;
+  onCascadeLeave(): void;
 }) {
-  const folders = nodes.filter(isFolder);
-
-  if (folders.length === 0) {
-    return <div className="move-menu-empty">没有可用文件夹</div>;
-  }
-
   return (
-    <div className="move-menu-list">
-      {folders.map((folder) => {
-        const canMove = canMoveBookmarkToFolder(snapshot, folder);
-        const nestedFolders = folder.children?.filter(isFolder) ?? [];
-        const hasSubmenu = Boolean(folder.parentId);
-        const isCurrentParent = snapshot.parentId === folder.id;
-        const title = folder.parentId ? getDisplayTitle(folder) : "Root";
-
-        if (!folder.parentId) {
-          return (
-            <MoveFolderMenu
-              key={folder.id}
-              nodes={folder.children ?? []}
-              snapshot={snapshot}
-              onMove={onMove}
-              onCreateFolder={onCreateFolder}
-            />
-          );
-        }
-
-        return (
-          <div
-            key={folder.id}
-            className={`move-folder-row ${hasSubmenu ? "has-children" : ""} ${
-              isCurrentParent ? "is-current-parent" : ""
-            }`}
-          >
-            <button
-              type="button"
-              aria-disabled={!canMove}
-              disabled={!canMove && !hasSubmenu}
-              onClick={() => {
-                if (canMove) {
-                  onMove(folder);
-                }
-              }}
-            >
-              <span className="folder-glyph" aria-hidden="true" />
-              <span>{title}</span>
-              {isCurrentParent ? <span className="move-menu-note">当前位置</span> : null}
-              {hasSubmenu ? <span className="menu-chevron" aria-hidden="true" /> : null}
-            </button>
-            {hasSubmenu ? (
-              <div className="context-submenu nested-submenu" role="menu">
-                <MoveFolderMenu
-                  nodes={nestedFolders}
-                  snapshot={snapshot}
-                  onMove={onMove}
-                  onCreateFolder={onCreateFolder}
-                />
-                <button
-                  className="move-folder-create"
-                  type="button"
-                  role="menuitem"
-                  onClick={() => onCreateFolder(folder)}
-                >
-                  新建文件夹...
-                </button>
-              </div>
-            ) : null}
-          </div>
-        );
-      })}
-    </div>
+    <FolderCascadeMenu
+      nodes={nodes}
+      currentFolderId={snapshot.parentId}
+      disabledLabel="不可移动"
+      onSelect={onMove}
+      canSelect={(folder) => canMoveBookmarkToFolder(snapshot, folder)}
+      onCreateFolder={onCreateFolder}
+      onCascadeEnter={onCascadeEnter}
+      onCascadeLeave={onCascadeLeave}
+    />
   );
 }
 
@@ -1803,6 +1883,59 @@ function NewFolderDialog({
           <button type="submit">{state.bookmarkToMove ? "新建并移动" : "新建"}</button>
         </div>
       </form>
+    </div>
+  );
+}
+
+function ShortcutSettingsDialog({ onClose }: { onClose(): void }) {
+  function openShortcutSettings() {
+    const shortcutsUrl = "chrome://extensions/shortcuts";
+
+    if (typeof chrome !== "undefined" && chrome.tabs?.create) {
+      void chrome.tabs.create({ url: shortcutsUrl });
+      onClose();
+      return;
+    }
+
+    window.open(shortcutsUrl, "_blank", "noopener,noreferrer");
+    onClose();
+  }
+
+  return (
+    <div className="dialog-layer" role="presentation" onMouseDown={onClose}>
+      <section
+        className="bookmark-edit-dialog shortcut-settings-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="shortcut-settings-title"
+        onMouseDown={(event) => event.stopPropagation()}
+      >
+        <div className="dialog-heading">
+          <div>
+            <h3 id="shortcut-settings-title">快捷键设置</h3>
+            <span>默认保存快捷键：Ctrl + Shift + S</span>
+          </div>
+          <button type="button" aria-label="关闭快捷键设置窗口" onClick={onClose}>
+            Close
+          </button>
+        </div>
+        <div className="shortcut-settings-body">
+          <p>
+            浏览器负责最终快捷键分配。你可以在扩展快捷键页面把“保存当前网页”改成自己顺手的组合。
+          </p>
+          <p>
+            某些浏览器或系统快捷键无法被扩展覆盖，因此当前默认不强制占用 Ctrl + S。
+          </p>
+        </div>
+        <div className="dialog-actions">
+          <button type="button" onClick={onClose}>
+            Cancel
+          </button>
+          <button type="button" className="primary-action" onClick={openShortcutSettings}>
+            打开快捷键设置
+          </button>
+        </div>
+      </section>
     </div>
   );
 }

@@ -276,7 +276,9 @@ button {
 }
 
 .folder-row.is-folder-drop-before,
-.folder-row.is-folder-drop-after {
+.folder-row.is-folder-drop-after,
+.bookmark-row.is-bookmark-drop-before,
+.bookmark-row.is-bookmark-drop-after {
   position: relative;
   color: var(--text);
   background: var(--panel);
@@ -284,7 +286,9 @@ button {
 }
 
 .folder-row.is-folder-drop-before::before,
-.folder-row.is-folder-drop-after::after {
+.folder-row.is-folder-drop-after::after,
+.bookmark-row.is-bookmark-drop-before::before,
+.bookmark-row.is-bookmark-drop-after::after {
   position: absolute;
   right: 8px;
   left: calc(9px + var(--level, 0) * 18px);
@@ -294,11 +298,13 @@ button {
   border-radius: 999px;
 }
 
-.folder-row.is-folder-drop-before::before {
+.folder-row.is-folder-drop-before::before,
+.bookmark-row.is-bookmark-drop-before::before {
   top: -3px;
 }
 
-.folder-row.is-folder-drop-after::after {
+.folder-row.is-folder-drop-after::after,
+.bookmark-row.is-bookmark-drop-after::after {
   bottom: -3px;
 }
 
@@ -435,6 +441,56 @@ button {
   white-space: nowrap;
 }
 
+.breadcrumb ol {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  list-style: none;
+}
+
+.breadcrumb li {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.breadcrumb button {
+  max-width: 180px;
+  padding: 3px 5px;
+  overflow: hidden;
+  color: var(--muted);
+  font: inherit;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  background: transparent;
+  border: 0;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.breadcrumb button:hover,
+.breadcrumb button:focus-visible,
+.breadcrumb button[aria-current="location"] {
+  color: var(--accent);
+  background: var(--accent-soft);
+  outline: 0;
+}
+
+.breadcrumb button:disabled {
+  color: var(--faint);
+  cursor: default;
+  background: transparent;
+}
+
+.breadcrumb-separator {
+  color: var(--faint);
+}
+
 .toolbar-meta {
   display: flex;
   gap: 10px;
@@ -487,6 +543,27 @@ button {
   border: 1px solid var(--line-strong);
   border-radius: 8px;
   cursor: pointer;
+}
+
+.shortcut-button {
+  min-height: 36px;
+  padding: 0 10px;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+  white-space: nowrap;
+  background: var(--panel);
+  border: 1px solid var(--line-strong);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.shortcut-button:hover,
+.shortcut-button:focus-visible {
+  color: #ffffff;
+  background: var(--accent);
+  border-color: var(--accent);
+  outline: 0;
 }
 
 .log-button:hover,
@@ -622,10 +699,19 @@ button {
     visibility 120ms ease;
 }
 
-.context-menu-panel.opens-left .context-submenu {
+.context-menu-panel.opens-left .context-submenu,
+.has-submenu.opens-left > .context-submenu,
+.move-folder-row.opens-left > .context-submenu {
   right: calc(100% + 6px);
   left: auto;
   transform: translateX(4px);
+}
+
+.context-menu-panel.opens-up .context-submenu,
+.has-submenu.opens-up > .context-submenu,
+.move-folder-row.opens-up > .context-submenu {
+  top: auto;
+  bottom: -7px;
 }
 
 .has-submenu,
@@ -644,15 +730,19 @@ button {
 }
 
 .context-menu-panel.opens-left .has-submenu::after,
-.context-menu-panel.opens-left .move-folder-row.has-children::after {
+.context-menu-panel.opens-left .move-folder-row.has-children::after,
+.has-submenu.opens-left::after,
+.move-folder-row.has-children.opens-left::after {
   right: auto;
   left: -10px;
 }
 
 .has-submenu:hover > .context-submenu,
 .has-submenu:focus-within > .context-submenu,
+.has-submenu.is-open > .context-submenu,
 .move-folder-row:hover > .context-submenu,
-.move-folder-row:focus-within > .context-submenu {
+.move-folder-row:focus-within > .context-submenu,
+.move-folder-row.is-open > .context-submenu {
   visibility: visible;
   pointer-events: auto;
   opacity: 1;
@@ -664,32 +754,77 @@ button {
   overflow: visible;
 }
 
+.move-submenu {
+  overflow-x: hidden;
+}
+
+.context-submenu.is-floating-cascade {
+  position: fixed;
+  min-width: 260px;
+  visibility: visible;
+  pointer-events: auto;
+  opacity: 1;
+  transform: none;
+  overscroll-behavior: contain;
+  transition:
+    opacity 80ms ease,
+    transform 80ms ease;
+}
+
+.context-submenu.is-floating-cascade.opens-left,
+.context-submenu.is-floating-cascade.opens-right,
+.context-submenu.is-floating-cascade.opens-up,
+.context-submenu.is-floating-cascade.opens-down {
+  right: auto;
+  bottom: auto;
+  transform: none;
+}
+
 .move-menu-list {
   display: grid;
   gap: 2px;
 }
 
-.move-folder-row button {
+.move-folder-button {
+  display: flex;
+  align-items: center;
   justify-content: flex-start;
   gap: 8px;
+  width: 100%;
+  min-height: 32px;
+  padding: 0 9px;
+  color: var(--text);
+  font: inherit;
+  font-size: 0.8rem;
+  text-align: left;
+  background: transparent;
+  border: 0;
+  border-radius: 7px;
+  cursor: pointer;
 }
 
-.move-folder-row button .menu-chevron {
+.move-folder-button:hover,
+.move-folder-button:focus-visible {
+  background: var(--panel-subtle);
+  outline: 0;
+}
+
+.move-folder-button .menu-chevron {
   margin-left: auto;
 }
 
-.move-folder-row button:disabled,
-.move-folder-row button[aria-disabled="true"] {
+.move-folder-button:disabled,
+.move-folder-button[aria-disabled="true"] {
   color: var(--faint);
   cursor: default;
 }
 
-.move-folder-row.has-children button[aria-disabled="true"] {
+.move-folder-row.has-children .move-folder-button[aria-disabled="true"] {
   cursor: pointer;
 }
 
-.move-folder-row button:disabled:hover,
-.move-folder-row button[aria-disabled="true"]:hover {
+.move-folder-button:disabled:hover,
+.move-folder-button[aria-disabled="true"]:hover {
   background: var(--panel-subtle);
 }
 
@@ -703,7 +838,8 @@ button {
   font-weight: 800;
 }
 
-.move-folder-row.is-current-parent > button {
+.move-folder-row.is-current-parent > button,
+.move-folder-row.is-selected > button {
   background: linear-gradient(90deg, var(--accent-soft), transparent 76%);
 }
 
@@ -806,10 +942,27 @@ button {
   gap: 9px;
 }
 
-.dialog-actions button[type="submit"] {
+.dialog-actions button[type="submit"],
+.dialog-actions .primary-action {
   color: #ffffff;
   background: var(--accent);
   border-color: var(--accent);
+}
+
+.shortcut-settings-dialog {
+  width: min(560px, 100%);
+}
+
+.shortcut-settings-body {
+  display: grid;
+  gap: 9px;
+  color: var(--muted);
+  font-size: 0.86rem;
+  line-height: 1.55;
+}
+
+.shortcut-settings-body p {
+  margin: 0;
 }
 
 .folder-picker-dialog {
@@ -1192,9 +1345,45 @@ button {
 }
 
 .card-grid {
+  --bookmark-drop-indicator-offset: 10px;
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(var(--card-min-width, 360px), 1fr));
   gap: 20px;
+}
+
+.bookmark-card-slot {
+  position: relative;
+  min-width: 0;
+  overflow: visible;
+}
+
+.bookmark-card-slot[data-drop-position="before"] .bookmark-card,
+.bookmark-card-slot[data-drop-position="after"] .bookmark-card {
+  border-color: var(--accent);
+  box-shadow:
+    0 0 0 2px var(--accent-soft),
+    var(--shadow);
+}
+
+.bookmark-card-slot[data-drop-position="before"]::after,
+.bookmark-card-slot[data-drop-position="after"]::after {
+  position: absolute;
+  top: 12px;
+  bottom: 12px;
+  z-index: 2;
+  width: 3px;
+  pointer-events: none;
+  content: "";
+  background: var(--accent);
+  border-radius: 999px;
+}
+
+.bookmark-card-slot[data-drop-position="before"]::after {
+  left: calc(var(--bookmark-drop-indicator-offset) * -1);
+}
+
+.bookmark-card-slot[data-drop-position="after"]::after {
+  right: calc(var(--bookmark-drop-indicator-offset) * -1);
 }
 
 .app-shell[data-card-size="small"] {
@@ -1275,33 +1464,6 @@ button {
 
 .bookmark-card.is-highlight-pulse {
   animation: bookmark-locate-pulse 900ms cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.bookmark-card.is-card-drop-before,
-.bookmark-card.is-card-drop-after {
-  border-color: var(--accent);
-  box-shadow:
-    0 0 0 2px var(--accent-soft),
-    var(--shadow);
-}
-
-.bookmark-card.is-card-drop-before::after,
-.bookmark-card.is-card-drop-after::after {
-  position: absolute;
-  top: 12px;
-  bottom: 12px;
-  width: 3px;
-  content: "";
-  background: var(--accent);
-  border-radius: 999px;
-}
-
-.bookmark-card.is-card-drop-before::after {
-  left: 8px;
-}
-
-.bookmark-card.is-card-drop-after::after {
-  right: 8px;
 }
 
 .bookmark-card:active {

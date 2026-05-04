@@ -10,6 +10,7 @@ import {
   createDraggedFolderSnapshot,
   getBookmarkCardDropPosition,
   getBookmarkReorderDestination,
+  getBookmarkTreeDropPosition,
   getFolderMoveDestination
 } from "./index";
 import { mockBookmarkTree } from "../../lib/chrome/mockBookmarks";
@@ -186,6 +187,13 @@ describe("drag-drop rules", () => {
     expect(getBookmarkCardDropPosition({ x: 140, y: 270 }, wideCard)).toBe("after");
     expect(getBookmarkCardDropPosition({ x: 108, y: 190 }, wideCard)).toBe("before");
     expect(getBookmarkCardDropPosition({ x: 472, y: 190 }, wideCard)).toBe("after");
+  });
+
+  it("uses the vertical midpoint to decide tree bookmark insertion position", () => {
+    const treeRow = { top: 200, bottom: 240 };
+
+    expect(getBookmarkTreeDropPosition({ x: 36, y: 210 }, treeRow)).toBe("before");
+    expect(getBookmarkTreeDropPosition({ x: 36, y: 232 }, treeRow)).toBe("after");
   });
 
   it("allows moving the second bookmark before the first when hovering near the first card top edge", () => {

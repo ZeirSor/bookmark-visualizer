@@ -1,4 +1,4 @@
-import type { BookmarkNode, FolderOption } from "./types";
+import type { BookmarkNode, FolderBreadcrumbItem, FolderOption } from "./types";
 
 export interface BookmarkTreeMoveDestination {
   parentId: string;
@@ -125,6 +125,35 @@ export function buildFolderPathMap(nodes: BookmarkNode[]): Map<string, string> {
 
   nodes.forEach((node) => walk(node, ""));
   return pathMap;
+}
+
+export function buildFolderBreadcrumbItems(
+  nodes: BookmarkNode[],
+  folderId?: string
+): FolderBreadcrumbItem[] {
+  if (!folderId) {
+    return [];
+  }
+
+  const target = findNodeById(nodes, folderId);
+  if (!target || !isFolder(target)) {
+    return [];
+  }
+
+  const items: FolderBreadcrumbItem[] = [];
+  let current: BookmarkNode | undefined = target;
+
+  while (current && isFolder(current)) {
+    items.push({
+      id: current.id,
+      title: current.parentId ? getDisplayTitle(current) : "Root",
+      node: current
+    });
+
+    current = current.parentId ? findNodeById(nodes, current.parentId) : undefined;
+  }
+
+  return items.reverse();
 }
 
 export function moveNodeInBookmarkTree(
