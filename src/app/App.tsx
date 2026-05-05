@@ -53,6 +53,10 @@ import {
   type FolderDropIntent
 } from "../features/drag-drop";
 import { useMetadata } from "../features/metadata";
+import {
+  getQuickSaveShortcutCommandConflicts,
+  type QuickSaveShortcutCommandConflict
+} from "../features/quick-save";
 import { searchBookmarks } from "../features/search";
 import { useSettings, type CardSize } from "../features/settings";
 
@@ -143,7 +147,10 @@ export function App() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get("quickSave") === "unsupported") {
-      setToast({ message: "当前页面不支持注入快捷保存浮框，请在普通网页中使用 Ctrl + Shift + S。" });
+      setToast({
+        message:
+          "当前页面不支持注入快捷保存浮框。请在普通网页点击扩展图标使用保存 popup。"
+      });
       window.history.replaceState({}, "", window.location.pathname);
     }
   }, []);
@@ -1888,6 +1895,38 @@ function NewFolderDialog({
 }
 
 function ShortcutSettingsDialog({ onClose }: { onClose(): void }) {
+  const [conflicts, setConflicts] = useState<QuickSaveShortcutCommandConflict[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [status, setStatus] = useState("");
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function load() {
+      setLoading(true);
+      try {
+        const nextConflicts = await getQuickSaveShortcutCommandConflicts();
+
+        if (!cancelled) {
+          setConflicts(nextConflicts);
+        }
+      } catch {
+        if (!cancelled) {
+          setStatus("无法读取 Chrome 快捷键冲突状态。");
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    }
+
+    void load();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   function openShortcutSettings() {
     const shortcutsUrl = "chrome://extensions/shortcuts";
 
@@ -1913,7 +1952,7 @@ function ShortcutSettingsDialog({ onClose }: { onClose(): void }) {
         <div className="dialog-heading">
           <div>
             <h3 id="shortcut-settings-title">快捷键设置</h3>
-            <span>默认保存快捷键：Ctrl + Shift + S</span>
+            <span>默认命令快捷键：Ctrl + Shift + S</span>
           </div>
           <button type="button" aria-label="关闭快捷键设置窗口" onClick={onClose}>
             Close
@@ -1921,11 +1960,32 @@ function ShortcutSettingsDialog({ onClose }: { onClose(): void }) {
         </div>
         <div className="shortcut-settings-body">
           <p>
-            浏览器负责最终快捷键分配。你可以在扩展快捷键页面把“保存当前网页”改成自己顺手的组合。
+            当前主入口是浏览器工具栏 popup：在普通网页点击 Bookmark Visualizer 图标后，可在“保存”
+            Tab 保存当前网页。
           </p>
           <p>
-            某些浏览器或系统快捷键无法被扩展覆盖，因此当前默认不强制占用 Ctrl + S。
+            Ctrl + S 快捷键路线已暂停，不再默认注入全局网页 listener，也不再请求 http/https
+            全局站点权限。Ctrl + Shift + S 仍保留为扩展命令入口，供后续诊断和低权限快捷保存使用。
           </p>
+          <div className="shortcut-site-access">
+            <span className="shortcut-site-label">Popup 保存</span>
+            {loading ? (
+              <strong>正在读取...</strong>
+            ) : (
+              <>
+                <strong>已启用</strong>
+                <span>通过 manifest action.default_popup 打开，不依赖站点 content script。</span>
+              </>
+            )}
+          </div>
+          {conflicts.length > 0 ? (
+            <div className="shortcut-conflict-warning" role="status">
+              Chrome 快捷键页里已有 Ctrl + S 绑定：
+              {conflicts.map((conflict) => conflict.label).join("、")}。当前版本不依赖 Ctrl + S，
+              如测试 popup 保存可先清除该绑定，避免误判入口行为。
+            </div>
+          ) : null}
+          {status ? <div className="shortcut-status">{status}</div> : null}
         </div>
         <div className="dialog-actions">
           <button type="button" onClick={onClose}>

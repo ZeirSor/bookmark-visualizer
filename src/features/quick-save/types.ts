@@ -14,6 +14,7 @@ export interface QuickSavePageDetails {
 export interface QuickSaveInitialState {
   tree: BookmarkNode[];
   defaultFolderId?: string;
+  recentFolderIds: string[];
 }
 
 export interface QuickSaveCreatePayload {

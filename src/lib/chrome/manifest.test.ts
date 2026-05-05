@@ -17,6 +17,8 @@ type ExtensionManifest = {
   };
   icons?: Record<string, string>;
   optional_host_permissions?: string[];
+  host_permissions?: string[];
+  content_scripts?: Array<unknown>;
   permissions?: string[];
   commands?: Record<
     string,
@@ -41,16 +43,17 @@ describe("extension manifest", () => {
     expect(manifest.chrome_url_overrides).toBeUndefined();
   });
 
-  it("configures a toolbar action that opens through the service worker", () => {
+  it("configures a toolbar action popup and service worker", () => {
     const manifest = readManifest();
 
     expect(manifest.action?.default_title).toBe("Open Bookmark Visualizer");
-    expect(manifest.action?.default_popup).toBeUndefined();
+    expect(manifest.action?.default_popup).toBe("popup.html");
     expect(manifest.background).toEqual({
       service_worker: "service-worker.js",
       type: "module"
     });
     expect(existsSync(resolve(root, "src/service-worker.ts"))).toBe(true);
+    expect(existsSync(resolve(root, "popup.html"))).toBe(true);
   });
 
   it("declares only expected permissions", () => {
@@ -63,12 +66,15 @@ describe("extension manifest", () => {
       "scripting",
       "tabs"
     ]);
-    expect(manifest.optional_host_permissions).toEqual(["http://*/*", "https://*/*"]);
+    expect(manifest.optional_host_permissions).toBeUndefined();
+    expect(manifest.host_permissions).toBeUndefined();
+    expect(manifest.content_scripts).toBeUndefined();
   });
 
   it("declares the quick-save keyboard command", () => {
     const manifest = readManifest();
 
+    expect(Object.keys(manifest.commands ?? {})).toEqual(["open-quick-save"]);
     expect(manifest.commands?.["open-quick-save"]).toEqual({
       suggested_key: {
         default: "Ctrl+Shift+S",

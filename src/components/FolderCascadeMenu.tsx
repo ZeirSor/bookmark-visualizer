@@ -34,6 +34,7 @@ interface FolderCascadeMenuProps {
   onSelect(folder: BookmarkNode): void;
   canSelect(folder: BookmarkNode): boolean;
   onCreateFolder?(parentFolder: BookmarkNode): void;
+  onOpenFolder?(folder: BookmarkNode): void;
   onCascadeEnter?(): void;
   onCascadeLeave?(): void;
   portalContainer?: Element | DocumentFragment;
@@ -60,6 +61,7 @@ export function FolderCascadeMenu({
   onSelect,
   canSelect,
   onCreateFolder,
+  onOpenFolder,
   onCascadeEnter,
   onCascadeLeave,
   portalContainer,
@@ -167,6 +169,7 @@ export function FolderCascadeMenu({
         disabledLabel={disabledLabel}
         onSelect={onSelect}
         canSelect={canSelect}
+        onOpenFolder={onOpenFolder}
         canCreateFolder={Boolean(onCreateFolder)}
         onRowEnter={handleRowEnter}
         onCascadeEnter={keepCascadeOpen}
@@ -185,6 +188,7 @@ export function FolderCascadeMenu({
                 disabledLabel={disabledLabel}
                 onSelect={onSelect}
                 canSelect={canSelect}
+                onOpenFolder={onOpenFolder}
                 onCreateFolder={onCreateFolder}
                 renderCreateAction={renderCreateAction}
                 onRowEnter={handleRowEnter}
@@ -207,6 +211,7 @@ function FolderCascadeList({
   disabledLabel,
   onSelect,
   canSelect,
+  onOpenFolder,
   canCreateFolder,
   onRowEnter,
   onCascadeEnter,
@@ -219,6 +224,7 @@ function FolderCascadeList({
   disabledLabel?: string;
   onSelect(folder: BookmarkNode): void;
   canSelect(folder: BookmarkNode): boolean;
+  onOpenFolder?(folder: BookmarkNode): void;
   canCreateFolder: boolean;
   onRowEnter(parentPath: string[], folder: BookmarkNode, hasSubmenu: boolean, element: HTMLElement): void;
   onCascadeEnter(): void;
@@ -243,6 +249,7 @@ function FolderCascadeList({
           disabledLabel={disabledLabel}
           onSelect={onSelect}
           canSelect={canSelect}
+          onOpenFolder={onOpenFolder}
           canCreateFolder={canCreateFolder}
           onRowEnter={onRowEnter}
         />
@@ -259,6 +266,7 @@ function FolderCascadeRow({
   disabledLabel,
   onSelect,
   canSelect,
+  onOpenFolder,
   canCreateFolder,
   onRowEnter
 }: {
@@ -269,6 +277,7 @@ function FolderCascadeRow({
   disabledLabel?: string;
   onSelect(folder: BookmarkNode): void;
   canSelect(folder: BookmarkNode): boolean;
+  onOpenFolder?(folder: BookmarkNode): void;
   canCreateFolder: boolean;
   onRowEnter(parentPath: string[], folder: BookmarkNode, hasSubmenu: boolean, element: HTMLElement): void;
 }) {
@@ -305,6 +314,11 @@ function FolderCascadeRow({
             onSelect(folder);
           }
         }}
+        onDoubleClick={() => {
+          if (behavior.hasSubmenu) {
+            onOpenFolder?.(folder);
+          }
+        }}
       >
         <span className="folder-glyph" aria-hidden="true" />
         <span>{title}</span>
@@ -326,6 +340,7 @@ function FloatingCascadeLayer({
   disabledLabel,
   onSelect,
   canSelect,
+  onOpenFolder,
   onCreateFolder,
   renderCreateAction,
   onRowEnter,
@@ -340,6 +355,7 @@ function FloatingCascadeLayer({
   disabledLabel?: string;
   onSelect(folder: BookmarkNode): void;
   canSelect(folder: BookmarkNode): boolean;
+  onOpenFolder?(folder: BookmarkNode): void;
   onCreateFolder?(parentFolder: BookmarkNode): void;
   renderCreateAction?(parentFolder: BookmarkNode): ReactNode;
   onRowEnter(parentPath: string[], folder: BookmarkNode, hasSubmenu: boolean, element: HTMLElement): void;
@@ -384,6 +400,7 @@ function FloatingCascadeLayer({
         disabledLabel={disabledLabel}
         onSelect={onSelect}
         canSelect={canSelect}
+        onOpenFolder={onOpenFolder}
         canCreateFolder={Boolean(onCreateFolder)}
         onRowEnter={onRowEnter}
         onCascadeEnter={onCascadeEnter}

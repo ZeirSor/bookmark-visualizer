@@ -15,5 +15,22 @@ export const permissionsAdapter = {
     }
 
     return false;
+  },
+
+  async removeOrigins(origins: string[]): Promise<boolean> {
+    if (hasChromeApi("permissions") && chrome.permissions.remove) {
+      return chrome.permissions.remove({ origins });
+    }
+
+    return false;
+  },
+
+  async getAllOrigins(): Promise<string[]> {
+    if (hasChromeApi("permissions") && chrome.permissions.getAll) {
+      const permissions = await chrome.permissions.getAll();
+      return permissions.origins ?? [];
+    }
+
+    return [];
   }
 };

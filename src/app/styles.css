@@ -965,6 +965,37 @@ button {
   margin: 0;
 }
 
+.shortcut-site-access {
+  display: grid;
+  gap: 4px;
+  padding: 10px 12px;
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-muted);
+}
+
+.shortcut-site-label {
+  color: var(--muted);
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
+.shortcut-conflict-warning,
+.shortcut-status {
+  padding: 9px 10px;
+  border: 1px solid rgba(245, 158, 11, 0.38);
+  border-radius: 8px;
+  color: #92400e;
+  background: #fffbeb;
+}
+
+.shortcut-status {
+  color: var(--text);
+  border-color: var(--border);
+  background: #f8fafc;
+}
+
 .folder-picker-dialog {
   width: min(640px, 100%);
 }

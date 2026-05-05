@@ -5,7 +5,8 @@
 ### Added
 
 - Added clickable folder breadcrumbs so users can jump directly to any folder in the current path.
-- Added quick-save support for saving the current webpage with the default extension shortcut `Ctrl+Shift+S` / `Command+Shift+S`, including title, URL, note, preview image URL, and folder selection.
+- Added a toolbar popup Save tab for saving the current webpage with title, read-only URL, note, preview, folder search, recent folders, and inline folder creation.
+- Added a popup entry health-check script and documentation to verify `action.default_popup`, the popup bundle, service worker messages, and packaged artifacts.
 - Added a shortcut settings entry that opens the browser's native extension shortcut management page.
 - Added before / after insertion for bookmark rows in the left folder tree when tree bookmarks are visible.
 - Added inline folder creation inside the quick-save folder picker.
@@ -13,7 +14,9 @@
 
 ### Changed
 
-- Kept `Ctrl+S` available to the browser and documented extension shortcut customization through Chrome / Edge native settings.
+- Changed the toolbar action to open `popup.html` instead of opening the full workspace directly.
+- Paused the global `Ctrl+S` listener route and removed default global host permissions/content script registration from the popup save path.
+- Restored quick-save to a single retained browser command and documented extension shortcut customization through Chrome / Edge native settings.
 - Removed fixed shortcut text from the quick-save panel and improved folder menu spacing, dynamic scrolling, and row-connected submenu placement.
 - Increased cascade submenu close buffering to make parent-to-child menu movement more forgiving.
 - Restored the right-side bookmark move menu to its original nested cascade structure while keeping viewport-aware direction and scrolling.

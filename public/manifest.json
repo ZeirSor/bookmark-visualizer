@@ -10,6 +10,7 @@
     "128": "icons/icon-128.png"
   },
   "action": {
+    "default_popup": "popup.html",
     "default_title": "Open Bookmark Visualizer",
     "default_icon": {
       "16": "icons/icon-16.png",
@@ -31,6 +32,5 @@
       "description": "Save the current page to Bookmark Visualizer"
     }
   },
-  "permissions": ["bookmarks", "storage", "activeTab", "scripting", "tabs"],
-  "optional_host_permissions": ["http://*/*", "https://*/*"]
+  "permissions": ["bookmarks", "storage", "activeTab", "scripting", "tabs"]
 }

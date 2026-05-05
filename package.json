@@ -7,7 +7,9 @@
     "dev": "vite --host 127.0.0.1",
     "build": "tsc -b && vite build",
     "typecheck": "tsc -b --pretty",
-    "test": "vitest run"
+    "test": "vitest run",
+    "verify:quick-save-shortcut": "node scripts/verify-quick-save-shortcut.mjs",
+    "verify:popup-entry": "node scripts/verify-quick-save-shortcut.mjs"
   },
   "dependencies": {
     "react": "^19.0.0",
