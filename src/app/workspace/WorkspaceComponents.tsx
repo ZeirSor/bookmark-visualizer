@@ -1,5 +1,14 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { FolderMoveSubmenuContent } from "../../components/FolderMoveSubmenuContent";
+import { MenuActionContent } from "../../components/MenuActionContent";
+import {
+  BookmarkAfterIcon,
+  BookmarkBeforeIcon,
+  EditIcon,
+  FolderLineIcon,
+  MoveToFolderIcon,
+  TrashIcon
+} from "../../components/icons/MenuActionIcons";
 import {
   canCreateBookmarkInFolder,
   canRenameFolder,
@@ -236,15 +245,15 @@ export function BookmarkContextMenu({
         onMouseLeave={scheduleClose}
       >
         <button type="button" role="menuitem" onClick={() => onEdit(state.bookmark)}>
-          编辑
+          <MenuActionContent icon={<EditIcon />}>编辑</MenuActionContent>
         </button>
         {canInsertBookmark ? (
           <>
             <button type="button" role="menuitem" onClick={() => onCreateBookmark(state.bookmark, "before")}>
-              在前面新建书签
+              <MenuActionContent icon={<BookmarkBeforeIcon />}>在前面新建书签</MenuActionContent>
             </button>
             <button type="button" role="menuitem" onClick={() => onCreateBookmark(state.bookmark, "after")}>
-              在后面新建书签
+              <MenuActionContent icon={<BookmarkAfterIcon />}>在后面新建书签</MenuActionContent>
             </button>
           </>
         ) : null}
@@ -257,8 +266,12 @@ export function BookmarkContextMenu({
           onMouseLeave={scheduleMoveMenuClose}
           onFocus={positionMoveSubmenu}
         >
-          <span>移动</span>
-          <span className="menu-chevron" aria-hidden="true" />
+          <MenuActionContent
+            icon={<MoveToFolderIcon />}
+            trailing={<span className="menu-chevron" aria-hidden="true" />}
+          >
+            移动
+          </MenuActionContent>
           <div
             ref={moveSubmenuRef}
             className="context-submenu move-submenu"
@@ -285,7 +298,7 @@ export function BookmarkContextMenu({
           role="menuitem"
           onClick={() => onDelete(state.bookmark)}
         >
-          删除
+          <MenuActionContent icon={<TrashIcon />}>删除</MenuActionContent>
         </button>
       </div>
     </div>
@@ -447,7 +460,7 @@ export function FolderPickerDialog({
                     }
                   }}
                 >
-                  <span className="folder-glyph" aria-hidden="true" />
+                  <FolderLineIcon />
                   <span>
                     <strong>{option.title}</strong>
                     <small>{option.path}</small>

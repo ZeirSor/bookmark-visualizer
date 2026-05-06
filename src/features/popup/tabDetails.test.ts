@@ -29,6 +29,19 @@ describe("popup tab details", () => {
     expect(normalizeTitle("", "https://arxiv.org/abs/1706.03762")).toBe("arxiv.org");
   });
 
+  it("keeps favicon metadata separate from extracted preview images", () => {
+    expect(
+      normalizePopupPageDetails({
+        title: "Example",
+        url: "https://example.com/",
+        favIconUrl: "https://example.com/favicon.ico"
+      })
+    ).toMatchObject({
+      previewImageUrl: "https://example.com/favicon.ico",
+      faviconUrl: "https://example.com/favicon.ico"
+    });
+  });
+
   it("marks protected browser pages as not saveable", () => {
     expect(isPopupSaveableUrl("chrome://extensions/")).toBe(false);
     expect(

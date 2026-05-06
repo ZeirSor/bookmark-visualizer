@@ -13,6 +13,29 @@ export function createQuickSaveStyle(): HTMLStyleElement {
       stroke-linejoin: round;
       flex: 0 0 auto;
     }
+    .menu-action-icon-slot {
+      display: inline-grid;
+      width: 20px;
+      height: 20px;
+      place-items: center;
+      color: #64748b;
+    }
+    .menu-action-icon {
+      width: 18px;
+      height: 18px;
+    }
+    .menu-action-label {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .menu-action-trailing {
+      display: inline-flex;
+      align-items: center;
+      justify-content: flex-end;
+      color: #64748b;
+    }
     .quick-save-layer {
       position: fixed;
       z-index: 2147483647;
@@ -355,7 +378,8 @@ export function createQuickSaveStyle(): HTMLStyleElement {
       content: "";
     }
     .move-folder-button {
-      display: flex;
+      display: grid;
+      grid-template-columns: 20px minmax(0, 1fr) auto;
       align-items: center;
       gap: 12px;
       width: 100%;
@@ -378,19 +402,18 @@ export function createQuickSaveStyle(): HTMLStyleElement {
       border-color: #e3e8f2;
       outline: 0;
     }
+    .move-folder-button:hover .menu-action-icon-slot,
+    .move-folder-button:focus-visible .menu-action-icon-slot,
+    .move-folder-row.is-current-parent > button .menu-action-icon-slot,
+    .move-folder-row.is-selected > button .menu-action-icon-slot,
+    .move-folder-row.is-path-highlighted > button .menu-action-icon-slot {
+      color: #002fa7;
+    }
     .move-folder-button[aria-disabled="true"] {
       color: #94a3b8;
     }
     .move-folder-row.has-children > .move-folder-button[aria-disabled="true"] {
       cursor: pointer;
-    }
-    .folder-glyph {
-      width: 20px;
-      height: 16px;
-      border: 1.5px solid currentColor;
-      border-top-width: 5px;
-      border-radius: 3px;
-      flex: 0 0 auto;
     }
     .menu-chevron {
       width: 9px;
@@ -527,4 +550,3 @@ export function createQuickSaveStyle(): HTMLStyleElement {
 
   return style;
 }
-

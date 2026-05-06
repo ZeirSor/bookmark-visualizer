@@ -1,6 +1,14 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { FolderCascadeMenu } from "../../components/FolderCascadeMenu";
 import {
+  CheckIcon,
+  ChevronRightIcon,
+  CloseIcon,
+  FolderIcon,
+  RecentIcon,
+  SearchIcon
+} from "../../components/icons/AppIcons";
+import {
   buildFolderBreadcrumbItems,
   canCreateBookmarkInFolder,
   filterFolderOptions,
@@ -343,7 +351,7 @@ export function QuickSaveDialog({
                     <div>
                       {recentFolders.map((option, index) => (
                         <button key={option.id} type="button" onClick={() => selectFolder(option.node, true)}>
-                          {index === 0 ? <ClockIcon /> : <FolderIcon />}
+                          {index === 0 ? <RecentIcon /> : <FolderIcon />}
                           <span>{option.title}</span>
                         </button>
                       ))}
@@ -423,7 +431,7 @@ function FolderBreadcrumb({
     <nav className="folder-breadcrumb" aria-label="浏览路径">
       {items.map((item, index) => (
         <span key={item.id}>
-          {index > 0 ? <ChevronIcon /> : null}
+          {index > 0 ? <ChevronRightIcon className="chevron-icon" /> : null}
           <button type="button" onClick={() => onSelect(item.node)}>
             {item.title}
           </button>
@@ -546,55 +554,3 @@ function trapFocus(event: KeyboardEvent, root: ShadowRoot) {
     first.focus();
   }
 }
-
-function SearchIcon() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <circle cx="11" cy="11" r="7" />
-      <path d="m16 16 4 4" />
-    </svg>
-  );
-}
-
-function FolderIcon({ filled = false }: { filled?: boolean }) {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true" className={filled ? "is-filled" : ""}>
-      <path d="M3 7.5h6l2 2h10v8.5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z" />
-      <path d="M3 7.5V6a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v1.5" />
-    </svg>
-  );
-}
-
-function ClockIcon() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <circle cx="12" cy="12" r="8.5" />
-      <path d="M12 7.5V12l3 2" />
-    </svg>
-  );
-}
-
-function CheckIcon() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true" className="check-icon">
-      <path d="m7 12 3 3 7-7" />
-    </svg>
-  );
-}
-
-function CloseIcon() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path d="m7 7 10 10M17 7 7 17" />
-    </svg>
-  );
-}
-
-function ChevronIcon() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true" className="chevron-icon">
-      <path d="m9 6 6 6-6 6" />
-    </svg>
-  );
-}
-

@@ -174,6 +174,7 @@ describe("bookmark tree helpers", () => {
 
   it("builds selected folder highlight paths without the browser root", () => {
     expect(buildFolderPathHighlightIds(mockBookmarkTree, "10")).toEqual(["1", "10"]);
+    expect(buildFolderPathHighlightIds(mockBookmarkTree, "20")).toEqual(["2", "20"]);
   });
 
   it("moves the second bookmark before the first without reloading the tree", () => {

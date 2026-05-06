@@ -9,6 +9,7 @@ import {
   type FolderOption
 } from "../features/bookmarks";
 import { ExternalLinkIcon, FolderIcon, SaveIcon, SettingsIcon } from "./components/PopupIcons";
+import { PopupFooter } from "./components/PopupFooter";
 import { TabButton } from "./components/TabButton";
 import { ManageTab } from "./tabs/ManageTab";
 import { SaveTab } from "./tabs/SaveTab";
@@ -254,52 +255,61 @@ export function PopupApp() {
         </TabButton>
       </nav>
 
-      {activeTab === "save" ? (
-        <SaveTab
-          createFolder={createFolder}
-          createOpen={createOpen}
-          folderName={folderName}
-          loading={loading}
-          note={note}
-          pageDetails={pageDetails}
-          previewFailed={previewFailed}
-          query={query}
-          recentFolders={recentFolders}
-          save={save}
-          saving={saving}
-          searchResults={searchResults}
-          selectedCompactPath={selectedCompactPath}
-          selectedFolderId={selectedFolderId}
-          selectedPath={selectedPath}
-          selectedTitle={selectedTitle}
-          setCreateOpen={setCreateOpen}
-          setFolderName={setFolderName}
-          setNote={setNote}
-          setPreviewFailed={setPreviewFailed}
-          setQuery={setQuery}
-          setSelectedFolderId={setSelectedFolderId}
-          setTitle={setTitle}
-          status={status}
-          title={title}
-          tree={tree}
-          showThumbnail={settings.popupShowThumbnail}
-        />
-      ) : null}
-      {activeTab === "manage" ? (
-        <ManageTab recentBookmarks={recentBookmarks} recentFolders={recentFolders} />
-      ) : null}
-      {activeTab === "settings" ? (
-        <SettingsTab
-          defaultCompactPath={defaultCompactPath}
-          defaultFolderId={defaultFolderOption?.id ?? selectedFolderId}
-          defaultPath={defaultFolderPath}
-          recentFolders={recentFolders}
-          settings={settings}
-          tree={tree}
-          updateDefaultFolder={(folderId) => void updateDefaultFolder(folderId)}
-          updateSettings={(patch) => void updateSettings(patch)}
-        />
-      ) : null}
+      <section className="popup-content">
+        {activeTab === "save" ? (
+          <SaveTab
+            createFolder={createFolder}
+            createOpen={createOpen}
+            folderName={folderName}
+            loading={loading}
+            note={note}
+            pageDetails={pageDetails}
+            previewFailed={previewFailed}
+            query={query}
+            recentFolders={recentFolders}
+            save={save}
+            searchResults={searchResults}
+            selectedCompactPath={selectedCompactPath}
+            selectedFolderId={selectedFolderId}
+            selectedPath={selectedPath}
+            selectedTitle={selectedTitle}
+            setCreateOpen={setCreateOpen}
+            setFolderName={setFolderName}
+            setNote={setNote}
+            setPreviewFailed={setPreviewFailed}
+            setQuery={setQuery}
+            setSelectedFolderId={setSelectedFolderId}
+            setTitle={setTitle}
+            title={title}
+            tree={tree}
+            showThumbnail={settings.popupShowThumbnail}
+          />
+        ) : null}
+        {activeTab === "manage" ? (
+          <ManageTab recentBookmarks={recentBookmarks} recentFolders={recentFolders} />
+        ) : null}
+        {activeTab === "settings" ? (
+          <SettingsTab
+            defaultCompactPath={defaultCompactPath}
+            defaultFolderId={defaultFolderOption?.id ?? selectedFolderId}
+            defaultPath={defaultFolderPath}
+            recentFolders={recentFolders}
+            settings={settings}
+            tree={tree}
+            updateDefaultFolder={(folderId) => void updateDefaultFolder(folderId)}
+            updateSettings={(patch) => void updateSettings(patch)}
+          />
+        ) : null}
+      </section>
+
+      <PopupFooter
+        canSave={Boolean(pageDetails?.canSave && selectedFolderId)}
+        formId="popup-save-form"
+        isError={pageDetails?.canSave === false}
+        saving={saving}
+        selectedTitle={selectedTitle}
+        status={status}
+      />
     </main>
   );
 }

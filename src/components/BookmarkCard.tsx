@@ -8,6 +8,7 @@ import {
   type MouseEvent
 } from "react";
 import type { BookmarkNode } from "../features/bookmarks";
+import { ExternalLinkIcon } from "./icons/AppIcons";
 
 interface BookmarkCardProps {
   bookmark: BookmarkNode;
@@ -115,7 +116,7 @@ export function BookmarkCard({
         }}
         onKeyDown={(event) => event.stopPropagation()}
       >
-        <OpenInNewIcon />
+        <ExternalLinkIcon className="open-link-icon" />
       </button>
       <span className="favicon" aria-hidden="true">
         <img src={getFaviconUrl(url)} alt="" loading="lazy" />
@@ -220,25 +221,6 @@ export function BookmarkCard({
         {folderPath ? <span className="bookmark-path">{folderPath}</span> : null}
       </span>
     </article>
-  );
-}
-
-function OpenInNewIcon() {
-  return (
-    <svg
-      aria-hidden="true"
-      className="open-link-icon"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M14 5h5v5" />
-      <path d="M10 14 19 5" />
-      <path d="M19 14v4a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h4" />
-    </svg>
   );
 }
 

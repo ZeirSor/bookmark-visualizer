@@ -18,18 +18,36 @@ export interface PopupRecentBookmark {
 }
 
 export function compactFolderPath(path: string, maxSegments = 3): string {
-  const segments = path.split(" / ").map((segment) => segment.trim()).filter(Boolean);
+  const segments = getDisplayPathSegments(path);
 
   if (segments.length <= maxSegments) {
-    return path;
+    return segments.join(" / ");
   }
 
   return `${segments[0]} / ... / ${segments[segments.length - 1]}`;
 }
 
+export function formatPopupFolderPath(path: string, fallback = "正在读取保存位置"): string {
+  const segments = getDisplayPathSegments(path);
+  return segments.length > 0 ? segments.join(" / ") : fallback;
+}
+
 export function getFolderNameFromPath(path: string): string {
-  const segments = path.split(" / ").map((segment) => segment.trim()).filter(Boolean);
+  const segments = getDisplayPathSegments(path);
   return segments.at(-1) ?? "";
+}
+
+export function isLargePreviewImage(previewImageUrl?: string, faviconUrl?: string): boolean {
+  if (!previewImageUrl) {
+    return false;
+  }
+
+  if (faviconUrl && previewImageUrl === faviconUrl) {
+    return false;
+  }
+
+  const normalizedUrl = previewImageUrl.toLocaleLowerCase();
+  return !/\/favicon(?:[-_.]|\b)|favicon\.ico\b|apple-touch-icon|\/icons?\//.test(normalizedUrl);
 }
 
 export function selectInitialPopupFolderId({
@@ -103,6 +121,11 @@ function findFirstWritableFolderId(nodes: BookmarkNode[]): string | undefined {
       return nested;
     }
   }
+}
+
+function getDisplayPathSegments(path: string): string[] {
+  const segments = path.split(" / ").map((segment) => segment.trim()).filter(Boolean);
+  return segments[0] === "Root" || segments[0] === "书签根目录" ? segments.slice(1) : segments;
 }
 
 function getUrlDomain(url?: string): string {

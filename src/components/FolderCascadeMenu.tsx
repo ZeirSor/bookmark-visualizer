@@ -25,6 +25,8 @@ import {
   type CascadeMenuPlacement,
   type CascadeMenuSize
 } from "../features/context-menu";
+import { MenuActionContent } from "./MenuActionContent";
+import { FolderLineIcon, FolderPlusMenuIcon } from "./icons/MenuActionIcons";
 
 interface FolderCascadeMenuProps {
   nodes: BookmarkNode[];
@@ -391,8 +393,10 @@ function FolderCascadeRow({
           }
         }}
       >
-        <span className="folder-glyph" aria-hidden="true" />
-        <span>{title}</span>
+        <span className="menu-action-icon-slot" aria-hidden="true">
+          <FolderLineIcon />
+        </span>
+        <span className="menu-action-label">{title}</span>
         {isCurrentFolder ? <span className="move-menu-note">当前位置</span> : null}
         {!behavior.canSelect && disabledLabel && !isCurrentFolder ? (
           <span className="move-menu-note">{disabledLabel}</span>
@@ -496,7 +500,7 @@ function FloatingCascadeLayer({
                 role="menuitem"
                 onClick={() => onCreateFolder(layer.folder)}
               >
-                新建文件夹...
+                <MenuActionContent icon={<FolderPlusMenuIcon />}>新建文件夹...</MenuActionContent>
               </button>
             )
           : null}

@@ -1,3 +1,5 @@
+import { SearchIcon } from "./icons/AppIcons";
+
 interface SearchBarProps {
   value: string;
   onChange(value: string): void;
@@ -6,7 +8,7 @@ interface SearchBarProps {
 export function SearchBar({ value, onChange }: SearchBarProps) {
   return (
     <label className="search-bar">
-      <span className="search-icon" aria-hidden="true" />
+      <SearchIcon className="search-icon" />
       <input
         type="search"
         value={value}

@@ -1,4 +1,5 @@
 import { FolderCascadeMenu } from "./FolderCascadeMenu";
+import { FolderLineIcon, RecentFolderIcon, SearchFolderIcon } from "./icons/MenuActionIcons";
 import {
   filterFolderOptions,
   flattenFolders,
@@ -94,7 +95,7 @@ function MoveSubmenuSearchInput({
 }) {
   return (
     <label className="move-submenu-search-wrap" onClick={(event) => event.stopPropagation()}>
-      <span className="move-search-glyph" aria-hidden="true" />
+      <SearchFolderIcon />
       <input
         className="move-submenu-search"
         type="search"
@@ -193,7 +194,7 @@ function MoveFolderOptionRow({
       role="menuitem"
       onClick={() => onMove(option.node)}
     >
-      <span className={recent ? "recent-folder-glyph" : "folder-glyph"} aria-hidden="true" />
+      {recent ? <RecentFolderIcon /> : <FolderLineIcon />}
       <span className="move-folder-label">
         <span>{option.title}</span>
         <small>{option.path}</small>
