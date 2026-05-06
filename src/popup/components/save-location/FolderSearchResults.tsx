@@ -1,12 +1,14 @@
-import type { FolderOption } from "../../../features/bookmarks";
+import { rankFolderOption, type FolderOption } from "../../../features/bookmarks";
 import { formatPopupFolderPath } from "../../../features/popup";
 import { FolderIcon } from "../PopupIcons";
 
 export function FolderSearchResults({
+  query,
   searchResults,
   selectedFolderId,
   onSelect
 }: {
+  query: string;
   searchResults: FolderOption[];
   selectedFolderId: string;
   onSelect(folderId: string): void;
@@ -26,7 +28,9 @@ export function FolderSearchResults({
             <strong>{option.title}</strong>
             <small>{formatPopupFolderPath(option.path, option.path)}</small>
           </span>
-          {index === 0 ? <span className="result-badge">最佳匹配</span> : null}
+          {index === 0 && rankFolderOption(option, query) <= 2 ? (
+            <span className="result-badge">最佳匹配</span>
+          ) : null}
         </button>
       ))}
     </div>

@@ -105,6 +105,34 @@ export function filterFolderOptions(options: FolderOption[], query: string): Fol
   });
 }
 
+export function rankFolderOption(option: FolderOption, query: string): number {
+  const normalizedQuery = query.trim().toLocaleLowerCase();
+  const title = option.title.toLocaleLowerCase();
+  const path = option.path.toLocaleLowerCase();
+
+  if (!normalizedQuery) {
+    return 999;
+  }
+
+  if (title === normalizedQuery) {
+    return 0;
+  }
+
+  if (title.startsWith(normalizedQuery)) {
+    return 1;
+  }
+
+  if (title.includes(normalizedQuery)) {
+    return 2;
+  }
+
+  if (path.includes(normalizedQuery)) {
+    return 3;
+  }
+
+  return 999;
+}
+
 export function buildFolderPathMap(nodes: BookmarkNode[]): Map<string, string> {
   const pathMap = new Map<string, string>();
 

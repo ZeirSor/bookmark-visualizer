@@ -1,9 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { FolderCascadeMenu } from "../../components/FolderCascadeMenu";
 import {
-  buildFolderCascadeInitialPathIds,
   buildFolderPathHighlightIds,
-  canCreateBookmarkInFolder,
   type BookmarkNode,
   type FolderOption
 } from "../../features/bookmarks";
@@ -11,12 +8,15 @@ import { formatPopupFolderPath, openWorkspace } from "../../features/popup";
 import { FolderSearchResults } from "./save-location/FolderSearchResults";
 import { FolderSearchRow } from "./save-location/FolderSearchRow";
 import { InlineCreateFolderRow } from "./save-location/InlineCreateFolderRow";
+import { LocationCascadeOverlay } from "./save-location/LocationCascadeOverlay";
 import { LocationPathRow } from "./save-location/LocationPathRow";
 import { RecentFolderChips } from "./save-location/RecentFolderChips";
 
 const LOCATION_MENU_CLOSE_DELAY_MS = 220;
 
 export function SaveLocationPicker({
+  createParentFolderId,
+  createParentTitle,
   createFolder,
   createOpen,
   folderName,
@@ -24,16 +24,18 @@ export function SaveLocationPicker({
   query,
   recentFolders,
   searchResults,
-  selectedCompactPath,
   selectedFolderId,
   selectedPath,
   selectedTitle,
+  setCreateParentFolderId,
   setCreateOpen,
   setFolderName,
   setQuery,
   setSelectedFolderId,
   tree
 }: {
+  createParentFolderId?: string;
+  createParentTitle: string;
   createFolder(): Promise<void>;
   createOpen: boolean;
   folderName: string;
@@ -41,10 +43,10 @@ export function SaveLocationPicker({
   query: string;
   recentFolders: FolderOption[];
   searchResults: FolderOption[];
-  selectedCompactPath: string;
   selectedFolderId: string;
   selectedPath: string;
   selectedTitle: string;
+  setCreateParentFolderId(value: string | undefined): void;
   setCreateOpen(value: boolean): void;
   setFolderName(value: string): void;
   setQuery(value: string): void;
@@ -55,11 +57,7 @@ export function SaveLocationPicker({
   const [recentExpanded, setRecentExpanded] = useState(false);
   const locationMenuRef = useRef<HTMLDivElement>(null);
   const closeLocationTimerRef = useRef<number | undefined>(undefined);
-  const displayPath = selectedCompactPath || formatPopupFolderPath(selectedPath);
-  const cascadeInitialPathIds = useMemo(
-    () => buildFolderCascadeInitialPathIds(tree, selectedFolderId),
-    [selectedFolderId, tree]
-  );
+  const displayPath = formatPopupFolderPath(selectedPath);
   const highlightedFolderIds = useMemo(
     () => buildFolderPathHighlightIds(tree, selectedFolderId),
     [selectedFolderId, tree]
@@ -69,48 +67,12 @@ export function SaveLocationPicker({
     return () => clearLocationMenuCloseTimer();
   }, []);
 
-  useEffect(() => {
-    if (!locationMenuOpen) {
-      return;
-    }
-
-    function handlePointerDown(event: PointerEvent) {
-      const target = event.target;
-
-      if (target instanceof Node && locationMenuRef.current?.contains(target)) {
-        return;
-      }
-
-      closeLocationMenu();
-    }
-
-    function handleKeyDown(event: KeyboardEvent) {
-      if (event.key !== "Escape") {
-        return;
-      }
-
-      event.preventDefault();
-      event.stopPropagation();
-      closeLocationMenu();
-    }
-
-    window.addEventListener("pointerdown", handlePointerDown, true);
-    window.addEventListener("keydown", handleKeyDown, true);
-
-    return () => {
-      window.removeEventListener("pointerdown", handlePointerDown, true);
-      window.removeEventListener("keydown", handleKeyDown, true);
-    };
-  }, [locationMenuOpen]);
-
   return (
     <section className="location-panel" aria-label="保存位置">
       <div className="location-heading">保存位置</div>
       <div
         ref={locationMenuRef}
         className="location-picker-shell"
-        onPointerEnter={keepLocationMenuOpen}
-        onPointerLeave={scheduleLocationMenuClose}
       >
         <LocationPathRow
           displayPath={displayPath}
@@ -119,29 +81,22 @@ export function SaveLocationPicker({
           onToggleMenu={() => (locationMenuOpen ? closeLocationMenu() : openLocationMenu())}
         />
         {locationMenuOpen ? (
-          <div
-            id="save-location-picker"
-            className="location-cascade-menu"
-            role="menu"
-            onPointerEnter={keepLocationMenuOpen}
-            onPointerLeave={scheduleLocationMenuClose}
-          >
-            <FolderCascadeMenu
-              nodes={tree}
-              selectedFolderId={selectedFolderId}
-              currentFolderId={selectedFolderId}
-              initialActivePathIds={cascadeInitialPathIds}
-              highlightedFolderIds={highlightedFolderIds}
-              disabledLabel="不可保存"
-              canSelect={canCreateBookmarkInFolder}
-              onSelect={(folder) => {
-                selectFolder(folder.id);
-              }}
-              onCascadeEnter={keepLocationMenuOpen}
-              onCascadeLeave={scheduleLocationMenuClose}
-              portalContainer={locationMenuRef.current ?? undefined}
-            />
-          </div>
+          <LocationCascadeOverlay
+            anchorElement={locationMenuRef.current}
+            currentFolderId={selectedFolderId}
+            highlightedFolderIds={highlightedFolderIds}
+            selectedFolderId={selectedFolderId}
+            tree={tree}
+            onCascadeEnter={keepLocationMenuOpen}
+            onCascadeLeave={scheduleLocationMenuClose}
+            onCreateFolder={(parentFolder) => {
+              startCreateFolder(parentFolder.id);
+            }}
+            onRequestClose={closeLocationMenu}
+            onSelect={(folder) => {
+              selectFolder(folder.id);
+            }}
+          />
         ) : null}
       </div>
 
@@ -149,21 +104,29 @@ export function SaveLocationPicker({
         createOpen={createOpen}
         query={query}
         onClearQuery={() => setQuery("")}
-        onFocusSearch={closeLocationMenu}
+        onFocusSearch={() => {
+          closeLocationMenu();
+          setCreateOpen(false);
+          setCreateParentFolderId(undefined);
+        }}
         onQueryChange={(value) => {
           setQuery(value);
           setCreateOpen(false);
+          setCreateParentFolderId(undefined);
           closeLocationMenu();
         }}
         onToggleCreate={() => {
           setQuery("");
+          setFolderName("");
           closeLocationMenu();
+          setCreateParentFolderId(undefined);
           setCreateOpen(!createOpen);
         }}
       />
 
       {query ? (
         <FolderSearchResults
+          query={query}
           searchResults={searchResults}
           selectedFolderId={selectedFolderId}
           onSelect={selectFolder}
@@ -173,7 +136,7 @@ export function SaveLocationPicker({
       {createOpen ? (
         <InlineCreateFolderRow
           folderName={folderName}
-          selectedTitle={selectedTitle}
+          selectedTitle={createParentFolderId ? createParentTitle : selectedTitle}
           onCancel={cancelCreateFolder}
           onCreate={createFolder}
           onFolderNameChange={setFolderName}
@@ -195,12 +158,22 @@ export function SaveLocationPicker({
     setSelectedFolderId(folderId);
     setQuery("");
     setCreateOpen(false);
+    setCreateParentFolderId(undefined);
     closeLocationMenu();
   }
 
   function cancelCreateFolder() {
     setFolderName("");
     setCreateOpen(false);
+    setCreateParentFolderId(undefined);
+  }
+
+  function startCreateFolder(parentFolderId: string) {
+    setCreateParentFolderId(parentFolderId);
+    setFolderName("");
+    setQuery("");
+    setCreateOpen(true);
+    closeLocationMenu();
   }
 
   function clearLocationMenuCloseTimer() {
@@ -213,6 +186,7 @@ export function SaveLocationPicker({
   function openLocationMenu() {
     clearLocationMenuCloseTimer();
     setCreateOpen(false);
+    setCreateParentFolderId(undefined);
     setLocationMenuOpen(true);
   }
 

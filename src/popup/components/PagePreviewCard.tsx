@@ -1,4 +1,8 @@
-import { isLargePreviewImage, type PopupPageDetails } from "../../features/popup";
+import {
+  isLargePreviewImage,
+  shouldContainPreviewImage,
+  type PopupPageDetails
+} from "../../features/popup";
 
 export function PagePreviewCard({
   details,
@@ -11,14 +15,32 @@ export function PagePreviewCard({
   setPreviewFailed(value: boolean): void;
   title: string;
 }) {
-  const canUseImage = isLargePreviewImage(details?.previewImageUrl, details?.faviconUrl) && !previewFailed;
+  const shouldContainImage = shouldContainPreviewImage(
+    details?.previewImageUrl,
+    details?.faviconUrl
+  );
+  const canUseImage =
+    (isLargePreviewImage(details?.previewImageUrl, details?.faviconUrl) || shouldContainImage) &&
+    !previewFailed;
+  const imageFitClass = shouldContainImage ? "uses-contain-image" : "uses-cover-image";
   const domain = details?.domain || "Bookmark Visualizer";
   const fallbackTitle = title.trim() || details?.title || "Untitled bookmark";
 
   return (
-    <div className={`page-preview ${canUseImage ? "has-image" : "is-fallback"}`}>
+    <div
+      className={`page-preview ${
+        canUseImage ? `has-image ${imageFitClass}` : "is-fallback"
+      }`}
+    >
       {canUseImage ? (
-        <img src={details?.previewImageUrl} alt="" onError={() => setPreviewFailed(true)} />
+        <>
+          <img src={details?.previewImageUrl} alt="" onError={() => setPreviewFailed(true)} />
+          <div className="page-preview-image-meta">
+            <span className="preview-domain">{domain}</span>
+            <strong>{fallbackTitle}</strong>
+            <small>{details?.url || "当前网页"}</small>
+          </div>
+        </>
       ) : (
         <div className="page-preview-fallback">
           <span className="preview-domain">{domain}</span>

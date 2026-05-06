@@ -14,6 +14,7 @@ import {
   getRetainedBreadcrumbTailIds,
   insertNodeInBookmarkTree,
   moveNodeInBookmarkTree,
+  rankFolderOption,
   removeNodeFromBookmarkTree
 } from "./bookmarkTree";
 import { mockBookmarkTree } from "../../lib/chrome/mockBookmarks";
@@ -115,6 +116,18 @@ describe("bookmark tree helpers", () => {
       "10"
     );
     expect(filterFolderOptions(options, "missing")).toEqual([]);
+  });
+
+  it("ranks folder picker options by title closeness before path-only matches", () => {
+    const options = flattenFolders(mockBookmarkTree);
+    const productResearch = options.find((option) => option.id === "10")!;
+    const bookmarksBar = options.find((option) => option.id === "1")!;
+
+    expect(rankFolderOption(productResearch, "product research")).toBe(0);
+    expect(rankFolderOption(productResearch, "product")).toBe(1);
+    expect(rankFolderOption(productResearch, "research")).toBe(2);
+    expect(rankFolderOption(bookmarksBar, "product")).toBe(999);
+    expect(rankFolderOption(productResearch, "bookmarks bar")).toBe(3);
   });
 
   it("builds stable breadcrumb items for nested folders", () => {

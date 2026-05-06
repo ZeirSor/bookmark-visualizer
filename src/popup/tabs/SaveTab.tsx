@@ -5,6 +5,8 @@ import { PagePreviewCard } from "../components/PagePreviewCard";
 import { SaveLocationPicker } from "../components/SaveLocationPicker";
 
 export function SaveTab({
+  createParentFolderId,
+  createParentTitle,
   createFolder,
   createOpen,
   folderName,
@@ -16,10 +18,10 @@ export function SaveTab({
   recentFolders,
   save,
   searchResults,
-  selectedCompactPath,
   selectedFolderId,
   selectedPath,
   selectedTitle,
+  setCreateParentFolderId,
   setCreateOpen,
   setFolderName,
   setNote,
@@ -31,6 +33,8 @@ export function SaveTab({
   tree,
   showThumbnail
 }: {
+  createParentFolderId?: string;
+  createParentTitle: string;
   createFolder(): Promise<void>;
   createOpen: boolean;
   folderName: string;
@@ -42,10 +46,10 @@ export function SaveTab({
   recentFolders: FolderOption[];
   save(event?: FormEvent<HTMLFormElement>): Promise<void>;
   searchResults: FolderOption[];
-  selectedCompactPath: string;
   selectedFolderId: string;
   selectedPath: string;
   selectedTitle: string;
+  setCreateParentFolderId(value: string | undefined): void;
   setCreateOpen(value: boolean): void;
   setFolderName(value: string): void;
   setNote(value: string): void;
@@ -91,6 +95,8 @@ export function SaveTab({
           </div>
 
           <SaveLocationPicker
+            createParentFolderId={createParentFolderId}
+            createParentTitle={createParentTitle}
             createFolder={createFolder}
             createOpen={createOpen}
             folderName={folderName}
@@ -98,10 +104,10 @@ export function SaveTab({
             query={query}
             recentFolders={recentFolders}
             searchResults={searchResults}
-            selectedCompactPath={selectedCompactPath}
             selectedFolderId={selectedFolderId}
             selectedPath={selectedPath}
             selectedTitle={selectedTitle}
+            setCreateParentFolderId={setCreateParentFolderId}
             setCreateOpen={setCreateOpen}
             setFolderName={setFolderName}
             setQuery={setQuery}

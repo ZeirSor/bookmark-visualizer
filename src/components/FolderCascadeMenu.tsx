@@ -33,8 +33,11 @@ interface FolderCascadeMenuProps {
   selectedFolderId?: string;
   currentFolderId?: string;
   initialActivePathIds?: string[];
+  autoExpandInitialPath?: boolean;
   highlightedFolderIds?: string[];
   disabledLabel?: string;
+  density?: "default" | "compact";
+  menuWidth?: number;
   onSelect(folder: BookmarkNode): void;
   canSelect(folder: BookmarkNode): boolean;
   onCreateFolder?(parentFolder: BookmarkNode): void;
@@ -62,8 +65,11 @@ export function FolderCascadeMenu({
   selectedFolderId,
   currentFolderId,
   initialActivePathIds,
+  autoExpandInitialPath = true,
   highlightedFolderIds,
   disabledLabel,
+  density = "default",
+  menuWidth = FLOATING_CASCADE_WIDTH,
   onSelect,
   canSelect,
   onCreateFolder,
@@ -164,12 +170,13 @@ export function FolderCascadeMenu({
         return [];
       }
 
-      const size = menuSizes[folderId] ?? estimateLayerSize(folder, Boolean(onCreateFolder));
+      const size =
+        menuSizes[folderId] ?? estimateLayerSize(folder, Boolean(onCreateFolder), menuWidth);
       const placement = getCascadeMenuPlacement(anchor, viewport, size);
 
       return [{ folder, path: activePath.slice(0, index + 1), placement }];
     });
-  }, [activePath, anchors, folderMap, menuSizes, onCreateFolder, viewport]);
+  }, [activePath, anchors, folderMap, menuSizes, menuWidth, onCreateFolder, viewport]);
 
   useEffect(() => {
     return clearCloseTimer;
@@ -180,12 +187,12 @@ export function FolderCascadeMenu({
   }, [folderMap]);
 
   useEffect(() => {
-    if (!initialActivePathIds) {
+    if (!autoExpandInitialPath || !initialActivePathIds) {
       return;
     }
 
     setActivePath(initialActivePathIds.filter((folderId) => folderMap.has(folderId)));
-  }, [folderMap, initialActivePathIds]);
+  }, [autoExpandInitialPath, folderMap, initialActivePathIds]);
 
   useEffect(() => {
     function handleResize() {
@@ -227,6 +234,8 @@ export function FolderCascadeMenu({
                 key={layer.folder.id}
                 layer={layer}
                 zIndex={31 + index}
+                density={density}
+                menuWidth={menuWidth}
                 selectedFolderId={selectedFolderId}
                 currentFolderId={currentFolderId}
                 activePath={activePath}
@@ -418,6 +427,8 @@ function FolderCascadeRow({
 function FloatingCascadeLayer({
   layer,
   zIndex,
+  density,
+  menuWidth,
   selectedFolderId,
   currentFolderId,
   activePath,
@@ -436,6 +447,8 @@ function FloatingCascadeLayer({
 }: {
   layer: CascadeLayer;
   zIndex: number;
+  density: "default" | "compact";
+  menuWidth: number;
   selectedFolderId?: string;
   currentFolderId?: string;
   activePath: string[];
@@ -464,15 +477,18 @@ function FloatingCascadeLayer({
     }
 
     onSizeChange(layer.folder.id, {
-      width: Math.max(element.offsetWidth || FLOATING_CASCADE_WIDTH, FLOATING_CASCADE_WIDTH),
+      width: Math.max(element.offsetWidth || menuWidth, menuWidth),
       height: Math.max(element.scrollHeight || element.offsetHeight || FLOATING_CASCADE_MIN_HEIGHT, FLOATING_CASCADE_MIN_HEIGHT)
     });
-  }, [layer.folder.id, nestedFolders.length, onCreateFolder, onSizeChange]);
+  }, [layer.folder.id, menuWidth, nestedFolders.length, onCreateFolder, onSizeChange]);
 
   return (
     <div
       ref={layerRef}
-      className={`context-submenu nested-submenu is-floating-cascade opens-${layer.placement.submenuDirection} opens-${layer.placement.submenuBlockDirection}`}
+      className={`context-submenu nested-submenu is-floating-cascade ${
+        density === "compact" ? "popup-compact" : ""
+      } opens-${layer.placement.submenuDirection} opens-${layer.placement.submenuBlockDirection}`}
+      data-popup-cascade-layer={density === "compact" ? "true" : undefined}
       role="menu"
       style={style}
       onPointerEnter={onCascadeEnter}
@@ -544,11 +560,15 @@ function buildFolderMap(folders: BookmarkNode[]): Map<string, BookmarkNode> {
   return map;
 }
 
-function estimateLayerSize(folder: BookmarkNode, canCreateFolder: boolean): CascadeMenuSize {
+function estimateLayerSize(
+  folder: BookmarkNode,
+  canCreateFolder: boolean,
+  menuWidth: number
+): CascadeMenuSize {
   const rowCount = getMenuFolders(folder.children ?? []).length + (canCreateFolder ? 1 : 0);
 
   return {
-    width: FLOATING_CASCADE_WIDTH,
+    width: menuWidth,
     height: Math.max(
       FLOATING_CASCADE_MIN_HEIGHT,
       rowCount * FLOATING_CASCADE_ROW_HEIGHT + FLOATING_CASCADE_PADDING

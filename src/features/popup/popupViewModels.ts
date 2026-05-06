@@ -50,6 +50,22 @@ export function isLargePreviewImage(previewImageUrl?: string, faviconUrl?: strin
   return !/\/favicon(?:[-_.]|\b)|favicon\.ico\b|apple-touch-icon|\/icons?\//.test(normalizedUrl);
 }
 
+export function shouldContainPreviewImage(
+  previewImageUrl?: string,
+  faviconUrl?: string
+): boolean {
+  if (!previewImageUrl) {
+    return false;
+  }
+
+  if (faviconUrl && previewImageUrl === faviconUrl) {
+    return true;
+  }
+
+  const normalizedUrl = previewImageUrl.toLocaleLowerCase();
+  return /\/favicon(?:[-_.]|\b)|favicon\.ico\b|apple-touch-icon|\/icons?\//.test(normalizedUrl);
+}
+
 export function selectInitialPopupFolderId({
   fallbackFolderId,
   popupDefaultFolderId,

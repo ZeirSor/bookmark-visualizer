@@ -5,7 +5,8 @@ import {
   deriveRecentSavedBookmarks,
   formatPopupFolderPath,
   isLargePreviewImage,
-  selectInitialPopupFolderId
+  selectInitialPopupFolderId,
+  shouldContainPreviewImage
 } from "./popupViewModels";
 
 describe("popup view models", () => {
@@ -30,6 +31,13 @@ describe("popup view models", () => {
     expect(isLargePreviewImage("https://example.com/favicon.ico", "https://example.com/favicon.ico")).toBe(false);
     expect(isLargePreviewImage("https://example.com/icons/icon-128.png")).toBe(false);
     expect(isLargePreviewImage(undefined)).toBe(false);
+  });
+
+  it("marks favicon and icon preview images for contain fitting", () => {
+    expect(shouldContainPreviewImage("https://example.com/favicon.ico", "https://example.com/favicon.ico")).toBe(true);
+    expect(shouldContainPreviewImage("https://example.com/icons/icon-128.png")).toBe(true);
+    expect(shouldContainPreviewImage("https://example.com/og.png", "https://example.com/favicon.ico")).toBe(false);
+    expect(shouldContainPreviewImage(undefined)).toBe(false);
   });
 
   it("selects recent folders only when remember-last-folder is enabled", () => {

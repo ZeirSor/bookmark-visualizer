@@ -99,6 +99,7 @@ async function createQuickSaveFolder(parentId: string, rawTitle: string): Promis
     parentId,
     title
   });
+  const recentState = await saveQuickSaveRecentFolder(folder.id);
   const nextTree = await bookmarksAdapter.getTree();
 
   return {
@@ -109,7 +110,7 @@ async function createQuickSaveFolder(parentId: string, rawTitle: string): Promis
       defaultFolderId: folder.id,
       recentFolderIds: filterWritableRecentFolderIds(
         nextTree,
-        filterRecentFolderIds((await loadQuickSaveUiState()).recentFolderIds, (folderId) =>
+        filterRecentFolderIds(recentState.recentFolderIds, (folderId) =>
           Boolean(folderId)
         )
       )

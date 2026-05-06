@@ -1,22 +1,25 @@
 import { CheckIcon } from "./PopupIcons";
 
+export type PopupStatusTone = "idle" | "info" | "success" | "error";
+
 export function PopupFooter({
   canSave,
   formId,
-  isError,
   saving,
   selectedTitle,
-  status
+  status,
+  statusTone
 }: {
   canSave: boolean;
   formId: string;
-  isError: boolean;
   saving: boolean;
   selectedTitle: string;
   status: string;
+  statusTone: PopupStatusTone;
 }) {
   const trimmedStatus = status.trim();
-  const isSuccess = trimmedStatus.startsWith("已");
+  const isSuccess = statusTone === "success";
+  const isError = statusTone === "error";
 
   return (
     <footer className="popup-footer">

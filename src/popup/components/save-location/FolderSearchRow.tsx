@@ -25,6 +25,15 @@ export function FolderSearchRow({
           placeholder="搜索文件夹..."
           onFocus={onFocusSearch}
           onChange={(event) => onQueryChange(event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key !== "Escape" || !query.trim()) {
+              return;
+            }
+
+            event.preventDefault();
+            event.stopPropagation();
+            onClearQuery();
+          }}
         />
         {query ? (
           <button

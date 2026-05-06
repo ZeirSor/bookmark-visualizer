@@ -5,11 +5,12 @@ import {
   findNodeById,
   flattenFolders,
   getDisplayTitle,
+  rankFolderOption,
   type BookmarkNode,
   type FolderOption
 } from "../features/bookmarks";
 import { ExternalLinkIcon, FolderIcon, SaveIcon, SettingsIcon } from "./components/PopupIcons";
-import { PopupFooter } from "./components/PopupFooter";
+import { PopupFooter, type PopupStatusTone } from "./components/PopupFooter";
 import { TabButton } from "./components/TabButton";
 import { ManageTab } from "./tabs/ManageTab";
 import { SaveTab } from "./tabs/SaveTab";
@@ -49,11 +50,13 @@ export function PopupApp() {
   const [note, setNote] = useState("");
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState("");
+  const [statusTone, setStatusTone] = useState<PopupStatusTone>("idle");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [previewFailed, setPreviewFailed] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
   const [folderName, setFolderName] = useState("");
+  const [createParentFolderId, setCreateParentFolderId] = useState<string | undefined>();
 
   const folderOptions = useMemo(
     () => flattenFolders(tree).filter((option) => canCreateBookmarkInFolder(option.node)),
@@ -67,7 +70,12 @@ export function PopupApp() {
   const selectedOption = selectedFolderId ? folderOptionMap.get(selectedFolderId) : undefined;
   const selectedTitle = selectedFolder ? getDisplayTitle(selectedFolder) : "";
   const selectedPath = selectedOption?.path ?? selectedTitle;
-  const selectedCompactPath = compactFolderPath(selectedPath);
+  const createParentFolder = createParentFolderId
+    ? findNodeById(tree, createParentFolderId)
+    : undefined;
+  const createParentTitle = createParentFolder
+    ? getDisplayTitle(createParentFolder)
+    : selectedTitle;
   const defaultFolderOption = settings.popupDefaultFolderId
     ? folderOptionMap.get(settings.popupDefaultFolderId)
     : undefined;
@@ -75,7 +83,20 @@ export function PopupApp() {
   const defaultCompactPath = compactFolderPath(defaultFolderPath);
   const searchResults = useMemo(() => {
     const normalized = query.trim();
-    return normalized ? filterFolderOptions(folderOptions, normalized).slice(0, 4) : [];
+    return normalized
+      ? filterFolderOptions(folderOptions, normalized)
+          .sort((left, right) => {
+            const rankDiff =
+              rankFolderOption(left, normalized) - rankFolderOption(right, normalized);
+
+            if (rankDiff !== 0) {
+              return rankDiff;
+            }
+
+            return left.path.localeCompare(right.path, "zh-CN");
+          })
+          .slice(0, 4)
+      : [];
   }, [folderOptions, query]);
   const recentFolders = useMemo(
     () =>
@@ -106,10 +127,13 @@ export function PopupApp() {
         setActiveTab(storedSettings.popupDefaultOpenTab);
         setTitle(details.title);
         applyInitialState(initialState, storedSettings);
-        setStatus(details.canSave ? "" : details.error ?? "当前页面不支持保存。");
+        setPopupStatus(
+          details.canSave ? "" : details.error ?? "当前页面不支持保存。",
+          details.canSave ? "idle" : "error"
+        );
       } catch (cause) {
         if (!cancelled) {
-          setStatus(cause instanceof Error ? cause.message : "无法初始化 Popup。");
+          setPopupStatus(cause instanceof Error ? cause.message : "无法初始化 Popup。", "error");
         }
       } finally {
         if (!cancelled) {
@@ -168,17 +192,17 @@ export function PopupApp() {
     event?.preventDefault();
 
     if (!pageDetails?.canSave) {
-      setStatus("当前页面不支持保存。");
+      setPopupStatus("当前页面不支持保存。", "error");
       return;
     }
 
     if (!selectedFolderId) {
-      setStatus("请选择保存位置。");
+      setPopupStatus("请选择保存位置。", "error");
       return;
     }
 
     setSaving(true);
-    setStatus("");
+    setPopupStatus("", "idle");
     try {
       await createQuickSaveBookmark({
         parentId: selectedFolderId,
@@ -188,13 +212,16 @@ export function PopupApp() {
         previewImageUrl: pageDetails.previewImageUrl
       });
       setRecentFolderIds((current) => normalizeRecentFolderIds([selectedFolderId, ...current]));
-      setStatus(settings.popupShowSuccessToast ? `已保存到 ${selectedTitle || "当前文件夹"}。` : "");
+      setPopupStatus(
+        settings.popupShowSuccessToast ? `已保存到 ${selectedTitle || "当前文件夹"}。` : "",
+        settings.popupShowSuccessToast ? "success" : "idle"
+      );
 
       if (settings.popupAutoCloseAfterSave) {
         window.setTimeout(() => window.close(), SAVE_CLOSE_DELAY_MS);
       }
     } catch (cause) {
-      setStatus(cause instanceof Error ? cause.message : "保存失败。");
+      setPopupStatus(cause instanceof Error ? cause.message : "保存失败。", "error");
     } finally {
       setSaving(false);
     }
@@ -202,14 +229,15 @@ export function PopupApp() {
 
   async function createFolder() {
     const normalizedName = folderName.trim();
-    if (!normalizedName || !selectedFolderId) {
-      setStatus("请输入文件夹名称。");
+    const parentId = createParentFolderId ?? selectedFolderId;
+    if (!normalizedName || !parentId) {
+      setPopupStatus("请输入文件夹名称。", "error");
       return;
     }
 
     try {
       const response = await createQuickSaveFolder({
-        parentId: selectedFolderId,
+        parentId,
         title: normalizedName
       });
       setTree(response.state.tree);
@@ -217,11 +245,17 @@ export function PopupApp() {
       setSelectedFolderId(response.folder.id);
       setFolderName("");
       setCreateOpen(false);
+      setCreateParentFolderId(undefined);
       setQuery("");
-      setStatus(`已新建 ${getDisplayTitle(response.folder)}。`);
+      setPopupStatus(`已新建 ${getDisplayTitle(response.folder)}。`, "success");
     } catch (cause) {
-      setStatus(cause instanceof Error ? cause.message : "新建文件夹失败。");
+      setPopupStatus(cause instanceof Error ? cause.message : "新建文件夹失败。", "error");
     }
+  }
+
+  function setPopupStatus(message: string, tone: PopupStatusTone) {
+    setStatus(message);
+    setStatusTone(message.trim() ? tone : "idle");
   }
 
   return (
@@ -258,6 +292,8 @@ export function PopupApp() {
       <section className="popup-content">
         {activeTab === "save" ? (
           <SaveTab
+            createParentFolderId={createParentFolderId}
+            createParentTitle={createParentTitle}
             createFolder={createFolder}
             createOpen={createOpen}
             folderName={folderName}
@@ -269,10 +305,10 @@ export function PopupApp() {
             recentFolders={recentFolders}
             save={save}
             searchResults={searchResults}
-            selectedCompactPath={selectedCompactPath}
             selectedFolderId={selectedFolderId}
             selectedPath={selectedPath}
             selectedTitle={selectedTitle}
+            setCreateParentFolderId={setCreateParentFolderId}
             setCreateOpen={setCreateOpen}
             setFolderName={setFolderName}
             setNote={setNote}
@@ -302,14 +338,16 @@ export function PopupApp() {
         ) : null}
       </section>
 
-      <PopupFooter
-        canSave={Boolean(pageDetails?.canSave && selectedFolderId)}
-        formId="popup-save-form"
-        isError={pageDetails?.canSave === false}
-        saving={saving}
-        selectedTitle={selectedTitle}
-        status={status}
-      />
+      {activeTab === "save" ? (
+        <PopupFooter
+          canSave={Boolean(pageDetails?.canSave && selectedFolderId)}
+          formId="popup-save-form"
+          saving={saving}
+          selectedTitle={selectedTitle}
+          status={status}
+          statusTone={statusTone}
+        />
+      ) : null}
     </main>
   );
 }
