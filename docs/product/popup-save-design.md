@@ -456,7 +456,7 @@ Bookmarks bar / Read Later
 设置
 
 快捷键
-- 保存当前网页：Ctrl + S
+- 保存当前网页：Ctrl + Shift + S
 - 打开完整管理页：未设置
 [配置快捷键]
 

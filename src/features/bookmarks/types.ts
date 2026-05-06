@@ -11,4 +11,5 @@ export interface FolderBreadcrumbItem {
   id: string;
   title: string;
   node: BookmarkNode;
+  isRetained?: boolean;
 }

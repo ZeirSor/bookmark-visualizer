@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import { FolderCascadeMenu } from "../../components/FolderCascadeMenu";
+import { FolderMoveSubmenuContent } from "../../components/FolderMoveSubmenuContent";
 import {
   canCreateBookmarkInFolder,
   canRenameFolder,
@@ -7,14 +7,14 @@ import {
   findNodeById,
   flattenFolders,
   getDisplayTitle,
-  type BookmarkNode
+  type BookmarkNode,
+  type FolderOption
 } from "../../features/bookmarks";
 import { getCascadeMenuPlacement } from "../../features/context-menu";
 import {
   canMoveBookmarkToFolder,
   createDraggedBookmarkSnapshot,
-  type BookmarkDropPosition,
-  type DraggedBookmarkSnapshot
+  type BookmarkDropPosition
 } from "../../features/drag-drop";
 import {
   getQuickSaveShortcutCommandConflicts,
@@ -138,24 +138,24 @@ export function OperationLogDrawer({
 export function BookmarkContextMenu({
   state,
   tree,
+  recentFolders,
   onClose,
   canInsertBookmark,
   onEdit,
   onMove,
   onCreateFolder,
   onCreateBookmark,
-  onSearchMove,
   onDelete
 }: {
   state: BookmarkContextMenuState;
   tree: BookmarkNode[];
+  recentFolders: FolderOption[];
   onClose(): void;
   canInsertBookmark: boolean;
   onEdit(bookmark: BookmarkNode): void;
   onMove(bookmark: BookmarkNode, folder: BookmarkNode): void;
   onCreateFolder(bookmark: BookmarkNode, parentFolder: BookmarkNode): void;
   onCreateBookmark(bookmark: BookmarkNode, position: BookmarkDropPosition): void;
-  onSearchMove(bookmark: BookmarkNode): void;
   onDelete(bookmark: BookmarkNode): void;
 }) {
   const snapshot = createDraggedBookmarkSnapshot(state.bookmark);
@@ -164,6 +164,7 @@ export function BookmarkContextMenu({
   const moveTriggerRef = useRef<HTMLDivElement>(null);
   const moveSubmenuRef = useRef<HTMLDivElement>(null);
   const [moveMenuOpen, setMoveMenuOpen] = useState(false);
+  const [moveFolderQuery, setMoveFolderQuery] = useState("");
 
   function clearCloseTimer() {
     if (closeTimerRef.current) {
@@ -216,6 +217,10 @@ export function BookmarkContextMenu({
     };
   }, []);
 
+  useEffect(() => {
+    setMoveFolderQuery("");
+  }, [state.bookmark.id]);
+
   return (
     <div
       className="context-menu-layer"
@@ -260,17 +265,13 @@ export function BookmarkContextMenu({
             role="menu"
             aria-label="移动到文件夹"
           >
-            <button
-              className="move-folder-search"
-              type="button"
-              role="menuitem"
-              onClick={() => onSearchMove(state.bookmark)}
-            >
-              搜索文件夹...
-            </button>
-            <MoveFolderMenu
+            <FolderMoveSubmenuContent
               nodes={tree}
+              recentFolders={recentFolders}
               snapshot={snapshot}
+              query={moveFolderQuery}
+              onQueryChange={setMoveFolderQuery}
+              onRequestCloseMenu={onClose}
               onMove={(folder) => onMove(state.bookmark, folder)}
               onCreateFolder={(parentFolder) => onCreateFolder(state.bookmark, parentFolder)}
               onCascadeEnter={keepMoveCascadeOpen}
@@ -344,35 +345,6 @@ export function FolderContextMenu({
         ) : null}
       </div>
     </div>
-  );
-}
-
-function MoveFolderMenu({
-  nodes,
-  snapshot,
-  onMove,
-  onCreateFolder,
-  onCascadeEnter,
-  onCascadeLeave
-}: {
-  nodes: BookmarkNode[];
-  snapshot: DraggedBookmarkSnapshot;
-  onMove(folder: BookmarkNode): void;
-  onCreateFolder(parentFolder: BookmarkNode): void;
-  onCascadeEnter(): void;
-  onCascadeLeave(): void;
-}) {
-  return (
-    <FolderCascadeMenu
-      nodes={nodes}
-      currentFolderId={snapshot.parentId}
-      disabledLabel="不可移动"
-      onSelect={onMove}
-      canSelect={(folder) => canMoveBookmarkToFolder(snapshot, folder)}
-      onCreateFolder={onCreateFolder}
-      onCascadeEnter={onCascadeEnter}
-      onCascadeLeave={onCascadeLeave}
-    />
   );
 }
 

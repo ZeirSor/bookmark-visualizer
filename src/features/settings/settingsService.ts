@@ -23,7 +23,17 @@ export function normalizeSettings(settings?: Partial<SettingsState>): SettingsSt
     theme: settings?.theme === "dark" ? "dark" : "light",
     cardDensity: "comfortable",
     cardSize: normalizeCardSize(settings?.cardSize),
-    sidebarWidth: normalizeSidebarWidth(settings?.sidebarWidth)
+    sidebarWidth: normalizeSidebarWidth(settings?.sidebarWidth),
+    popupAutoCloseAfterSave:
+      settings?.popupAutoCloseAfterSave ?? defaultSettings.popupAutoCloseAfterSave,
+    popupShowSuccessToast:
+      settings?.popupShowSuccessToast ?? defaultSettings.popupShowSuccessToast,
+    popupRememberLastFolder:
+      settings?.popupRememberLastFolder ?? defaultSettings.popupRememberLastFolder,
+    popupShowThumbnail: settings?.popupShowThumbnail ?? defaultSettings.popupShowThumbnail,
+    popupDefaultOpenTab: normalizePopupDefaultOpenTab(settings?.popupDefaultOpenTab),
+    popupThemeMode: normalizePopupThemeMode(settings?.popupThemeMode),
+    popupDefaultFolderId: normalizeOptionalId(settings?.popupDefaultFolderId)
   };
 }
 
@@ -46,4 +56,29 @@ function normalizeSidebarWidth(width?: number): number {
   }
 
   return Math.min(640, Math.max(220, Math.round(width)));
+}
+
+function normalizePopupDefaultOpenTab(
+  tab?: SettingsState["popupDefaultOpenTab"]
+): SettingsState["popupDefaultOpenTab"] {
+  if (tab === "save" || tab === "manage" || tab === "settings") {
+    return tab;
+  }
+
+  return defaultSettings.popupDefaultOpenTab;
+}
+
+function normalizePopupThemeMode(
+  mode?: SettingsState["popupThemeMode"]
+): SettingsState["popupThemeMode"] {
+  if (mode === "system" || mode === "light" || mode === "dark") {
+    return mode;
+  }
+
+  return defaultSettings.popupThemeMode;
+}
+
+function normalizeOptionalId(id?: string): string | undefined {
+  const normalized = id?.trim();
+  return normalized || undefined;
 }

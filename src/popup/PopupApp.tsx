@@ -5,7 +5,6 @@ import {
   findNodeById,
   flattenFolders,
   getDisplayTitle,
-  isFolder,
   type BookmarkNode,
   type FolderOption
 } from "../features/bookmarks";
@@ -20,16 +19,26 @@ import {
   getCurrentTabDetails,
   loadQuickSaveInitialState,
   openWorkspace,
+  compactFolderPath,
+  deriveRecentSavedBookmarks,
+  selectInitialPopupFolderId,
   type PopupPageDetails
 } from "../features/popup";
 import type { QuickSaveInitialState } from "../features/quick-save";
+import {
+  defaultSettings,
+  loadSettings,
+  saveSettings,
+  type SettingsState
+} from "../features/settings";
 
 type PopupTab = "save" | "manage" | "settings";
 
 const SAVE_CLOSE_DELAY_MS = 650;
 
 export function PopupApp() {
-  const [activeTab, setActiveTab] = useState<PopupTab>("save");
+  const [activeTab, setActiveTab] = useState<PopupTab>(defaultSettings.popupDefaultOpenTab);
+  const [settings, setSettings] = useState<SettingsState>(defaultSettings);
   const [pageDetails, setPageDetails] = useState<PopupPageDetails>();
   const [tree, setTree] = useState<BookmarkNode[]>([]);
   const [recentFolderIds, setRecentFolderIds] = useState<string[]>([]);
@@ -43,7 +52,6 @@ export function PopupApp() {
   const [previewFailed, setPreviewFailed] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
   const [folderName, setFolderName] = useState("");
-  const [autoClose, setAutoClose] = useState(true);
 
   const folderOptions = useMemo(
     () => flattenFolders(tree).filter((option) => canCreateBookmarkInFolder(option.node)),
@@ -57,6 +65,12 @@ export function PopupApp() {
   const selectedOption = selectedFolderId ? folderOptionMap.get(selectedFolderId) : undefined;
   const selectedTitle = selectedFolder ? getDisplayTitle(selectedFolder) : "";
   const selectedPath = selectedOption?.path ?? selectedTitle;
+  const selectedCompactPath = compactFolderPath(selectedPath);
+  const defaultFolderOption = settings.popupDefaultFolderId
+    ? folderOptionMap.get(settings.popupDefaultFolderId)
+    : undefined;
+  const defaultFolderPath = defaultFolderOption?.path ?? selectedPath;
+  const defaultCompactPath = compactFolderPath(defaultFolderPath);
   const searchResults = useMemo(() => {
     const normalized = query.trim();
     return normalized ? filterFolderOptions(folderOptions, normalized).slice(0, 4) : [];
@@ -69,15 +83,17 @@ export function PopupApp() {
         .slice(0, 3),
     [folderOptionMap, recentFolderIds]
   );
+  const recentBookmarks = useMemo(() => deriveRecentSavedBookmarks(tree, 3), [tree]);
 
   useEffect(() => {
     let cancelled = false;
 
     async function load() {
       try {
-        const [details, initialState] = await Promise.all([
+        const [details, initialState, storedSettings] = await Promise.all([
           getCurrentTabDetails(),
-          loadQuickSaveInitialState()
+          loadQuickSaveInitialState(),
+          loadSettings()
         ]);
 
         if (cancelled) {
@@ -85,8 +101,10 @@ export function PopupApp() {
         }
 
         setPageDetails(details);
+        setSettings(storedSettings);
+        setActiveTab(storedSettings.popupDefaultOpenTab);
         setTitle(details.title);
-        applyInitialState(initialState);
+        applyInitialState(initialState, storedSettings);
         setStatus(details.canSave ? "" : details.error ?? "当前页面不支持保存。");
       } catch (cause) {
         if (!cancelled) {
@@ -116,16 +134,33 @@ export function PopupApp() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  function applyInitialState(state: QuickSaveInitialState) {
+  function applyInitialState(state: QuickSaveInitialState, storedSettings: SettingsState) {
     setTree(state.tree);
     setRecentFolderIds(state.recentFolderIds);
-    const defaultFolder = state.defaultFolderId
-      ? findNodeById(state.tree, state.defaultFolderId)
-      : findFirstWritableFolder(state.tree);
+    const initialFolderId = selectInitialPopupFolderId({
+      tree: state.tree,
+      recentFolderIds: state.recentFolderIds,
+      rememberLastFolder: storedSettings.popupRememberLastFolder,
+      popupDefaultFolderId: storedSettings.popupDefaultFolderId,
+      fallbackFolderId: state.defaultFolderId
+    });
 
-    if (defaultFolder && isFolder(defaultFolder)) {
-      setSelectedFolderId(defaultFolder.id);
+    if (initialFolderId) {
+      setSelectedFolderId(initialFolderId);
     }
+  }
+
+  async function updateSettings(patch: Partial<SettingsState>) {
+    const nextSettings = await saveSettings({
+      ...settings,
+      ...patch
+    });
+    setSettings(nextSettings);
+  }
+
+  async function updateDefaultFolder(folderId: string) {
+    setSelectedFolderId(folderId);
+    await updateSettings({ popupDefaultFolderId: folderId });
   }
 
   async function save(event?: FormEvent<HTMLFormElement>) {
@@ -152,9 +187,9 @@ export function PopupApp() {
         previewImageUrl: pageDetails.previewImageUrl
       });
       setRecentFolderIds((current) => [selectedFolderId, ...current.filter((id) => id !== selectedFolderId)].slice(0, 5));
-      setStatus(`已保存到 ${selectedTitle || "当前文件夹"}。`);
+      setStatus(settings.popupShowSuccessToast ? `已保存到 ${selectedTitle || "当前文件夹"}。` : "");
 
-      if (autoClose) {
+      if (settings.popupAutoCloseAfterSave) {
         window.setTimeout(() => window.close(), SAVE_CLOSE_DELAY_MS);
       }
     } catch (cause) {
@@ -221,7 +256,6 @@ export function PopupApp() {
 
       {activeTab === "save" ? (
         <SaveTab
-          autoClose={autoClose}
           createFolder={createFolder}
           createOpen={createOpen}
           folderName={folderName}
@@ -234,10 +268,10 @@ export function PopupApp() {
           save={save}
           saving={saving}
           searchResults={searchResults}
+          selectedCompactPath={selectedCompactPath}
           selectedFolderId={selectedFolderId}
           selectedPath={selectedPath}
           selectedTitle={selectedTitle}
-          setAutoClose={setAutoClose}
           setCreateOpen={setCreateOpen}
           setFolderName={setFolderName}
           setNote={setNote}
@@ -247,25 +281,25 @@ export function PopupApp() {
           setTitle={setTitle}
           status={status}
           title={title}
+          tree={tree}
+          showThumbnail={settings.popupShowThumbnail}
         />
       ) : null}
-      {activeTab === "manage" ? <ManageTab /> : null}
+      {activeTab === "manage" ? (
+        <ManageTab recentBookmarks={recentBookmarks} recentFolders={recentFolders} />
+      ) : null}
       {activeTab === "settings" ? (
-        <SettingsTab autoClose={autoClose} selectedPath={selectedPath} setAutoClose={setAutoClose} />
+        <SettingsTab
+          defaultCompactPath={defaultCompactPath}
+          defaultFolderId={defaultFolderOption?.id ?? selectedFolderId}
+          defaultPath={defaultFolderPath}
+          recentFolders={recentFolders}
+          settings={settings}
+          tree={tree}
+          updateDefaultFolder={(folderId) => void updateDefaultFolder(folderId)}
+          updateSettings={(patch) => void updateSettings(patch)}
+        />
       ) : null}
     </main>
   );
-}
-
-function findFirstWritableFolder(nodes: BookmarkNode[]): BookmarkNode | undefined {
-  for (const node of nodes) {
-    if (canCreateBookmarkInFolder(node)) {
-      return node;
-    }
-
-    const nested = node.children ? findFirstWritableFolder(node.children) : undefined;
-    if (nested) {
-      return nested;
-    }
-  }
 }

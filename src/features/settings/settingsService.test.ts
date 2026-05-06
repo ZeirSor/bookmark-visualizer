@@ -13,17 +13,31 @@ describe("settingsService", () => {
       theme: "light",
       cardDensity: "comfortable",
       cardSize: "medium",
-      sidebarWidth: 280
+      sidebarWidth: 280,
+      popupAutoCloseAfterSave: true,
+      popupShowSuccessToast: true,
+      popupRememberLastFolder: true,
+      popupShowThumbnail: true,
+      popupDefaultOpenTab: "save",
+      popupThemeMode: "system",
+      popupDefaultFolderId: undefined
     });
   });
 
-  it("persists theme, tree visibility, card size, and sidebar width", async () => {
+  it("persists workspace and popup settings", async () => {
     await saveSettings({
       showBookmarksInTree: true,
       theme: "dark",
       cardDensity: "comfortable",
       cardSize: "extra-large",
-      sidebarWidth: 340
+      sidebarWidth: 340,
+      popupAutoCloseAfterSave: false,
+      popupShowSuccessToast: false,
+      popupRememberLastFolder: false,
+      popupShowThumbnail: false,
+      popupDefaultOpenTab: "settings",
+      popupThemeMode: "dark",
+      popupDefaultFolderId: "  10  "
     });
 
     await expect(loadSettings()).resolves.toEqual({
@@ -31,7 +45,14 @@ describe("settingsService", () => {
       theme: "dark",
       cardDensity: "comfortable",
       cardSize: "extra-large",
-      sidebarWidth: 340
+      sidebarWidth: 340,
+      popupAutoCloseAfterSave: false,
+      popupShowSuccessToast: false,
+      popupRememberLastFolder: false,
+      popupShowThumbnail: false,
+      popupDefaultOpenTab: "settings",
+      popupThemeMode: "dark",
+      popupDefaultFolderId: "10"
     });
   });
 });

@@ -38,13 +38,14 @@ import {
 } from "./workspace/helpers";
 import { bookmarksAdapter } from "../lib/chrome";
 import {
-  buildFolderBreadcrumbItems,
+  buildRetainedFolderBreadcrumbItems,
   canCreateBookmarkInFolder,
   collectFolderIds,
   canRenameFolder,
   findNodeById,
   getDisplayTitle,
   getFolderEndIndex,
+  getRetainedBreadcrumbTailIds,
   insertNodeInBookmarkTree,
   moveNodeInBookmarkTree,
   removeNodeFromBookmarkTree,
@@ -68,6 +69,11 @@ import {
   type FolderDropIntent
 } from "../features/drag-drop";
 import { useMetadata } from "../features/metadata";
+import {
+  loadRecentFolderState,
+  resolveRecentFolderOptions,
+  saveRecentFolder
+} from "../features/recent-folders";
 import { searchBookmarks } from "../features/search";
 import { useSettings } from "../features/settings";
 
@@ -89,7 +95,9 @@ export function App() {
   const [folderPickerDialog, setFolderPickerDialog] = useState<FolderPickerDialogState>();
   const [shortcutDialogOpen, setShortcutDialogOpen] = useState(false);
   const [activeBookmarkDropIntent, setActiveBookmarkDropIntent] = useState<BookmarkDropIntent>();
+  const [recentFolderIds, setRecentFolderIds] = useState<string[]>([]);
   const [expandedFolderIds, setExpandedFolderIds] = useState<Set<string>>(new Set());
+  const [retainedBreadcrumbTailIds, setRetainedBreadcrumbTailIds] = useState<string[]>([]);
   const [toast, setToast] = useState<ToastState>();
   const { metadata, updateNote } = useMetadata();
   const { settings, updateSettings } = useSettings();
@@ -125,6 +133,27 @@ export function App() {
   useEffect(() => {
     operationLogRef.current = operationLog;
   }, [operationLog]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadRecentFolders() {
+      try {
+        const state = await loadRecentFolderState();
+        if (!cancelled) {
+          setRecentFolderIds(state.folderIds);
+        }
+      } catch {
+        // 最近文件夹只是辅助 UI，读取失败不阻塞主界面。
+      }
+    }
+
+    void loadRecentFolders();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     const folderIds = collectFolderIds(tree);
@@ -173,8 +202,12 @@ export function App() {
       ? getDisplayTitle(selectedFolder)
       : "选择一个文件夹";
   const breadcrumbItems = useMemo(
-    () => buildFolderBreadcrumbItems(tree, selectedFolderId),
-    [selectedFolderId, tree]
+    () => buildRetainedFolderBreadcrumbItems(tree, selectedFolderId, retainedBreadcrumbTailIds),
+    [retainedBreadcrumbTailIds, selectedFolderId, tree]
+  );
+  const recentFolderOptions = useMemo(
+    () => resolveRecentFolderOptions(folders, recentFolderIds, 5),
+    [folders, recentFolderIds]
   );
   const homeFolderId = folders[0]?.id;
   const canCreateBookmarkHere = !isSearching && canCreateBookmarkInFolder(selectedFolder);
@@ -397,13 +430,13 @@ export function App() {
         <BookmarkContextMenu
           state={contextMenu}
           tree={tree}
+          recentFolders={recentFolderOptions}
           onClose={() => setContextMenu(undefined)}
           canInsertBookmark={!isSearching}
           onEdit={(bookmark) => requestInlineBookmarkEdit(bookmark)}
           onMove={(bookmark, folder) => void handleContextMoveBookmark(bookmark, folder)}
           onCreateFolder={(bookmark, parentFolder) => openNewFolderDialog(parentFolder, bookmark)}
           onCreateBookmark={(bookmark, position) => openNewBookmarkDraft(bookmark, position)}
-          onSearchMove={(bookmark) => openFolderPicker(bookmark)}
           onDelete={(bookmark) => void handleDeleteBookmark(bookmark)}
         />
       ) : null}
@@ -455,7 +488,7 @@ export function App() {
 
     setQuery("");
     setHighlightPulseId(undefined);
-    selectFolder(bookmark.parentId);
+    selectFolderAndClearBreadcrumb(bookmark.parentId);
     setHighlightedBookmarkId(bookmark.id);
     window.requestAnimationFrame(() => setHighlightPulseId(bookmark.id));
   }
@@ -463,12 +496,20 @@ export function App() {
   function handleSelectFolder(folderId: string) {
     setHighlightedBookmarkId(undefined);
     setHighlightPulseId(undefined);
-    selectFolder(folderId);
+    selectFolderAndClearBreadcrumb(folderId);
   }
 
   function handleBreadcrumbSelectFolder(folderId: string) {
     setQuery("");
-    handleSelectFolder(folderId);
+    setHighlightedBookmarkId(undefined);
+    setHighlightPulseId(undefined);
+    setRetainedBreadcrumbTailIds(getRetainedBreadcrumbTailIds(breadcrumbItems, folderId));
+    selectFolder(folderId);
+  }
+
+  function selectFolderAndClearBreadcrumb(folderId: string) {
+    setRetainedBreadcrumbTailIds([]);
+    selectFolder(folderId);
   }
 
   function toggleFolderExpanded(folderId: string) {
@@ -615,6 +656,7 @@ export function App() {
     try {
       await bookmarksAdapter.move(snapshot.id, { parentId: folder.id });
       await reload();
+      await rememberRecentFolder(folder.id);
       const operationId = addOperation({
         title: "移动书签",
         detail: `“${snapshot.title || "Untitled"}”已移动到“${getDisplayTitle(folder)}”。`,
@@ -691,6 +733,15 @@ export function App() {
     }
   }
 
+  async function rememberRecentFolder(folderId: string) {
+    try {
+      const state = await saveRecentFolder(folderId);
+      setRecentFolderIds(state.folderIds);
+    } catch {
+      // 最近文件夹写入失败不影响书签移动结果。
+    }
+  }
+
   async function moveFolderWithUndo(snapshot: DraggedFolderSnapshot, intent: FolderDropIntent) {
     if (!canDropFolderOnIntent(snapshot, intent, tree)) {
       setToast({ message: "不能移动到这个文件夹位置。" });
@@ -703,7 +754,7 @@ export function App() {
       await bookmarksAdapter.move(snapshot.id, destination);
       await reload();
       expandFolders(destination.parentId, intent.position === "inside" ? intent.targetFolder.id : undefined);
-      selectFolder(snapshot.id);
+      selectFolderAndClearBreadcrumb(snapshot.id);
 
       const operationId = addOperation({
         title: "移动文件夹",
@@ -719,7 +770,7 @@ export function App() {
           });
           await reload();
           expandFolders(snapshot.parentId);
-          selectFolder(snapshot.id);
+          selectFolderAndClearBreadcrumb(snapshot.id);
         }
       });
 
@@ -786,7 +837,7 @@ export function App() {
 
     setFolderContextMenu(undefined);
     setRenamingFolderId(folder.id);
-    selectFolder(folder.id);
+    selectFolderAndClearBreadcrumb(folder.id);
   }
 
   function requestInlineBookmarkEdit(bookmark: BookmarkNode) {
@@ -826,7 +877,7 @@ export function App() {
       title: "",
       url: ""
     });
-    selectFolder(folder.id);
+    selectFolderAndClearBreadcrumb(folder.id);
   }
 
   function openFolderPicker(bookmark: BookmarkNode) {
@@ -859,7 +910,7 @@ export function App() {
 
       setNewFolderDialog(undefined);
       expandFolders(state.parentFolder.id, createdFolder.id);
-      selectFolder(createdFolder.id);
+      selectFolderAndClearBreadcrumb(createdFolder.id);
 
       if (state.bookmarkToMove) {
         await moveBookmarkWithUndo(createDraggedBookmarkSnapshot(state.bookmarkToMove), createdFolder);
@@ -901,7 +952,7 @@ export function App() {
           createdBookmark.index ?? state.index
         )
       );
-      selectFolder(state.parentId);
+      selectFolderAndClearBreadcrumb(state.parentId);
       setHighlightPulseId(createdBookmark.id);
 
       const operationId = addOperation({
@@ -951,7 +1002,7 @@ export function App() {
     try {
       await bookmarksAdapter.update(folder.id, { title: trimmedTitle });
       await reload();
-      selectFolder(folder.id);
+      selectFolderAndClearBreadcrumb(folder.id);
       setRenamingFolderId(undefined);
 
       const operationId = addOperation({
@@ -960,7 +1011,7 @@ export function App() {
         undo: async () => {
           await bookmarksAdapter.update(folder.id, { title: previousTitle });
           await reload();
-          selectFolder(folder.id);
+          selectFolderAndClearBreadcrumb(folder.id);
         }
       });
 

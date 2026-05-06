@@ -25,15 +25,17 @@ export function BreadcrumbNav({ items, homeFolderId, onSelectFolder }: Breadcrum
         </li>
         {items.map((item, index) => {
           const isCurrent = index === items.length - 1;
+          const isRetained = Boolean(item.isRetained);
 
           return (
-            <li key={item.id}>
+            <li key={item.id} className={isRetained ? "is-retained" : undefined}>
               <span className="breadcrumb-separator" aria-hidden="true">
                 /
               </span>
               <button
                 type="button"
-                aria-current={isCurrent ? "location" : undefined}
+                aria-current={isCurrent && !isRetained ? "location" : undefined}
+                data-retained={isRetained ? "true" : undefined}
                 onClick={() => onSelectFolder(item.id)}
               >
                 {item.title}

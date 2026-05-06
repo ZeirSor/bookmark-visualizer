@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
+  buildFolderCascadeInitialPathIds,
   buildFolderBreadcrumbItems,
+  buildFolderPathHighlightIds,
+  buildRetainedFolderBreadcrumbItems,
   canCreateBookmarkInFolder,
   canRenameFolder,
   collectFolderIds,
@@ -8,6 +11,7 @@ import {
   findNodeById,
   flattenFolders,
   getFolderEndIndex,
+  getRetainedBreadcrumbTailIds,
   insertNodeInBookmarkTree,
   moveNodeInBookmarkTree,
   removeNodeFromBookmarkTree
@@ -124,6 +128,52 @@ describe("bookmark tree helpers", () => {
       "1",
       "10"
     ]);
+  });
+
+  it("keeps a retained breadcrumb tail after selecting an ancestor", () => {
+    const previousPath = buildFolderBreadcrumbItems(mockBookmarkTree, "10");
+    const tailIds = getRetainedBreadcrumbTailIds(previousPath, "1");
+    const retainedItems = buildRetainedFolderBreadcrumbItems(mockBookmarkTree, "1", tailIds);
+
+    expect(tailIds).toEqual(["10"]);
+    expect(retainedItems.map((item) => item.title)).toEqual([
+      "Root",
+      "Bookmarks Bar",
+      "Product Research"
+    ]);
+    expect(retainedItems.map((item) => Boolean(item.isRetained))).toEqual([false, false, true]);
+  });
+
+  it("lets a retained breadcrumb descendant become active again", () => {
+    const retainedItems = buildRetainedFolderBreadcrumbItems(mockBookmarkTree, "1", ["10"]);
+    const tailIds = getRetainedBreadcrumbTailIds(retainedItems, "10");
+    const activeItems = buildRetainedFolderBreadcrumbItems(mockBookmarkTree, "10", tailIds);
+
+    expect(tailIds).toEqual([]);
+    expect(activeItems.map((item) => item.id)).toEqual(["0", "1", "10"]);
+    expect(activeItems.some((item) => item.isRetained)).toBe(false);
+  });
+
+  it("drops retained breadcrumb tails for unrelated folder selections", () => {
+    const retainedItems = buildRetainedFolderBreadcrumbItems(mockBookmarkTree, "20", ["10"]);
+
+    expect(retainedItems.map((item) => item.id)).toEqual(["0", "2", "20"]);
+    expect(retainedItems.some((item) => item.isRetained)).toBe(false);
+  });
+
+  it("builds cascade initial paths from ancestors without expanding the final folder", () => {
+    expect(buildFolderCascadeInitialPathIds(mockBookmarkTree, "10")).toEqual(["1"]);
+    expect(buildFolderCascadeInitialPathIds(mockBookmarkTree, "1")).toEqual([]);
+  });
+
+  it("falls back safely for missing or root cascade selections", () => {
+    expect(buildFolderCascadeInitialPathIds(mockBookmarkTree, "missing")).toEqual([]);
+    expect(buildFolderCascadeInitialPathIds(mockBookmarkTree, "0")).toEqual([]);
+    expect(buildFolderPathHighlightIds(mockBookmarkTree, "missing")).toEqual([]);
+  });
+
+  it("builds selected folder highlight paths without the browser root", () => {
+    expect(buildFolderPathHighlightIds(mockBookmarkTree, "10")).toEqual(["1", "10"]);
   });
 
   it("moves the second bookmark before the first without reloading the tree", () => {

@@ -30,6 +30,8 @@ interface FolderCascadeMenuProps {
   nodes: BookmarkNode[];
   selectedFolderId?: string;
   currentFolderId?: string;
+  initialActivePathIds?: string[];
+  highlightedFolderIds?: string[];
   disabledLabel?: string;
   onSelect(folder: BookmarkNode): void;
   canSelect(folder: BookmarkNode): boolean;
@@ -57,6 +59,8 @@ export function FolderCascadeMenu({
   nodes,
   selectedFolderId,
   currentFolderId,
+  initialActivePathIds,
+  highlightedFolderIds,
   disabledLabel,
   onSelect,
   canSelect,
@@ -69,6 +73,10 @@ export function FolderCascadeMenu({
 }: FolderCascadeMenuProps) {
   const folders = useMemo(() => getMenuFolders(nodes), [nodes]);
   const folderMap = useMemo(() => buildFolderMap(folders), [folders]);
+  const highlightedFolderIdSet = useMemo(
+    () => new Set(highlightedFolderIds ?? []),
+    [highlightedFolderIds]
+  );
   const [activePath, setActivePath] = useState<string[]>([]);
   const [anchors, setAnchors] = useState<Record<string, CascadeMenuAnchorRect>>({});
   const [menuSizes, setMenuSizes] = useState<Record<string, CascadeMenuSize>>({});
@@ -122,6 +130,29 @@ export function FolderCascadeMenu({
     });
   }, []);
 
+  const registerAnchor = useCallback((folderId: string, element: HTMLElement) => {
+    const nextAnchor = rectToAnchor(element.getBoundingClientRect());
+
+    setAnchors((current) => {
+      const previous = current[folderId];
+
+      if (
+        previous &&
+        previous.top === nextAnchor.top &&
+        previous.right === nextAnchor.right &&
+        previous.bottom === nextAnchor.bottom &&
+        previous.left === nextAnchor.left
+      ) {
+        return current;
+      }
+
+      return {
+        ...current,
+        [folderId]: nextAnchor
+      };
+    });
+  }, []);
+
   const layers = useMemo(() => {
     return activePath.flatMap((folderId, index) => {
       const folder = folderMap.get(folderId);
@@ -147,6 +178,14 @@ export function FolderCascadeMenu({
   }, [folderMap]);
 
   useEffect(() => {
+    if (!initialActivePathIds) {
+      return;
+    }
+
+    setActivePath(initialActivePathIds.filter((folderId) => folderMap.has(folderId)));
+  }, [folderMap, initialActivePathIds]);
+
+  useEffect(() => {
     function handleResize() {
       setViewport(getViewport());
     }
@@ -164,6 +203,8 @@ export function FolderCascadeMenu({
       <FolderCascadeList
         folders={folders}
         parentPath={[]}
+        activePath={activePath}
+        highlightedFolderIdSet={highlightedFolderIdSet}
         selectedFolderId={selectedFolderId}
         currentFolderId={currentFolderId}
         disabledLabel={disabledLabel}
@@ -172,6 +213,7 @@ export function FolderCascadeMenu({
         onOpenFolder={onOpenFolder}
         canCreateFolder={Boolean(onCreateFolder)}
         onRowEnter={handleRowEnter}
+        onRegisterAnchor={registerAnchor}
         onCascadeEnter={keepCascadeOpen}
         onCascadeLeave={scheduleCloseCascade}
       />
@@ -185,6 +227,8 @@ export function FolderCascadeMenu({
                 zIndex={31 + index}
                 selectedFolderId={selectedFolderId}
                 currentFolderId={currentFolderId}
+                activePath={activePath}
+                highlightedFolderIdSet={highlightedFolderIdSet}
                 disabledLabel={disabledLabel}
                 onSelect={onSelect}
                 canSelect={canSelect}
@@ -192,6 +236,7 @@ export function FolderCascadeMenu({
                 onCreateFolder={onCreateFolder}
                 renderCreateAction={renderCreateAction}
                 onRowEnter={handleRowEnter}
+                onRegisterAnchor={registerAnchor}
                 onCascadeEnter={keepCascadeOpen}
                 onCascadeLeave={scheduleCloseCascade}
                 onSizeChange={handleLayerSizeChange}
@@ -206,6 +251,8 @@ export function FolderCascadeMenu({
 function FolderCascadeList({
   folders,
   parentPath,
+  activePath,
+  highlightedFolderIdSet,
   selectedFolderId,
   currentFolderId,
   disabledLabel,
@@ -214,11 +261,14 @@ function FolderCascadeList({
   onOpenFolder,
   canCreateFolder,
   onRowEnter,
+  onRegisterAnchor,
   onCascadeEnter,
   onCascadeLeave
 }: {
   folders: BookmarkNode[];
   parentPath: string[];
+  activePath: string[];
+  highlightedFolderIdSet: Set<string>;
   selectedFolderId?: string;
   currentFolderId?: string;
   disabledLabel?: string;
@@ -227,6 +277,7 @@ function FolderCascadeList({
   onOpenFolder?(folder: BookmarkNode): void;
   canCreateFolder: boolean;
   onRowEnter(parentPath: string[], folder: BookmarkNode, hasSubmenu: boolean, element: HTMLElement): void;
+  onRegisterAnchor(folderId: string, element: HTMLElement): void;
   onCascadeEnter(): void;
   onCascadeLeave(): void;
 }) {
@@ -244,6 +295,8 @@ function FolderCascadeList({
           key={folder.id}
           folder={folder}
           parentPath={parentPath}
+          activePath={activePath}
+          highlightedFolderIdSet={highlightedFolderIdSet}
           selectedFolderId={selectedFolderId}
           currentFolderId={currentFolderId}
           disabledLabel={disabledLabel}
@@ -252,6 +305,7 @@ function FolderCascadeList({
           onOpenFolder={onOpenFolder}
           canCreateFolder={canCreateFolder}
           onRowEnter={onRowEnter}
+          onRegisterAnchor={onRegisterAnchor}
         />
       ))}
     </div>
@@ -261,6 +315,8 @@ function FolderCascadeList({
 function FolderCascadeRow({
   folder,
   parentPath,
+  activePath,
+  highlightedFolderIdSet,
   selectedFolderId,
   currentFolderId,
   disabledLabel,
@@ -268,10 +324,13 @@ function FolderCascadeRow({
   canSelect,
   onOpenFolder,
   canCreateFolder,
-  onRowEnter
+  onRowEnter,
+  onRegisterAnchor
 }: {
   folder: BookmarkNode;
   parentPath: string[];
+  activePath: string[];
+  highlightedFolderIdSet: Set<string>;
   selectedFolderId?: string;
   currentFolderId?: string;
   disabledLabel?: string;
@@ -280,7 +339,9 @@ function FolderCascadeRow({
   onOpenFolder?(folder: BookmarkNode): void;
   canCreateFolder: boolean;
   onRowEnter(parentPath: string[], folder: BookmarkNode, hasSubmenu: boolean, element: HTMLElement): void;
+  onRegisterAnchor(folderId: string, element: HTMLElement): void;
 }) {
+  const rowRef = useRef<HTMLDivElement>(null);
   const selectable = canSelect(folder);
   const nestedFolders = folder.children?.filter(isFolder) ?? [];
   const behavior = getCascadeRowBehavior({
@@ -290,7 +351,16 @@ function FolderCascadeRow({
   });
   const isCurrentFolder = currentFolderId === folder.id;
   const isSelected = selectedFolderId === folder.id;
+  const isHighlighted = highlightedFolderIdSet.has(folder.id);
   const title = getDisplayTitle(folder);
+
+  useLayoutEffect(() => {
+    const element = rowRef.current;
+
+    if (element && activePath.includes(folder.id)) {
+      onRegisterAnchor(folder.id, element);
+    }
+  }, [activePath, folder.id, onRegisterAnchor]);
 
   function handleEnter(event: PointerEvent<HTMLDivElement> | FocusEvent<HTMLDivElement>) {
     onRowEnter(parentPath, folder, behavior.hasSubmenu, event.currentTarget);
@@ -298,9 +368,10 @@ function FolderCascadeRow({
 
   return (
     <div
+      ref={rowRef}
       className={`move-folder-row ${behavior.hasSubmenu ? "has-children" : ""} ${
         isCurrentFolder ? "is-current-parent" : ""
-      } ${isSelected ? "is-selected" : ""}`}
+      } ${isSelected ? "is-selected" : ""} ${isHighlighted ? "is-path-highlighted" : ""}`}
       onPointerEnter={handleEnter}
       onFocus={handleEnter}
     >
@@ -337,6 +408,8 @@ function FloatingCascadeLayer({
   zIndex,
   selectedFolderId,
   currentFolderId,
+  activePath,
+  highlightedFolderIdSet,
   disabledLabel,
   onSelect,
   canSelect,
@@ -344,6 +417,7 @@ function FloatingCascadeLayer({
   onCreateFolder,
   renderCreateAction,
   onRowEnter,
+  onRegisterAnchor,
   onCascadeEnter,
   onCascadeLeave,
   onSizeChange
@@ -352,6 +426,8 @@ function FloatingCascadeLayer({
   zIndex: number;
   selectedFolderId?: string;
   currentFolderId?: string;
+  activePath: string[];
+  highlightedFolderIdSet: Set<string>;
   disabledLabel?: string;
   onSelect(folder: BookmarkNode): void;
   canSelect(folder: BookmarkNode): boolean;
@@ -359,6 +435,7 @@ function FloatingCascadeLayer({
   onCreateFolder?(parentFolder: BookmarkNode): void;
   renderCreateAction?(parentFolder: BookmarkNode): ReactNode;
   onRowEnter(parentPath: string[], folder: BookmarkNode, hasSubmenu: boolean, element: HTMLElement): void;
+  onRegisterAnchor(folderId: string, element: HTMLElement): void;
   onCascadeEnter(): void;
   onCascadeLeave(): void;
   onSizeChange(folderId: string, size: CascadeMenuSize): void;
@@ -395,6 +472,8 @@ function FloatingCascadeLayer({
       <FolderCascadeList
         folders={nestedFolders}
         parentPath={layer.path}
+        activePath={activePath}
+        highlightedFolderIdSet={highlightedFolderIdSet}
         selectedFolderId={selectedFolderId}
         currentFolderId={currentFolderId}
         disabledLabel={disabledLabel}
@@ -403,6 +482,7 @@ function FloatingCascadeLayer({
         onOpenFolder={onOpenFolder}
         canCreateFolder={Boolean(onCreateFolder)}
         onRowEnter={onRowEnter}
+        onRegisterAnchor={onRegisterAnchor}
         onCascadeEnter={onCascadeEnter}
         onCascadeLeave={onCascadeLeave}
       />

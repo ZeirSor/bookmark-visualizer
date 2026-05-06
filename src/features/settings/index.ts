@@ -1,4 +1,6 @@
 export type CardSize = "small" | "medium" | "large" | "extra-large";
+export type PopupDefaultOpenTab = "save" | "manage" | "settings";
+export type PopupThemeMode = "system" | "light" | "dark";
 
 export interface SettingsState {
   showBookmarksInTree: boolean;
@@ -6,6 +8,13 @@ export interface SettingsState {
   cardDensity: "comfortable";
   cardSize: CardSize;
   sidebarWidth: number;
+  popupAutoCloseAfterSave: boolean;
+  popupShowSuccessToast: boolean;
+  popupRememberLastFolder: boolean;
+  popupShowThumbnail: boolean;
+  popupDefaultOpenTab: PopupDefaultOpenTab;
+  popupThemeMode: PopupThemeMode;
+  popupDefaultFolderId?: string;
 }
 
 export const defaultSettings: SettingsState = {
@@ -13,7 +22,14 @@ export const defaultSettings: SettingsState = {
   theme: "light",
   cardDensity: "comfortable",
   cardSize: "medium",
-  sidebarWidth: 280
+  sidebarWidth: 280,
+  popupAutoCloseAfterSave: true,
+  popupShowSuccessToast: true,
+  popupRememberLastFolder: true,
+  popupShowThumbnail: true,
+  popupDefaultOpenTab: "save",
+  popupThemeMode: "system",
+  popupDefaultFolderId: undefined
 };
 
 export * from "./settingsService";

@@ -156,6 +156,67 @@ export function buildFolderBreadcrumbItems(
   return items.reverse();
 }
 
+export function buildRetainedFolderBreadcrumbItems(
+  nodes: BookmarkNode[],
+  selectedFolderId: string | undefined,
+  retainedTailIds: string[]
+): FolderBreadcrumbItem[] {
+  const currentItems = buildFolderBreadcrumbItems(nodes, selectedFolderId);
+
+  if (currentItems.length === 0 || retainedTailIds.length === 0) {
+    return currentItems;
+  }
+
+  const retainedTargetId = retainedTailIds.at(-1);
+  const retainedPath = buildFolderBreadcrumbItems(nodes, retainedTargetId);
+
+  if (
+    retainedPath.length <= currentItems.length ||
+    !currentItems.every((item, index) => retainedPath[index]?.id === item.id)
+  ) {
+    return currentItems;
+  }
+
+  return [
+    ...currentItems,
+    ...retainedPath.slice(currentItems.length).map((item) => ({
+      ...item,
+      isRetained: true
+    }))
+  ];
+}
+
+export function getRetainedBreadcrumbTailIds(
+  items: FolderBreadcrumbItem[],
+  selectedFolderId: string
+): string[] {
+  const selectedIndex = items.findIndex((item) => item.id === selectedFolderId);
+
+  if (selectedIndex < 0 || selectedIndex === items.length - 1) {
+    return [];
+  }
+
+  return items.slice(selectedIndex + 1).map((item) => item.id);
+}
+
+export function buildFolderCascadeInitialPathIds(
+  nodes: BookmarkNode[],
+  selectedFolderId?: string
+): string[] {
+  const items = buildFolderBreadcrumbItems(nodes, selectedFolderId);
+
+  return items.slice(1, -1).map((item) => item.id);
+}
+
+export function buildFolderPathHighlightIds(
+  nodes: BookmarkNode[],
+  selectedFolderId?: string
+): string[] {
+  const items = buildFolderBreadcrumbItems(nodes, selectedFolderId);
+
+  return items.slice(1).map((item) => item.id);
+}
+
 export function moveNodeInBookmarkTree(
   tree: BookmarkNode[],
   id: string,
