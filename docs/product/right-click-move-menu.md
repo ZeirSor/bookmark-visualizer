@@ -496,4 +496,4 @@ FloatingCascadeLayer create button
 - 不要让 portal 浮层依赖父级选择器，例如 `.context-menu-panel button`。
 - 新增文件夹行按钮样式时，应优先扩展 `.move-folder-button`，而不是写宽泛的 `.context-submenu button`。
 - 修改定位规则时，应同步更新 `contextMenu.test.ts` 中的边界测试。
-- 修改点击或悬浮语义时，应同步更新 `docs/06-interactions.md` 和本文档。
+- 修改点击或悬浮语义时，应同步更新 `docs/product/interactions.md` 和本文档。

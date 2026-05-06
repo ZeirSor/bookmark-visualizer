@@ -30,13 +30,39 @@ describe("metadataService", () => {
   it("saves quick-save metadata without losing notes", async () => {
     await saveBookmarkNote("100", "Useful docs");
     const state = await saveBookmarkMetadata("100", {
-      note: "Updated note",
       previewImageUrl: "https://example.com/cover.png"
     });
 
     expect(state.bookmarkMetadata["100"]).toMatchObject({
-      note: "Updated note",
+      note: "Useful docs",
       previewImageUrl: "https://example.com/cover.png"
     });
+  });
+
+  it("updates notes when a note field is provided", async () => {
+    await saveBookmarkNote("100", "Useful docs");
+    const state = await saveBookmarkMetadata("100", {
+      note: "  Updated note  "
+    });
+
+    expect(state.bookmarkMetadata["100"]?.note).toBe("Updated note");
+  });
+
+  it("clears notes when an empty note is provided", async () => {
+    await saveBookmarkNote("100", "Useful docs");
+    const state = await saveBookmarkMetadata("100", {
+      note: ""
+    });
+
+    expect(state.bookmarkMetadata["100"]?.note).toBe("");
+  });
+
+  it("clears notes when a whitespace note is provided", async () => {
+    await saveBookmarkNote("100", "Useful docs");
+    const state = await saveBookmarkMetadata("100", {
+      note: "   "
+    });
+
+    expect(state.bookmarkMetadata["100"]?.note).toBe("");
   });
 });

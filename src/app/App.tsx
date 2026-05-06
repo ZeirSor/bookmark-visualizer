@@ -1,28 +1,48 @@
 import {
-  Fragment,
   useEffect,
   useMemo,
   useRef,
   useState,
   type CSSProperties,
   type DragEvent,
-  type FormEvent,
   type MouseEvent as ReactMouseEvent
 } from "react";
-import { BookmarkCard } from "../components/BookmarkCard";
 import { BreadcrumbNav } from "../components/BreadcrumbNav";
-import { FolderCascadeMenu } from "../components/FolderCascadeMenu";
 import { FolderTree } from "../components/FolderTree";
 import { SearchBar } from "../components/SearchBar";
+import { WorkspaceContent } from "./workspace/WorkspaceContent";
+import {
+  BookmarkContextMenu,
+  CardSizeControl,
+  FolderContextMenu,
+  FolderPickerDialog,
+  NewFolderDialog,
+  OperationLogDrawer,
+  ShortcutSettingsDialog,
+  Toast
+} from "./workspace/WorkspaceComponents";
+import type {
+  BookmarkContextMenuState,
+  FolderContextMenuState,
+  FolderPickerDialogState,
+  NewBookmarkDraftState,
+  NewFolderDialogState,
+  OperationLogEntry,
+  ToastState
+} from "./workspace/types";
+import {
+  getBookmarkDropPositionFromEvent,
+  getErrorMessage,
+  getTitleFromUrl,
+  isValidBookmarkUrl
+} from "./workspace/helpers";
 import { bookmarksAdapter } from "../lib/chrome";
 import {
   buildFolderBreadcrumbItems,
   canCreateBookmarkInFolder,
   collectFolderIds,
   canRenameFolder,
-  filterFolderOptions,
   findNodeById,
-  flattenFolders,
   getDisplayTitle,
   getFolderEndIndex,
   insertNodeInBookmarkTree,
@@ -31,11 +51,7 @@ import {
   useBookmarks,
   type BookmarkNode
 } from "../features/bookmarks";
-import {
-  getCascadeMenuPlacement,
-  getContextMenuPlacement,
-  type ContextMenuPlacement
-} from "../features/context-menu";
+import { getContextMenuPlacement } from "../features/context-menu";
 import {
   canDropBookmarkOnFolder,
   canDropFolderOnIntent,
@@ -43,7 +59,6 @@ import {
   canReorderBookmarkOnIntent,
   createDraggedBookmarkSnapshot,
   createDraggedFolderSnapshot,
-  getBookmarkCardDropPosition,
   getBookmarkReorderDestination,
   getFolderMoveDestination,
   type BookmarkDropIntent,
@@ -53,56 +68,8 @@ import {
   type FolderDropIntent
 } from "../features/drag-drop";
 import { useMetadata } from "../features/metadata";
-import {
-  getQuickSaveShortcutCommandConflicts,
-  type QuickSaveShortcutCommandConflict
-} from "../features/quick-save";
 import { searchBookmarks } from "../features/search";
-import { useSettings, type CardSize } from "../features/settings";
-
-interface ToastState {
-  message: string;
-  actionLabel?: string;
-  action?: () => Promise<void>;
-}
-
-interface OperationLogEntry {
-  id: string;
-  title: string;
-  detail: string;
-  createdAt: number;
-  status: "ready" | "undone" | "failed";
-  undo?: () => Promise<void>;
-}
-
-interface BookmarkContextMenuState extends ContextMenuPlacement {
-  bookmark: BookmarkNode;
-}
-
-interface FolderContextMenuState extends ContextMenuPlacement {
-  folder: BookmarkNode;
-}
-
-interface NewFolderDialogState {
-  parentFolder: BookmarkNode;
-  name: string;
-  bookmarkToMove?: BookmarkNode;
-}
-
-interface NewBookmarkDraftState {
-  parentId: string;
-  index: number;
-  title: string;
-  url: string;
-}
-
-interface FolderPickerDialogState {
-  bookmark: BookmarkNode;
-  query: string;
-  selectedFolderId?: string;
-}
-
-const CONTEXT_MENU_CLOSE_DELAY_MS = 320;
+import { useSettings } from "../features/settings";
 
 export function App() {
   const [query, setQuery] = useState("");
@@ -388,7 +355,36 @@ export function App() {
             </div>
           </div>
 
-          {renderContent()}
+                    <WorkspaceContent
+            activeBookmarkDropIntent={activeBookmarkDropIntent}
+            canCreateBookmarkHere={canCreateBookmarkHere}
+            displayedBookmarks={displayedBookmarks}
+            error={error}
+            handleBookmarkCardDragLeave={handleBookmarkCardDragLeave}
+            handleBookmarkCardDragOver={handleBookmarkCardDragOver}
+            handleBookmarkContextMenu={handleBookmarkContextMenu}
+            handleBookmarkDragEnd={handleBookmarkDragEnd}
+            handleCreateBookmark={handleCreateBookmark}
+            handleDropBookmarkOnCard={handleDropBookmarkOnCard}
+            handleSaveNote={handleSaveNote}
+            handleSaveTitle={handleSaveTitle}
+            handleSaveUrl={handleSaveUrl}
+            highlightedBookmarkId={highlightedBookmarkId}
+            highlightPulseId={highlightPulseId}
+            inlineEditRequest={inlineEditRequest}
+            isSearching={isSearching}
+            loading={loading}
+            metadata={metadata}
+            newBookmarkDraft={newBookmarkDraft}
+            openBookmark={openBookmark}
+            openNewBookmarkDraftAtEnd={openNewBookmarkDraftAtEnd}
+            searchResults={searchResults}
+            selectedBookmarks={selectedBookmarks}
+            selectedFolder={selectedFolder}
+            selectedFolderId={selectedFolderId}
+            setDraggedBookmark={setDraggedBookmark}
+            setNewBookmarkDraft={setNewBookmarkDraft}
+          />
         </section>
       </section>
       <OperationLogDrawer
@@ -443,114 +439,6 @@ export function App() {
       {toast ? <Toast toast={toast} onClose={() => setToast(undefined)} /> : null}
     </main>
   );
-
-  function renderContent() {
-    if (loading) {
-      return <EmptyState title="正在加载书签" body="如果在 Vite dev 环境中运行，会自动使用 mock 数据。" />;
-    }
-
-    if (error) {
-      return <EmptyState title="读取失败" body="请确认扩展 manifest 声明了 bookmarks 权限。" />;
-    }
-
-    if (isSearching) {
-      if (searchResults.length === 0) {
-        return <EmptyState title="没有找到匹配项" body="试试输入书签标题、域名或 URL 片段。" />;
-      }
-
-      return renderCards(displayedBookmarks);
-    }
-
-    if (
-      selectedBookmarks.length === 0 &&
-      (!newBookmarkDraft || newBookmarkDraft.parentId !== selectedFolderId)
-    ) {
-      return (
-        <EmptyState
-          title="当前文件夹没有直接书签"
-          body="子文件夹中的书签会在搜索中出现。"
-          action={
-            canCreateBookmarkHere && selectedFolder
-              ? {
-                  label: "新建书签",
-                  onClick: () => openNewBookmarkDraftAtEnd(selectedFolder)
-                }
-              : undefined
-          }
-        />
-      );
-    }
-
-    return renderCards(displayedBookmarks);
-  }
-
-  function renderCards(items: Array<{ bookmark: BookmarkNode; folderPath?: string }>) {
-    const shouldShowDraft =
-      Boolean(newBookmarkDraft) && !isSearching && newBookmarkDraft?.parentId === selectedFolderId;
-    const draftIndex = shouldShowDraft ? Math.max(0, newBookmarkDraft?.index ?? 0) : -1;
-
-    return (
-      <div className="card-grid">
-        {shouldShowDraft && draftIndex === 0 ? renderNewBookmarkDraft() : null}
-        {items.map(({ bookmark, folderPath }, index) => {
-          const activeDropPosition =
-            activeBookmarkDropIntent?.targetBookmark.id === bookmark.id
-              ? activeBookmarkDropIntent.position
-              : undefined;
-
-          return (
-            <Fragment key={bookmark.id}>
-              <div
-                className="bookmark-card-slot"
-                data-drop-position={activeDropPosition}
-              >
-                <BookmarkCard
-                  bookmark={bookmark}
-                  folderPath={folderPath}
-                  note={metadata.bookmarkMetadata[bookmark.id]?.note}
-                  highlighted={highlightedBookmarkId === bookmark.id}
-                  highlightPulse={highlightPulseId === bookmark.id}
-                  editRequestId={
-                    inlineEditRequest?.bookmarkId === bookmark.id
-                      ? inlineEditRequest.requestId
-                      : undefined
-                  }
-                  onDragStart={(dragged) => setDraggedBookmark(createDraggedBookmarkSnapshot(dragged))}
-                  onDragEnd={handleBookmarkDragEnd}
-                  onDragOverBookmark={handleBookmarkCardDragOver}
-                  onDragLeaveBookmark={handleBookmarkCardDragLeave}
-                  onDropOnBookmark={handleDropBookmarkOnCard}
-                  onOpen={openBookmark}
-                  onSaveTitle={handleSaveTitle}
-                  onSaveUrl={handleSaveUrl}
-                  onSaveNote={handleSaveNote}
-                  onContextMenu={handleBookmarkContextMenu}
-                />
-              </div>
-              {shouldShowDraft && draftIndex === index + 1 ? renderNewBookmarkDraft() : null}
-            </Fragment>
-          );
-        })}
-        {shouldShowDraft && draftIndex > items.length ? renderNewBookmarkDraft() : null}
-      </div>
-    );
-  }
-
-  function renderNewBookmarkDraft() {
-    if (!newBookmarkDraft) {
-      return null;
-    }
-
-    return (
-      <NewBookmarkDraftCard
-        key="new-bookmark-draft"
-        state={newBookmarkDraft}
-        onChange={setNewBookmarkDraft}
-        onCancel={() => setNewBookmarkDraft(undefined)}
-        onSubmit={handleCreateBookmark}
-      />
-    );
-  }
 
   async function handleSettingsChange(nextSettings: typeof settings) {
     try {
@@ -1305,765 +1193,4 @@ export function App() {
       setToast({ message: getErrorMessage(cause, "撤回失败。") });
     }
   }
-}
-
-function CardSizeControl({
-  value,
-  onChange
-}: {
-  value: CardSize;
-  onChange(value: CardSize): void;
-}) {
-  const sizes: Array<{ value: CardSize; label: string; title: string }> = [
-    { value: "small", label: "S", title: "小卡片" },
-    { value: "medium", label: "M", title: "中卡片" },
-    { value: "large", label: "L", title: "大卡片" },
-    { value: "extra-large", label: "XL", title: "超大卡片" }
-  ];
-
-  return (
-    <div className="card-size-control" aria-label="调节书签卡片大小">
-      {sizes.map((size) => (
-        <button
-          key={size.value}
-          className={value === size.value ? "is-active" : ""}
-          type="button"
-          title={size.title}
-          aria-label={size.title}
-          onClick={() => onChange(size.value)}
-        >
-          {size.label}
-        </button>
-      ))}
-    </div>
-  );
-}
-
-function EmptyState({
-  title,
-  body,
-  action
-}: {
-  title: string;
-  body: string;
-  action?: { label: string; onClick(): void };
-}) {
-  return (
-    <div className="empty-state">
-      <h3>{title}</h3>
-      <p>{body}</p>
-      {action ? (
-        <button className="empty-state-action" type="button" onClick={action.onClick}>
-          {action.label}
-        </button>
-      ) : null}
-    </div>
-  );
-}
-
-function OperationLogDrawer({
-  open,
-  entries,
-  onClose,
-  onUndo
-}: {
-  open: boolean;
-  entries: OperationLogEntry[];
-  onClose(): void;
-  onUndo(id: string): void;
-}) {
-  return (
-    <aside className={`operation-log-drawer ${open ? "is-open" : ""}`} aria-label="操作日志">
-      <div className="operation-log-heading">
-        <button className="drawer-close" type="button" aria-label="收起操作日志" onClick={onClose}>
-          <span aria-hidden="true" />
-        </button>
-        <div>
-          <h3>操作日志</h3>
-          <span>可撤回的历史操作</span>
-        </div>
-      </div>
-      {entries.length === 0 ? (
-        <p className="operation-log-empty">还没有可记录的操作。</p>
-      ) : (
-        <ol className="operation-log-list">
-          {entries.map((entry) => (
-            <li key={entry.id} className={`operation-log-item is-${entry.status}`}>
-              <div>
-                <strong>{entry.title}</strong>
-                <p>{entry.detail}</p>
-                <time>{new Date(entry.createdAt).toLocaleTimeString()}</time>
-              </div>
-              <button
-                type="button"
-                disabled={entry.status !== "ready" || !entry.undo}
-                onClick={() => onUndo(entry.id)}
-              >
-                {entry.status === "undone" ? "已撤回" : entry.status === "failed" ? "失败" : "撤回"}
-              </button>
-            </li>
-          ))}
-        </ol>
-      )}
-    </aside>
-  );
-}
-
-function BookmarkContextMenu({
-  state,
-  tree,
-  onClose,
-  canInsertBookmark,
-  onEdit,
-  onMove,
-  onCreateFolder,
-  onCreateBookmark,
-  onSearchMove,
-  onDelete
-}: {
-  state: BookmarkContextMenuState;
-  tree: BookmarkNode[];
-  onClose(): void;
-  canInsertBookmark: boolean;
-  onEdit(bookmark: BookmarkNode): void;
-  onMove(bookmark: BookmarkNode, folder: BookmarkNode): void;
-  onCreateFolder(bookmark: BookmarkNode, parentFolder: BookmarkNode): void;
-  onCreateBookmark(bookmark: BookmarkNode, position: BookmarkDropPosition): void;
-  onSearchMove(bookmark: BookmarkNode): void;
-  onDelete(bookmark: BookmarkNode): void;
-}) {
-  const snapshot = createDraggedBookmarkSnapshot(state.bookmark);
-  const closeTimerRef = useRef<number | undefined>(undefined);
-  const moveMenuCloseTimerRef = useRef<number | undefined>(undefined);
-  const moveTriggerRef = useRef<HTMLDivElement>(null);
-  const moveSubmenuRef = useRef<HTMLDivElement>(null);
-  const [moveMenuOpen, setMoveMenuOpen] = useState(false);
-
-  function clearCloseTimer() {
-    if (closeTimerRef.current) {
-      window.clearTimeout(closeTimerRef.current);
-      closeTimerRef.current = undefined;
-    }
-  }
-
-  function clearMoveMenuCloseTimer() {
-    if (moveMenuCloseTimerRef.current) {
-      window.clearTimeout(moveMenuCloseTimerRef.current);
-      moveMenuCloseTimerRef.current = undefined;
-    }
-  }
-
-  function scheduleClose() {
-    clearCloseTimer();
-    closeTimerRef.current = window.setTimeout(onClose, CONTEXT_MENU_CLOSE_DELAY_MS);
-  }
-
-  function scheduleMoveMenuClose() {
-    clearMoveMenuCloseTimer();
-    moveMenuCloseTimerRef.current = window.setTimeout(() => {
-      setMoveMenuOpen(false);
-    }, CONTEXT_MENU_CLOSE_DELAY_MS);
-  }
-
-  function positionMoveSubmenu() {
-    clearCloseTimer();
-    clearMoveMenuCloseTimer();
-    setMoveMenuOpen(true);
-    positionNestedSubmenu(moveTriggerRef.current, moveSubmenuRef.current);
-  }
-
-  function keepMoveCascadeOpen() {
-    clearCloseTimer();
-    clearMoveMenuCloseTimer();
-    setMoveMenuOpen(true);
-  }
-
-  function scheduleMoveCascadeClose() {
-    scheduleMoveMenuClose();
-    scheduleClose();
-  }
-
-  useEffect(() => {
-    return () => {
-      clearCloseTimer();
-      clearMoveMenuCloseTimer();
-    };
-  }, []);
-
-  return (
-    <div
-      className="context-menu-layer"
-      onClick={onClose}
-      onContextMenu={(event) => event.preventDefault()}
-    >
-      <div
-        className={`context-menu-panel opens-${state.submenuDirection} opens-${state.submenuBlockDirection}`}
-        style={{ left: state.x, top: state.y }}
-        role="menu"
-        onClick={(event) => event.stopPropagation()}
-        onMouseEnter={clearCloseTimer}
-        onMouseLeave={scheduleClose}
-      >
-        <button type="button" role="menuitem" onClick={() => onEdit(state.bookmark)}>
-          编辑
-        </button>
-        {canInsertBookmark ? (
-          <>
-            <button type="button" role="menuitem" onClick={() => onCreateBookmark(state.bookmark, "before")}>
-              在前面新建书签
-            </button>
-            <button type="button" role="menuitem" onClick={() => onCreateBookmark(state.bookmark, "after")}>
-              在后面新建书签
-            </button>
-          </>
-        ) : null}
-        <div
-          ref={moveTriggerRef}
-          className={`context-menu-item has-submenu ${moveMenuOpen ? "is-open" : ""}`}
-          role="menuitem"
-          tabIndex={0}
-          onMouseEnter={positionMoveSubmenu}
-          onMouseLeave={scheduleMoveMenuClose}
-          onFocus={positionMoveSubmenu}
-        >
-          <span>移动</span>
-          <span className="menu-chevron" aria-hidden="true" />
-          <div
-            ref={moveSubmenuRef}
-            className="context-submenu move-submenu"
-            role="menu"
-            aria-label="移动到文件夹"
-          >
-            <button
-              className="move-folder-search"
-              type="button"
-              role="menuitem"
-              onClick={() => onSearchMove(state.bookmark)}
-            >
-              搜索文件夹...
-            </button>
-            <MoveFolderMenu
-              nodes={tree}
-              snapshot={snapshot}
-              onMove={(folder) => onMove(state.bookmark, folder)}
-              onCreateFolder={(parentFolder) => onCreateFolder(state.bookmark, parentFolder)}
-              onCascadeEnter={keepMoveCascadeOpen}
-              onCascadeLeave={scheduleMoveCascadeClose}
-            />
-          </div>
-        </div>
-        <button
-          className="is-danger"
-          type="button"
-          role="menuitem"
-          onClick={() => onDelete(state.bookmark)}
-        >
-          删除
-        </button>
-      </div>
-    </div>
-  );
-}
-
-function positionNestedSubmenu(trigger: HTMLElement | null, submenu: HTMLElement | null) {
-  if (!trigger || !submenu) {
-    return;
-  }
-
-  trigger.classList.remove("opens-left", "opens-right", "opens-up", "opens-down");
-  const width = Math.max(submenu.offsetWidth || 260, 260);
-  const height = Math.max(submenu.scrollHeight || submenu.offsetHeight || 180, 180);
-  const placement = getCascadeMenuPlacement(
-    trigger.getBoundingClientRect(),
-    { width: window.innerWidth, height: window.innerHeight },
-    { width, height }
-  );
-
-  trigger.classList.add(`opens-${placement.submenuDirection}`, `opens-${placement.submenuBlockDirection}`);
-  submenu.style.maxHeight = `${placement.maxHeight}px`;
-  submenu.style.overflowY = placement.needsScroll ? "auto" : "visible";
-  submenu.style.overflowX = "hidden";
-}
-
-function FolderContextMenu({
-  state,
-  onClose,
-  onCreateFolder,
-  onRenameFolder
-}: {
-  state: FolderContextMenuState;
-  onClose(): void;
-  onCreateFolder(folder: BookmarkNode): void;
-  onRenameFolder(folder: BookmarkNode): void;
-}) {
-  return (
-    <div
-      className="context-menu-layer"
-      onClick={onClose}
-      onContextMenu={(event) => event.preventDefault()}
-    >
-      <div
-        className={`context-menu-panel opens-${state.submenuDirection} opens-${state.submenuBlockDirection}`}
-        style={{ left: state.x, top: state.y }}
-        role="menu"
-        onClick={(event) => event.stopPropagation()}
-      >
-        <button type="button" role="menuitem" onClick={() => onCreateFolder(state.folder)}>
-          新建文件夹
-        </button>
-        {canRenameFolder(state.folder) ? (
-          <button type="button" role="menuitem" onClick={() => onRenameFolder(state.folder)}>
-            重命名
-          </button>
-        ) : null}
-      </div>
-    </div>
-  );
-}
-
-function MoveFolderMenu({
-  nodes,
-  snapshot,
-  onMove,
-  onCreateFolder,
-  onCascadeEnter,
-  onCascadeLeave
-}: {
-  nodes: BookmarkNode[];
-  snapshot: DraggedBookmarkSnapshot;
-  onMove(folder: BookmarkNode): void;
-  onCreateFolder(parentFolder: BookmarkNode): void;
-  onCascadeEnter(): void;
-  onCascadeLeave(): void;
-}) {
-  return (
-    <FolderCascadeMenu
-      nodes={nodes}
-      currentFolderId={snapshot.parentId}
-      disabledLabel="不可移动"
-      onSelect={onMove}
-      canSelect={(folder) => canMoveBookmarkToFolder(snapshot, folder)}
-      onCreateFolder={onCreateFolder}
-      onCascadeEnter={onCascadeEnter}
-      onCascadeLeave={onCascadeLeave}
-    />
-  );
-}
-
-function FolderPickerDialog({
-  state,
-  tree,
-  onChange,
-  onClose,
-  onMove,
-  onCreateFolder
-}: {
-  state: FolderPickerDialogState;
-  tree: BookmarkNode[];
-  onChange(state: FolderPickerDialogState): void;
-  onClose(): void;
-  onMove(bookmark: BookmarkNode, folder: BookmarkNode): void;
-  onCreateFolder(bookmark: BookmarkNode, parentFolder: BookmarkNode): void;
-}) {
-  const snapshot = createDraggedBookmarkSnapshot(state.bookmark);
-  const folders = filterFolderOptions(flattenFolders(tree), state.query);
-  const selectedFolder = state.selectedFolderId
-    ? findNodeById(tree, state.selectedFolderId)
-    : undefined;
-  const canCreateInSelectedFolder = canCreateBookmarkInFolder(selectedFolder);
-  const selectedFolderTitle = selectedFolder ? getDisplayTitle(selectedFolder) : "未选择位置";
-
-  return (
-    <div className="dialog-layer" role="presentation" onMouseDown={onClose}>
-      <section
-        className="bookmark-edit-dialog folder-picker-dialog"
-        aria-label="搜索移动目标文件夹"
-        onMouseDown={(event) => event.stopPropagation()}
-      >
-        <div className="dialog-heading">
-          <div>
-            <h3>移动到文件夹</h3>
-            <span>{state.bookmark.title || "Untitled"}</span>
-          </div>
-          <button type="button" aria-label="关闭文件夹搜索窗口" onClick={onClose}>
-            Close
-          </button>
-        </div>
-        <label className="folder-picker-search">
-          搜索文件夹
-          <input
-            value={state.query}
-            autoFocus
-            placeholder="输入文件夹名称或路径"
-            onChange={(event) => onChange({ ...state, query: event.target.value })}
-          />
-        </label>
-        <div className="folder-picker-create">
-          <div>
-            <strong>新建目标文件夹</strong>
-            <span>位置：{selectedFolderTitle}</span>
-          </div>
-          <button
-            type="button"
-            disabled={!canCreateInSelectedFolder || !selectedFolder}
-            onClick={() => {
-              if (selectedFolder && canCreateInSelectedFolder) {
-                onCreateFolder(state.bookmark, selectedFolder);
-              }
-            }}
-          >
-            新建目标文件夹...
-          </button>
-        </div>
-        <div className="folder-picker-list" role="listbox" aria-label="文件夹搜索结果">
-          {folders.length === 0 ? (
-            <div className="folder-picker-empty">没有匹配的文件夹</div>
-          ) : (
-            folders.map((option) => {
-              const canMove = canMoveBookmarkToFolder(snapshot, option.node);
-              const isCurrentParent = snapshot.parentId === option.id;
-              const selected = state.selectedFolderId === option.id;
-
-              return (
-                <button
-                  key={option.id}
-                  className={`folder-picker-row ${selected ? "is-selected" : ""}`}
-                  type="button"
-                  role="option"
-                  aria-selected={selected}
-                  aria-disabled={!canMove}
-                  disabled={!canMove}
-                  onMouseEnter={() => {
-                    if (canCreateBookmarkInFolder(option.node)) {
-                      onChange({ ...state, selectedFolderId: option.id });
-                    }
-                  }}
-                  onFocus={() => {
-                    if (canCreateBookmarkInFolder(option.node)) {
-                      onChange({ ...state, selectedFolderId: option.id });
-                    }
-                  }}
-                  onClick={() => {
-                    if (canMove) {
-                      onMove(state.bookmark, option.node);
-                    }
-                  }}
-                >
-                  <span className="folder-glyph" aria-hidden="true" />
-                  <span>
-                    <strong>{option.title}</strong>
-                    <small>{option.path}</small>
-                  </span>
-                  {isCurrentParent ? <em>当前位置</em> : null}
-                </button>
-              );
-            })
-          )}
-        </div>
-      </section>
-    </div>
-  );
-}
-
-function NewBookmarkDraftCard({
-  state,
-  onChange,
-  onCancel,
-  onSubmit
-}: {
-  state: NewBookmarkDraftState;
-  onChange(state: NewBookmarkDraftState): void;
-  onCancel(): void;
-  onSubmit(state: NewBookmarkDraftState): Promise<void>;
-}) {
-  const [saving, setSaving] = useState(false);
-
-  async function handleSubmit(event: FormEvent) {
-    event.preventDefault();
-    event.stopPropagation();
-
-    if (saving) {
-      return;
-    }
-
-    setSaving(true);
-    try {
-      await onSubmit(state);
-    } catch {
-      // Validation is surfaced through toast; keep the draft card available.
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  return (
-    <article className="bookmark-card new-bookmark-card" aria-label="新建书签草稿">
-      <form
-        className="new-bookmark-form"
-        onSubmit={(event) => void handleSubmit(event)}
-        onClick={(event) => event.stopPropagation()}
-        onKeyDown={(event) => {
-          event.stopPropagation();
-
-          if (event.key === "Escape") {
-            event.preventDefault();
-            onCancel();
-          }
-        }}
-      >
-        <span className="new-bookmark-heading">新建书签</span>
-        <label>
-          标题
-          <input
-            value={state.title}
-            autoFocus
-            placeholder="可留空，自动使用域名"
-            onChange={(event) => onChange({ ...state, title: event.target.value })}
-          />
-        </label>
-        <label>
-          URL
-          <input
-            value={state.url}
-            placeholder="https://example.com"
-            onChange={(event) => onChange({ ...state, url: event.target.value })}
-          />
-        </label>
-        <div className="new-bookmark-actions">
-          <button type="button" onClick={onCancel}>
-            Cancel
-          </button>
-          <button type="submit" disabled={saving}>
-            {saving ? "Saving..." : "Save"}
-          </button>
-        </div>
-      </form>
-    </article>
-  );
-}
-
-function NewFolderDialog({
-  state,
-  onChange,
-  onClose,
-  onSubmit
-}: {
-  state: NewFolderDialogState;
-  onChange(state: NewFolderDialogState): void;
-  onClose(): void;
-  onSubmit(state: NewFolderDialogState): void;
-}) {
-  function handleSubmit(event: FormEvent) {
-    event.preventDefault();
-    onSubmit(state);
-  }
-
-  return (
-    <div className="dialog-layer" role="presentation" onMouseDown={onClose}>
-      <form
-        className="bookmark-edit-dialog"
-        onSubmit={handleSubmit}
-        onMouseDown={(event) => event.stopPropagation()}
-        aria-label={state.bookmarkToMove ? "新建文件夹并移动书签" : "新建文件夹"}
-      >
-        <div className="dialog-heading">
-          <div>
-            <h3>{state.bookmarkToMove ? "新建并移动" : "新建文件夹"}</h3>
-            <span>位置：{getDisplayTitle(state.parentFolder)}</span>
-          </div>
-          <button type="button" aria-label="关闭新建文件夹窗口" onClick={onClose}>
-            Close
-          </button>
-        </div>
-        <label>
-          文件夹名称
-          <input
-            value={state.name}
-            autoFocus
-            onChange={(event) => onChange({ ...state, name: event.target.value })}
-          />
-        </label>
-        <div className="dialog-actions">
-          <button type="button" onClick={onClose}>
-            Cancel
-          </button>
-          <button type="submit">{state.bookmarkToMove ? "新建并移动" : "新建"}</button>
-        </div>
-      </form>
-    </div>
-  );
-}
-
-function ShortcutSettingsDialog({ onClose }: { onClose(): void }) {
-  const [conflicts, setConflicts] = useState<QuickSaveShortcutCommandConflict[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [status, setStatus] = useState("");
-
-  useEffect(() => {
-    let cancelled = false;
-
-    async function load() {
-      setLoading(true);
-      try {
-        const nextConflicts = await getQuickSaveShortcutCommandConflicts();
-
-        if (!cancelled) {
-          setConflicts(nextConflicts);
-        }
-      } catch {
-        if (!cancelled) {
-          setStatus("无法读取 Chrome 快捷键冲突状态。");
-        }
-      } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
-      }
-    }
-
-    void load();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  function openShortcutSettings() {
-    const shortcutsUrl = "chrome://extensions/shortcuts";
-
-    if (typeof chrome !== "undefined" && chrome.tabs?.create) {
-      void chrome.tabs.create({ url: shortcutsUrl });
-      onClose();
-      return;
-    }
-
-    window.open(shortcutsUrl, "_blank", "noopener,noreferrer");
-    onClose();
-  }
-
-  return (
-    <div className="dialog-layer" role="presentation" onMouseDown={onClose}>
-      <section
-        className="bookmark-edit-dialog shortcut-settings-dialog"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="shortcut-settings-title"
-        onMouseDown={(event) => event.stopPropagation()}
-      >
-        <div className="dialog-heading">
-          <div>
-            <h3 id="shortcut-settings-title">快捷键设置</h3>
-            <span>默认命令快捷键：Ctrl + Shift + S</span>
-          </div>
-          <button type="button" aria-label="关闭快捷键设置窗口" onClick={onClose}>
-            Close
-          </button>
-        </div>
-        <div className="shortcut-settings-body">
-          <p>
-            当前主入口是浏览器工具栏 popup：在普通网页点击 Bookmark Visualizer 图标后，可在“保存”
-            Tab 保存当前网页。
-          </p>
-          <p>
-            Ctrl + S 快捷键路线已暂停，不再默认注入全局网页 listener，也不再请求 http/https
-            全局站点权限。Ctrl + Shift + S 仍保留为扩展命令入口，供后续诊断和低权限快捷保存使用。
-          </p>
-          <div className="shortcut-site-access">
-            <span className="shortcut-site-label">Popup 保存</span>
-            {loading ? (
-              <strong>正在读取...</strong>
-            ) : (
-              <>
-                <strong>已启用</strong>
-                <span>通过 manifest action.default_popup 打开，不依赖站点 content script。</span>
-              </>
-            )}
-          </div>
-          {conflicts.length > 0 ? (
-            <div className="shortcut-conflict-warning" role="status">
-              Chrome 快捷键页里已有 Ctrl + S 绑定：
-              {conflicts.map((conflict) => conflict.label).join("、")}。当前版本不依赖 Ctrl + S，
-              如测试 popup 保存可先清除该绑定，避免误判入口行为。
-            </div>
-          ) : null}
-          {status ? <div className="shortcut-status">{status}</div> : null}
-        </div>
-        <div className="dialog-actions">
-          <button type="button" onClick={onClose}>
-            Cancel
-          </button>
-          <button type="button" className="primary-action" onClick={openShortcutSettings}>
-            打开快捷键设置
-          </button>
-        </div>
-      </section>
-    </div>
-  );
-}
-
-function Toast({ toast, onClose }: { toast: ToastState; onClose(): void }) {
-  const [busy, setBusy] = useState(false);
-
-  return (
-    <div className="toast" role="status">
-      <span>{toast.message}</span>
-      {toast.action ? (
-        <button
-          type="button"
-          disabled={busy}
-          onClick={async () => {
-            setBusy(true);
-            try {
-              await toast.action?.();
-              onClose();
-            } finally {
-              setBusy(false);
-            }
-          }}
-        >
-          {toast.actionLabel ?? "Undo"}
-        </button>
-      ) : null}
-      <button type="button" onClick={onClose} aria-label="关闭提示">
-        Close
-      </button>
-    </div>
-  );
-}
-
-function getErrorMessage(cause: unknown, fallback: string): string {
-  return cause instanceof Error ? cause.message : fallback;
-}
-
-function isValidBookmarkUrl(value: string): boolean {
-  if (!value) {
-    return false;
-  }
-
-  try {
-    new URL(value);
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-function getTitleFromUrl(url: string): string {
-  try {
-    return new URL(url).hostname || "Untitled bookmark";
-  } catch {
-    return "Untitled bookmark";
-  }
-}
-
-function getBookmarkDropPositionFromEvent(event: DragEvent<HTMLElement>): BookmarkDropPosition {
-  const bounds = event.currentTarget.getBoundingClientRect();
-  return getBookmarkCardDropPosition(
-    { x: event.clientX, y: event.clientY },
-    {
-      top: bounds.top,
-      right: bounds.right,
-      bottom: bounds.bottom,
-      left: bounds.left
-    }
-  );
 }

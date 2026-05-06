@@ -36,6 +36,17 @@ Popup Manage Entry
 
 ## 分层
 
+第一阶段架构收口采用以下目标边界：
+
+```text
+UI entrypoints
+  -> feature / use-case orchestration
+  -> domain models and pure rules
+  -> infrastructure adapters
+```
+
+当前实现不要求一次性迁移目录，但新增代码必须先判断职责落点。页面入口只组合 UI 和事件，业务用例放入 `src/features/*`，纯业务规则未来进入 `src/domain/*`，Chrome API 访问继续集中在 `src/lib/chrome/` 这一 infrastructure adapter 边界。
+
 ### 页面层
 
 页面层包含布局、组件和用户事件绑定。页面层不得直接散落调用 `chrome.*` API，必须通过服务层或 adapter。
@@ -56,7 +67,7 @@ Feature services 负责业务用例：
 
 ### Chrome API Adapters
 
-Adapter 负责屏蔽 `chrome.*` API 细节，统一 Promise、错误处理和类型转换。
+Adapter 负责屏蔽 `chrome.*` API 细节，统一 Promise、错误处理和类型转换。当前目录名仍为 `src/lib/chrome/`，第一阶段不为命名迁移而增加风险；长期语义上它属于 infrastructure adapter。
 
 ### Storage Layer
 
@@ -103,3 +114,9 @@ popup 保存状态流：
 - 搜索索引在内存中由书签树和 metadata 派生，不持久化。
 - 大量树节点渲染时预留虚拟列表或分段渲染空间。
 - 备注和摘要存储按 bookmarkId 查询，避免每次搜索做深层遍历。
+
+## 第一阶段架构收口
+
+第一阶段只做本地架构治理，不新增产品功能。正式说明见 [Phase 1 local architecture](phase-1-local-architecture.md)。
+
+本阶段不接云端、不做账号系统、不做订阅制、不做 Notion 集成、不做 AI 摘要、不改变当前数据存储策略。

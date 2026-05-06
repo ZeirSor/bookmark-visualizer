@@ -25,19 +25,23 @@ export async function saveBookmarkNote(
 
 export async function saveBookmarkMetadata(
   bookmarkId: string,
-  metadata: Pick<BookmarkMetadata, "note" | "previewImageUrl">
+  metadata: Partial<Pick<BookmarkMetadata, "note" | "previewImageUrl">>
 ): Promise<ExtensionMetadataState> {
   const state = await loadMetadataState();
-  const trimmedNote = metadata.note?.trim();
-  const previewImageUrl = metadata.previewImageUrl?.trim();
   const existing = state.bookmarkMetadata[bookmarkId];
   const nextMetadata: BookmarkMetadata = {
     ...existing,
-    note: trimmedNote ?? existing?.note,
-    previewImageUrl: previewImageUrl || existing?.previewImageUrl,
     summarySource: existing?.summarySource,
     updatedAt: Date.now()
   };
+
+  if (hasMetadataField(metadata, "note")) {
+    nextMetadata.note = metadata.note?.trim();
+  }
+
+  if (hasMetadataField(metadata, "previewImageUrl")) {
+    nextMetadata.previewImageUrl = metadata.previewImageUrl?.trim() || undefined;
+  }
 
   const nextState: ExtensionMetadataState = {
     ...state,
@@ -60,4 +64,11 @@ function normalizeMetadataState(state?: ExtensionMetadataState): ExtensionMetada
     metadataVersion: 1,
     bookmarkMetadata: state?.bookmarkMetadata ?? {}
   };
+}
+
+function hasMetadataField(
+  metadata: Partial<Pick<BookmarkMetadata, "note" | "previewImageUrl">>,
+  field: "note" | "previewImageUrl"
+): boolean {
+  return Object.prototype.hasOwnProperty.call(metadata, field);
 }

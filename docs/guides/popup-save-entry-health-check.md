@@ -50,7 +50,7 @@ npm run verify:popup-entry
 
 ## 常见故障定位
 
-- 点击工具栏仍打开完整工作台：检查 manifest 是否缺少 `action.default_popup`，以及 service worker 是否仍注册 `chrome.action.onClicked`。
+- 扩展 action 仍绕过 popup 进入完整工作台：检查 manifest 是否缺少 `action.default_popup`，以及 service worker 是否仍注册 `chrome.action.onClicked`。
 - popup 不出现在打包产物：检查 Vite Rollup input 是否包含 `popup.html`。
 - popup 中当前页信息为空：检查 `tabs` 权限、`chrome.tabs.query({ active: true, currentWindow: true })` 调用和受保护页面 fallback。
 - 普通页面无法提取预览图：检查 `activeTab`、`scripting` 权限和 popup 中的 `chrome.scripting.executeScript` 错误处理；该失败不应阻塞保存。

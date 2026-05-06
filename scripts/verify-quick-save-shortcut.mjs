@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 const root = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const publicManifestPath = resolve(root, "public/manifest.json");
 const serviceWorkerPath = resolve(root, "src/service-worker.ts");
+const backgroundPath = resolve(root, "src/background");
 const shortcutAccessPath = resolve(root, "src/features/quick-save/shortcutAccess.ts");
 const viteConfigPath = resolve(root, "vite.config.ts");
 const distManifestPath = resolve(root, "dist/manifest.json");
@@ -71,7 +72,7 @@ function checkManifest(path, label) {
 
 checkManifest(publicManifestPath, "public manifest");
 
-const serviceWorker = readFileSync(serviceWorkerPath, "utf8");
+const serviceWorker = readServiceWorkerSources();
 const shortcutAccess = readFileSync(shortcutAccessPath, "utf8");
 for (const commandName of Object.keys(expectedCommands)) {
   assert(serviceWorker.includes(commandName), `service worker: missing command handler for ${commandName}`);
@@ -187,6 +188,20 @@ function readDistRuntimeChunks() {
     for (const fileName of readdirSync(assetsDir)) {
       if (fileName.endsWith(".js")) {
         chunks.push(readFileSync(resolve(assetsDir, fileName), "utf8"));
+      }
+    }
+  }
+
+  return chunks.join("\n");
+}
+
+function readServiceWorkerSources() {
+  const chunks = [readFileSync(serviceWorkerPath, "utf8")];
+
+  if (existsSync(backgroundPath)) {
+    for (const fileName of readdirSync(backgroundPath)) {
+      if (fileName.endsWith(".ts")) {
+        chunks.push(readFileSync(resolve(backgroundPath, fileName), "utf8"));
       }
     }
   }

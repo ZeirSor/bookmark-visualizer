@@ -27,7 +27,7 @@ Bookmark Visualizer is a Manifest V3 browser extension for people with large boo
 
 The extension uses `chrome.bookmarks` as the source of truth. Moves, edits, and deletes operate on the browser's native bookmark tree instead of a private copy. Extension-only data such as notes, summaries, settings, and UI state belong in `chrome.storage.local`.
 
-The toolbar icon is the launch entry. Bookmark Visualizer opens a standard extension popup for quick save actions and leaves the browser's default new tab page unchanged. The full workspace remains available from the popup.
+The extension action is the launch entry. Bookmark Visualizer opens a standard popup for quick save actions and leaves the browser's default new tab page unchanged. A link inside the popup opens the full workspace.
 
 ## Features
 
@@ -129,16 +129,17 @@ docs/                  Product, architecture, interaction, and acceptance docume
 
 ## Documentation
 
-- [Requirements](docs/01-requirements.md)
-- [Architecture](docs/02-architecture.md)
-- [UI design](docs/03-ui-design.md)
-- [Data and storage](docs/04-data-storage.md)
-- [Module boundaries](docs/05-module-boundaries.md)
-- [Interactions](docs/06-interactions.md)
-- [Testing and acceptance](docs/07-testing-and-acceptance.md)
-- [Roadmap](docs/08-roadmap.md)
-- [Right-click move menu](docs/09-right-click-move-menu.md)
-- [Architecture decision records](docs/adr/)
+- [Documentation index](docs/README.md)
+- [Requirements](docs/product/requirements.md)
+- [Architecture](docs/architecture/overview.md)
+- [UI design](docs/product/ui-design.md)
+- [Data and storage](docs/data/storage.md)
+- [Module boundaries](docs/architecture/module-boundaries.md)
+- [Interactions](docs/product/interactions.md)
+- [Testing and acceptance](docs/guides/testing-and-acceptance.md)
+- [Roadmap](docs/product/roadmap.md)
+- [Right-click move menu](docs/product/right-click-move-menu.md)
+- [Architecture decision records](docs/adr/README.md)
 
 ## Roadmap
 

@@ -1,5 +1,16 @@
 # 模块边界
 
+## 第一阶段分层边界
+
+当前代码按现有目录继续演进，但新增或拆分代码时遵守以下职责方向：
+
+- UI entrypoints：`src/app`、`src/popup` 和 content script 入口只负责挂载、布局、组件组合和用户事件绑定。
+- Feature / use-case orchestration：`src/features/*` 负责业务动作编排，例如保存当前网页、移动书签、写入 metadata、搜索和拖拽合法性。
+- Domain models and pure rules：未来 `src/domain/*` 放稳定领域模型和纯规则；本阶段只规划，不强制创建。
+- Infrastructure adapters：当前 `src/lib/chrome/` 保持为 Chrome API 访问边界，UI 和业务模块不得散落直接调用 `chrome.*`。
+
+第一阶段不做云端、账号、订阅、Notion、AI 摘要或完整多维表格视图。相关后续方向见 [Phase 1 local architecture](phase-1-local-architecture.md) 和 [Strategy](../strategy/README.md)。
+
 ## bookmarks
 
 负责浏览器原生书签树的读取和修改。
