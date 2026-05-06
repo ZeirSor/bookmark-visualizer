@@ -9,6 +9,7 @@ import {
 } from "../../features/bookmarks";
 import { openWorkspace } from "../../features/popup";
 import type { SettingsState } from "../../features/settings";
+import { SEARCH_CATEGORIES, SEARCH_ENGINES } from "../../features/newtab";
 import { ChevronRightIcon, FolderIcon } from "../components/PopupIcons";
 
 const DEFAULT_FOLDER_MENU_CLOSE_DELAY_MS = 220;
@@ -84,6 +85,57 @@ export function SettingsTab({
 
   return (
     <section className="settings-tab tab-scroll-area">
+      <section className="settings-card">
+        <div className="section-heading">
+          <h2>新标签页</h2>
+        </div>
+        <SwitchRow
+          checked={settings.newTabOverrideEnabled}
+          label="绑定新标签页"
+          onChange={(value) => updateSettings({ newTabOverrideEnabled: value })}
+        />
+        <p className="settings-hint">
+          开启后，点击浏览器 + 会打开 Bookmark Visualizer 新标签页；关闭后保留浏览器默认新标签页。
+        </p>
+        <SelectRow
+          label="默认搜索引擎"
+          value={settings.newTabDefaultSearchEngineId}
+          onChange={(value) => updateSettings({ newTabDefaultSearchEngineId: value })}
+        >
+          {SEARCH_ENGINES.map((engine) => (
+            <option key={engine.id} value={engine.id}>
+              {engine.label}
+            </option>
+          ))}
+        </SelectRow>
+        <SelectRow
+          label="默认搜索类型"
+          value={settings.newTabDefaultSearchCategory}
+          onChange={(value) =>
+            updateSettings({
+              newTabDefaultSearchCategory: value as SettingsState["newTabDefaultSearchCategory"]
+            })
+          }
+        >
+          {SEARCH_CATEGORIES.map((category) => (
+            <option key={category.id} value={category.id}>
+              {category.label}
+            </option>
+          ))}
+        </SelectRow>
+        <SelectRow
+          label="布局模式"
+          value={settings.newTabLayoutMode}
+          onChange={(value) =>
+            updateSettings({ newTabLayoutMode: value as SettingsState["newTabLayoutMode"] })
+          }
+        >
+          <option value="standard">标准</option>
+          <option value="sidebar">动态侧栏</option>
+          <option value="tabs">分区 Tab</option>
+        </SelectRow>
+      </section>
+
       <section className="settings-card">
         <div className="section-heading">
           <h2>快捷键</h2>

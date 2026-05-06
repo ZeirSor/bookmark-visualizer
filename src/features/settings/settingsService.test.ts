@@ -20,7 +20,14 @@ describe("settingsService", () => {
       popupShowThumbnail: true,
       popupDefaultOpenTab: "save",
       popupThemeMode: "system",
-      popupDefaultFolderId: undefined
+      popupDefaultFolderId: undefined,
+      newTabOverrideEnabled: false,
+      newTabDefaultSearchEngineId: "google",
+      newTabDefaultSearchCategory: "web",
+      newTabLayoutMode: "standard",
+      newTabShowRecentActivity: true,
+      newTabShowStorageUsage: true,
+      newTabShortcutsPerRow: 8
     });
   });
 
@@ -37,7 +44,14 @@ describe("settingsService", () => {
       popupShowThumbnail: false,
       popupDefaultOpenTab: "settings",
       popupThemeMode: "dark",
-      popupDefaultFolderId: "  10  "
+      popupDefaultFolderId: "  10  ",
+      newTabOverrideEnabled: true,
+      newTabDefaultSearchEngineId: "bing",
+      newTabDefaultSearchCategory: "image",
+      newTabLayoutMode: "tabs",
+      newTabShowRecentActivity: false,
+      newTabShowStorageUsage: false,
+      newTabShortcutsPerRow: 5
     });
 
     await expect(loadSettings()).resolves.toEqual({
@@ -52,7 +66,46 @@ describe("settingsService", () => {
       popupShowThumbnail: false,
       popupDefaultOpenTab: "settings",
       popupThemeMode: "dark",
-      popupDefaultFolderId: "10"
+      popupDefaultFolderId: "10",
+      newTabOverrideEnabled: true,
+      newTabDefaultSearchEngineId: "bing",
+      newTabDefaultSearchCategory: "image",
+      newTabLayoutMode: "tabs",
+      newTabShowRecentActivity: false,
+      newTabShowStorageUsage: false,
+      newTabShortcutsPerRow: 5
+    });
+  });
+
+  it("normalizes invalid new tab settings", async () => {
+    await saveSettings({
+      showBookmarksInTree: false,
+      theme: "light",
+      cardDensity: "comfortable",
+      cardSize: "medium",
+      sidebarWidth: 280,
+      popupAutoCloseAfterSave: true,
+      popupShowSuccessToast: true,
+      popupRememberLastFolder: true,
+      popupShowThumbnail: true,
+      popupDefaultOpenTab: "save",
+      popupThemeMode: "system",
+      popupDefaultFolderId: undefined,
+      newTabOverrideEnabled: false,
+      newTabDefaultSearchEngineId: "unknown",
+      newTabDefaultSearchCategory: "books" as never,
+      newTabLayoutMode: "grid" as never,
+      newTabShowRecentActivity: true,
+      newTabShowStorageUsage: true,
+      newTabShortcutsPerRow: 99
+    });
+
+    await expect(loadSettings()).resolves.toMatchObject({
+      newTabOverrideEnabled: false,
+      newTabDefaultSearchEngineId: "google",
+      newTabDefaultSearchCategory: "web",
+      newTabLayoutMode: "standard",
+      newTabShortcutsPerRow: 10
     });
   });
 });

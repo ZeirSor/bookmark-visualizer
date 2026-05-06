@@ -173,7 +173,26 @@
 - 卡片尺寸。
 - 侧栏宽度。
 - 元数据导入导出。
+- New Tab 绑定开关、默认搜索引擎、默认搜索类型、布局模式、最近活动显示和每行快捷方式数量。
 
 不负责：
 
 - 浏览器书签结构修改。
+
+## newtab
+
+负责可选新标签页入口的搜索、启动和轻量书签浏览体验。
+
+职责：
+
+- 通过 `newtab.html` / `src/newtab` 渲染 New Tab Portal。
+- 在 `src/features/newtab` 中维护 New Tab 独有 state、固定快捷方式、最近活动、使用统计、搜索引擎配置、混合搜索建议、ViewModel 和运行时重定向逻辑。
+- 复用 settings、bookmarks、search 和 `src/lib/chrome` adapter；UI 组件不得散落直接调用 `chrome.*`。
+- 只读派生浏览器原生书签树，不维护插件自有的平行书签结构。
+- 复杂管理通过 `index.html?folderId=...` 或 `bookmarkId=...` 深链接进入完整工作台。
+
+不负责：
+
+- 完整文件夹树管理、复杂拖拽整理或 destructive 书签操作。
+- 天气、壁纸、待办、账号、云同步、AI 摘要或远程 favicon 必需依赖。
+- 使用 manifest 静态 `chrome_url_overrides.newtab`。

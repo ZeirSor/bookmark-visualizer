@@ -1,0 +1,48 @@
+:root {
+  --nt-bg: #f7f8fc;
+  --nt-bg-elevated: #fbfcff;
+  --nt-panel: rgba(255, 255, 255, 0.92);
+  --nt-panel-solid: #ffffff;
+  --nt-panel-muted: #f4f6fb;
+  --nt-text: #151827;
+  --nt-text-soft: #334155;
+  --nt-muted: #667085;
+  --nt-faint: #98a2b3;
+  --nt-line: #e4e7ef;
+  --nt-line-soft: rgba(226, 232, 240, 0.72);
+  --nt-line-strong: #cfd6e6;
+  --nt-accent: #5b4ff0;
+  --nt-accent-strong: #4338ca;
+  --nt-accent-soft: #f0efff;
+  --nt-accent-softer: #f7f5ff;
+  --nt-accent-ring: rgba(91, 79, 240, 0.22);
+  --nt-green: #16a34a;
+  --nt-green-soft: #ecfdf3;
+  --nt-orange: #ea580c;
+  --nt-orange-soft: #fff7ed;
+  --nt-blue: #2563eb;
+  --nt-blue-soft: #eff6ff;
+  --nt-font-ui:
+    "Inter",
+    "SF Pro Text",
+    "Segoe UI Variable Text",
+    "Segoe UI",
+    "Roboto",
+    "PingFang SC",
+    "Noto Sans SC",
+    "Source Han Sans SC",
+    "Microsoft YaHei UI",
+    "Microsoft YaHei",
+    Arial,
+    sans-serif;
+  --nt-radius-xs: 8px;
+  --nt-radius-sm: 10px;
+  --nt-radius-md: 14px;
+  --nt-radius-lg: 18px;
+  --nt-radius-xl: 24px;
+  --nt-radius-pill: 999px;
+  --nt-shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.04);
+  --nt-shadow-sm: 0 8px 22px rgba(15, 23, 42, 0.06);
+  --nt-shadow-md: 0 18px 48px rgba(15, 23, 42, 0.1);
+  --nt-shadow-overlay: 0 24px 80px rgba(15, 23, 42, 0.16);
+}

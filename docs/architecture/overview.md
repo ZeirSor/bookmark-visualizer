@@ -19,6 +19,13 @@ Popup Manage Entry
   -> Feature Services
   -> Chrome API Adapters
   -> chrome.bookmarks / chrome.storage
+
+Optional New Tab Portal
+  -> service worker tabs event
+  -> runtime settings check
+  -> newtab.html
+  -> Search / Shortcuts / Bookmark Groups
+  -> Feature Services / Chrome API Adapters
 ```
 
 ## Manifest V3
@@ -32,7 +39,9 @@ Popup Manage Entry
 - `permissions.storage`：保存备注、摘要、UI 状态、快捷保存最近使用文件夹和设置。
 - `permissions.activeTab` / `permissions.scripting` / `permissions.tabs`：在用户主动打开 popup 或扩展命令时读取当前标签页详情，必要时执行一次页面 metadata 提取。
 
-当前 manifest 已落地 `bookmarks`、`storage`、`activeTab`、`scripting`、`tabs`、`action.default_popup`、`commands.open-quick-save`、`background.service_worker` 和扩展 PNG 图标。扩展不声明 `chrome_url_overrides.newtab`、全局 `host_permissions` 或默认 `content_scripts`，因此不会接管浏览器默认新标签页，也不会在所有网页常驻脚本。
+当前 manifest 已落地 `bookmarks`、`storage`、`activeTab`、`scripting`、`tabs`、`action.default_popup`、`commands.open-quick-save`、`background.service_worker` 和扩展 PNG 图标。扩展不声明 `chrome_url_overrides.newtab`、全局 `host_permissions` 或默认 `content_scripts`，因此不会静态接管浏览器默认新标签页，也不会在所有网页常驻脚本。
+
+当前扩展新增可选 `newtab.html` 入口。该入口不通过 manifest 静态覆盖新标签页，而是由 popup 设置中的 `newTabOverrideEnabled` 控制 service worker 条件重定向；默认关闭，关闭后浏览器默认新标签页保持不变。
 
 ## 分层
 
@@ -99,6 +108,15 @@ popup 保存状态流：
 1. 用户按下 `Ctrl + Shift + S`，或在浏览器扩展快捷键页自定义 `commands.open-quick-save`。
 2. service worker 使用 `chrome.commands.onCommand` 事件传入的 `tab` 注入 `quick-save-content.js`。
 3. content script 展示 React + Shadow DOM 浮框，并复用同一套保存消息和 metadata 写入逻辑。
+
+可选 New Tab 状态流：
+
+1. 用户在 popup 设置中开启“绑定新标签页”。
+2. service worker 监听 `chrome.tabs.onCreated` / `onUpdated`。
+3. 当目标为 `chrome://newtab/` 或 `edge://newtab/`，且设置开启时，跳转到扩展内 `newtab.html`。
+4. `src/newtab` 读取 settings、浏览器原生书签树、New Tab state、最近活动和使用统计。
+5. UI 派生搜索建议、固定快捷方式、书签分组、精选书签和最近活动。
+6. 打开快捷方式或书签时记录 New Tab 活动，并跳转当前标签页或新标签页。
 
 当前操作日志保存在 React 状态中，用于本次页面会话撤回。它不写入 `chrome.storage.local`。
 

@@ -38,6 +38,7 @@ import {
 } from "./workspace/helpers";
 import { bookmarksAdapter } from "../lib/chrome";
 import {
+  buildFolderBreadcrumbItems,
   buildRetainedFolderBreadcrumbItems,
   canCreateBookmarkInFolder,
   collectFolderIds,
@@ -99,6 +100,7 @@ export function App() {
   const [expandedFolderIds, setExpandedFolderIds] = useState<Set<string>>(new Set());
   const [retainedBreadcrumbTailIds, setRetainedBreadcrumbTailIds] = useState<string[]>([]);
   const [toast, setToast] = useState<ToastState>();
+  const deepLinkHandledRef = useRef(false);
   const { metadata, updateNote } = useMetadata();
   const { settings, updateSettings } = useSettings();
   const {
@@ -129,6 +131,36 @@ export function App() {
       window.history.replaceState({}, "", window.location.pathname);
     }
   }, []);
+
+  useEffect(() => {
+    if (deepLinkHandledRef.current || tree.length === 0) {
+      return;
+    }
+
+    const params = new URLSearchParams(window.location.search);
+    const folderId = params.get("folderId");
+    const bookmarkId = params.get("bookmarkId");
+    const linkedFolder = folderId ? findNodeById(tree, folderId) : undefined;
+
+    if (linkedFolder?.children) {
+      deepLinkHandledRef.current = true;
+      setHighlightedBookmarkId(undefined);
+      setRetainedBreadcrumbTailIds([]);
+      selectFolder(linkedFolder.id);
+      expandFolderPath(linkedFolder.id);
+      return;
+    }
+
+    const linkedBookmark = bookmarkId ? findNodeById(tree, bookmarkId) : undefined;
+
+    if (linkedBookmark?.url && linkedBookmark.parentId) {
+      deepLinkHandledRef.current = true;
+      setHighlightedBookmarkId(linkedBookmark.id);
+      setRetainedBreadcrumbTailIds([]);
+      selectFolder(linkedBookmark.parentId);
+      expandFolderPath(linkedBookmark.parentId);
+    }
+  }, [tree, selectFolder]);
 
   useEffect(() => {
     operationLogRef.current = operationLog;
@@ -1111,6 +1143,11 @@ export function App() {
 
       return next;
     });
+  }
+
+  function expandFolderPath(folderId: string) {
+    const pathItems = buildFolderBreadcrumbItems(tree, folderId);
+    expandFolders(...pathItems.map((item) => item.id));
   }
 
   async function handleSaveTitle(bookmark: BookmarkNode, title: string) {

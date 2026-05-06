@@ -37,10 +37,11 @@ function readManifest(): ExtensionManifest {
 }
 
 describe("extension manifest", () => {
-  it("does not override the browser new tab page", () => {
+  it("does not use static chrome_url_overrides for new tab because binding is runtime-toggleable", () => {
     const manifest = readManifest();
 
     expect(manifest.chrome_url_overrides).toBeUndefined();
+    expect(existsSync(resolve(root, "newtab.html"))).toBe(true);
   });
 
   it("configures a toolbar action popup and service worker", () => {
@@ -66,6 +67,7 @@ describe("extension manifest", () => {
       "scripting",
       "tabs"
     ]);
+    expect(manifest.permissions).toContain("tabs");
     expect(manifest.optional_host_permissions).toBeUndefined();
     expect(manifest.host_permissions).toBeUndefined();
     expect(manifest.content_scripts).toBeUndefined();

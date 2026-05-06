@@ -15,7 +15,8 @@
 - 当前已覆盖新建书签到文件夹末尾、文件夹搜索过滤和左侧树书签拖拽源快照。
 - 当前已覆盖文件夹拖拽移动的合法性、非法目标阻止和同级 index 修正。
 - 当前已覆盖 metadata note、快捷保存预览图片 URL 保存 / 读取和 settings 默认值 / 持久化。
-- 当前已覆盖 manifest 的工具栏 action、快捷保存 command、service worker、图标路径、权限边界和不接管新标签页。
+- 当前已覆盖 manifest 的工具栏 action、快捷保存 command、service worker、图标路径、权限边界和不使用静态 New Tab override。
+- 当前已覆盖 New Tab 设置默认值 / normalize、New Tab state、搜索 URL 构建、混合搜索建议和运行时 New Tab 重定向。
 - 当前已覆盖快捷保存页面标题和图片提取优先级。
 - 当前已覆盖快捷保存最近使用文件夹状态和默认目标选择。
 - 当前新增 `npm run verify:quick-save-shortcut`，用于检查快捷保存 command、service worker 注入路径和 content script 打包产物。
@@ -45,7 +46,14 @@
 - 在 Chrome / Edge 加载未打包扩展。
 - 点击浏览器工具栏图标后打开 Bookmark Visualizer popup。
 - 从 popup 顶部或“管理”Tab 打开完整工作台标签页。
-- 打开普通浏览器新标签页时保留浏览器默认页面。
+- “绑定新标签页”默认关闭时，打开普通浏览器新标签页保留浏览器默认页面。
+- popup 设置中开启“绑定新标签页”后，点击浏览器 `+` 跳转到 Bookmark Visualizer New Tab Portal。
+- New Tab 页面顶部显示 `Bookmark Visualizer · 新标签页`，不显示大标题“我的书签”。
+- New Tab 页面显示搜索框、搜索类型 chips、固定快捷方式、书签分组、精选书签、最近活动和快捷操作。
+- New Tab 搜索已有书签关键词时，同时出现本地书签建议和网络搜索建议。
+- New Tab 输入 `example.com` 时出现 URL 直达建议。
+- New Tab 快捷操作中不出现“保存当前标签页”。
+- New Tab 点击书签分组的管理入口打开完整管理页，并通过 `folderId` 深链接定位文件夹。
 - 工具栏和扩展管理页显示 Bookmark Visualizer 图标，而不是灰色默认图标。
 - 能读取真实浏览器书签文件夹。
 - 点击文件夹后右侧展示书签卡片。
@@ -101,3 +109,4 @@
 - UI 关键状态必须有组件测试或手动验收记录。
 - 任意真实修改浏览器书签的操作必须处理失败状态。
 - 发布前必须用一个包含多层文件夹和大量书签的测试 Profile 验证。
+- 发布前必须确认 `npm run build` 后存在 `dist/newtab.html`，且 `dist/manifest.json` 不包含 `chrome_url_overrides`。

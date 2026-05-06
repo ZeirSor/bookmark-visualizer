@@ -1498,6 +1498,14 @@ button,
   padding: 13px;
 }
 
+.settings-hint {
+  margin: 4px 0 10px;
+  color: var(--muted);
+  font-size: 12.5px;
+  font-weight: var(--weight-body);
+  line-height: 1.45;
+}
+
 .shortcut-row,
 .default-folder-row,
 .switch-row,

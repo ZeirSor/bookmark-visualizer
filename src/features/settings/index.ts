@@ -1,6 +1,8 @@
 export type CardSize = "small" | "medium" | "large" | "extra-large";
 export type PopupDefaultOpenTab = "save" | "manage" | "settings";
 export type PopupThemeMode = "system" | "light" | "dark";
+export type NewTabLayoutMode = "standard" | "sidebar" | "tabs";
+export type NewTabSearchCategory = "web" | "image" | "news" | "video" | "maps";
 
 export interface SettingsState {
   showBookmarksInTree: boolean;
@@ -15,6 +17,13 @@ export interface SettingsState {
   popupDefaultOpenTab: PopupDefaultOpenTab;
   popupThemeMode: PopupThemeMode;
   popupDefaultFolderId?: string;
+  newTabOverrideEnabled: boolean;
+  newTabDefaultSearchEngineId: string;
+  newTabDefaultSearchCategory: NewTabSearchCategory;
+  newTabLayoutMode: NewTabLayoutMode;
+  newTabShowRecentActivity: boolean;
+  newTabShowStorageUsage: boolean;
+  newTabShortcutsPerRow: number;
 }
 
 export const defaultSettings: SettingsState = {
@@ -29,7 +38,14 @@ export const defaultSettings: SettingsState = {
   popupShowThumbnail: true,
   popupDefaultOpenTab: "save",
   popupThemeMode: "system",
-  popupDefaultFolderId: undefined
+  popupDefaultFolderId: undefined,
+  newTabOverrideEnabled: false,
+  newTabDefaultSearchEngineId: "google",
+  newTabDefaultSearchCategory: "web",
+  newTabLayoutMode: "standard",
+  newTabShowRecentActivity: true,
+  newTabShowStorageUsage: true,
+  newTabShortcutsPerRow: 8
 };
 
 export * from "./settingsService";
