@@ -11,11 +11,12 @@
 1. 用户在右侧书签卡片上打开右键菜单。
 2. `BookmarkContextMenu` 展示菜单项：编辑、前后新建书签、移动、删除。
 3. 鼠标悬浮或键盘聚焦“移动”菜单项时，根级移动子菜单打开。
-4. 根级移动子菜单顶部显示“搜索文件夹...”入口，用于打开搜索式文件夹选择器。
-5. 根级移动子菜单下方渲染 `FolderCascadeMenu`，展示书签树中的可用文件夹。
-6. 鼠标悬浮有子文件夹或可新建入口的文件夹行时，级联组件打开下一层浮动菜单。
-7. 点击一个可移动文件夹时，当前书签移动到该文件夹。
-8. 在某个父文件夹的子菜单中点击“新建文件夹...”时，打开新建文件夹对话框；创建成功后会把当前书签移动到新文件夹。
+4. 根级移动子菜单顶部显示原位“搜索文件夹...”输入框。
+5. 搜索词为空时，子菜单显示最近使用文件夹和 `FolderCascadeMenu` 的所有文件夹树。
+6. 输入搜索词后，子菜单内直接展示匹配的可移动文件夹；点击结果会立即移动当前书签。
+7. 鼠标悬浮有子文件夹或可新建入口的文件夹行时，级联组件打开下一层浮动菜单。
+8. 点击一个可移动文件夹时，当前书签移动到该文件夹。
+9. 在某个父文件夹的子菜单中点击“新建文件夹...”时，打开新建文件夹对话框；创建成功后会把当前书签移动到新文件夹。
 
 重要语义：
 
@@ -27,7 +28,8 @@
 
 | 模块 | 路径 | 职责 |
 | --- | --- | --- |
-| 右键菜单入口 | `src/app/App.tsx` | 定义 `BookmarkContextMenu`、`MoveFolderMenu`、根级移动菜单定位和关闭缓冲。 |
+| 右键菜单入口 | `src/app/App.tsx` | 挂载 `BookmarkContextMenu`，传入移动回调和最近使用文件夹。 |
+| 移动子菜单内容 | `src/components/FolderMoveSubmenuContent.tsx` | 渲染原位搜索、搜索结果、最近使用和所有文件夹级联树。 |
 | 级联菜单组件 | `src/components/FolderCascadeMenu.tsx` | 渲染文件夹级联列表，维护打开路径，创建 fixed 浮动子菜单。 |
 | 菜单定位与状态辅助 | `src/features/context-menu/index.ts` | 提供右键菜单定位、级联菜单定位、级联路径和按钮 class 辅助函数。 |
 | 样式 | `src/app/styles.css` | 定义右键菜单、根级移动子菜单、浮动级联层、文件夹行按钮和滚动行为。 |
@@ -46,14 +48,14 @@
 - `tree`：完整书签树，用于生成移动目标。
 - `onMove(bookmark, folder)`：用户点击目标文件夹后的移动回调。
 - `onCreateFolder(bookmark, parentFolder)`：用户在某个父文件夹下新建目标文件夹的回调。
-- `onSearchMove(bookmark)`：打开搜索式文件夹选择器。
 - `onClose()`：关闭右键菜单。
 
 核心结构简化如下：
 
 ```tsx
-function BookmarkContextMenu({ state, tree, onMove, onCreateFolder, onSearchMove, onClose }) {
+function BookmarkContextMenu({ state, tree, recentFolders, onMove, onCreateFolder, onClose }) {
   const snapshot = createDraggedBookmarkSnapshot(state.bookmark);
+  const [moveFolderQuery, setMoveFolderQuery] = useState("");
 
   return (
     <div className="context-menu-layer" onClick={onClose}>
@@ -65,10 +67,13 @@ function BookmarkContextMenu({ state, tree, onMove, onCreateFolder, onSearchMove
         <div className="context-menu-item has-submenu">
           <span>移动</span>
           <div className="context-submenu move-submenu">
-            <button className="move-folder-search">搜索文件夹...</button>
-            <MoveFolderMenu
+            <FolderMoveSubmenuContent
               nodes={tree}
+              recentFolders={recentFolders}
               snapshot={snapshot}
+              query={moveFolderQuery}
+              onQueryChange={setMoveFolderQuery}
+              onRequestCloseMenu={onClose}
               onMove={(folder) => onMove(state.bookmark, folder)}
               onCreateFolder={(parentFolder) => onCreateFolder(state.bookmark, parentFolder)}
             />
@@ -115,13 +120,21 @@ function positionNestedSubmenu(trigger: HTMLElement | null, submenu: HTMLElement
 
 这里会根据窗口空间选择向左或向右、向上或向下展开，并在高度不足时给当前层启用垂直滚动。
 
-## `MoveFolderMenu`
+## `FolderMoveSubmenuContent`
 
-`MoveFolderMenu` 是 `BookmarkContextMenu` 和 `FolderCascadeMenu` 之间的薄适配层。它不自己渲染文件夹列表，只负责把书签移动语义传入级联组件。
+`FolderMoveSubmenuContent` 是 `BookmarkContextMenu` 和移动目标列表之间的组合组件。它负责组织右键移动子菜单的信息结构：原位搜索、搜索结果、最近使用和所有文件夹级联树。
 
-它传入的关键参数：
+关键行为：
 
 - `nodes={tree}`：完整书签树。
+- `query` 为空时显示最近使用文件夹和所有文件夹级联树。
+- `query` 非空时使用 `flattenFolders()` 和 `filterFolderOptions()` 生成搜索结果。
+- 搜索结果和最近使用文件夹都通过 `canMoveBookmarkToFolder(snapshot, folder)` 过滤不可移动目标。
+- 点击搜索结果或最近使用文件夹时触发 `onMove(folder)`。
+- 原位搜索框阻止点击和输入事件冒泡；按 Esc 时先清空搜索词，搜索词为空时再关闭右键菜单。
+
+所有文件夹树仍由 `FolderCascadeMenu` 渲染。传入级联组件的关键参数：
+
 - `currentFolderId={snapshot.parentId}`：当前书签所在文件夹，用于标记“当前位置”。
 - `disabledLabel="不可移动"`：不可选目标的提示文本。
 - `canSelect={(folder) => canMoveBookmarkToFolder(snapshot, folder)}`：判断目标文件夹是否可作为移动目标。
@@ -140,6 +153,8 @@ interface FolderCascadeMenuProps {
   nodes: BookmarkNode[];
   selectedFolderId?: string;
   currentFolderId?: string;
+  initialActivePathIds?: string[];
+  highlightedFolderIds?: string[];
   disabledLabel?: string;
   onSelect(folder: BookmarkNode): void;
   canSelect(folder: BookmarkNode): boolean;
@@ -154,6 +169,8 @@ interface FolderCascadeMenuProps {
 - `nodes`：当前可用的书签树节点。组件内部会过滤出文件夹。
 - `selectedFolderId`：用于其它选择场景的选中态，移动菜单通常不需要。
 - `currentFolderId`：当前书签所在文件夹，显示“当前位置”并禁用无意义移动。
+- `initialActivePathIds`：选择场景可传入需要默认展开的祖先路径；右键移动菜单不传，保持悬浮展开。
+- `highlightedFolderIds`：选择场景可传入当前路径的各级文件夹，用于高亮完整路径。
 - `disabledLabel`：不可移动状态文案。
 - `onSelect`：点击可选文件夹时调用。
 - `canSelect`：由外部业务决定文件夹能否选择，组件只负责展示和触发。
@@ -345,7 +362,9 @@ export function getCascadeButtonClassName(extraClassName?: string): string {
 
 - `.context-submenu`：通用子菜单基础样式。
 - `.move-submenu`：右键“移动”根级子菜单，补充 `overflow-x: hidden`。
-- `.move-folder-search`：顶部“搜索文件夹...”入口，使用 accent 色强调。
+- `.move-submenu-search-wrap` / `.move-submenu-search`：顶部原位文件夹搜索输入框。
+- `.move-menu-section-label`：最近使用、搜索结果和所有文件夹的弱标题。
+- `.move-recent-folder-row`：最近使用文件夹行，使用固定图标列和标题列，避免图标与文字距离过大。
 
 ### 浮动级联层
 
@@ -382,9 +401,8 @@ export function getCascadeButtonClassName(extraClassName?: string): string {
 点击可移动文件夹后的调用链如下：
 
 ```text
-FolderCascadeRow button onClick
-  -> FolderCascadeMenu props.onSelect(folder)
-  -> MoveFolderMenu onMove(folder)
+FolderCascadeRow / search result / recent row click
+  -> FolderMoveSubmenuContent onMove(folder)
   -> BookmarkContextMenu onMove(state.bookmark, folder)
   -> App.handleContextMoveBookmark(bookmark, folder)
   -> moveBookmarkWithUndo(createDraggedBookmarkSnapshot(bookmark), folder)
@@ -489,6 +507,9 @@ FloatingCascadeLayer create button
 6. 长列表只出现垂直滚动，不出现横向滚动。
 7. 子菜单中的文件夹行保持完整样式，不回退成浏览器默认按钮。
 8. 点击可移动文件夹后，书签移动并显示撤销提示。
+9. 在根级移动子菜单输入搜索词，确认结果在当前子菜单内出现，点击结果立即移动。
+10. 搜索无结果时显示“没有匹配的文件夹”。
+11. 搜索框内按 Esc：有搜索词时清空；无搜索词时关闭右键菜单。
 
 ## 维护约定
 

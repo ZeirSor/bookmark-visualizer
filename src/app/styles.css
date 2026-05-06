@@ -650,8 +650,8 @@ button {
   animation: menu-in 120ms ease-out;
 }
 
-.context-menu-panel button,
-.context-menu-item {
+.context-menu-panel > button,
+.context-menu-panel > .context-menu-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -668,10 +668,10 @@ button {
   cursor: pointer;
 }
 
-.context-menu-panel button:hover,
-.context-menu-panel button:focus-visible,
-.context-menu-item:hover,
-.context-menu-item:focus-visible {
+.context-menu-panel > button:hover,
+.context-menu-panel > button:focus-visible,
+.context-menu-panel > .context-menu-item:hover,
+.context-menu-panel > .context-menu-item:focus-visible {
   background: var(--panel-subtle);
   outline: 0;
 }
@@ -846,6 +846,14 @@ button {
   display: grid;
   grid-template-columns: 18px minmax(0, 1fr);
   column-gap: 10px;
+  justify-content: stretch;
+}
+
+.context-menu-panel .move-folder-button.move-folder-option-row {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr);
+  column-gap: 10px;
+  align-items: center;
   justify-content: stretch;
 }
 
