@@ -24,9 +24,12 @@ describe("quick-save UI state", () => {
     await saveQuickSaveRecentFolder("3");
     await saveQuickSaveRecentFolder("4");
     await saveQuickSaveRecentFolder("5");
+    await saveQuickSaveRecentFolder("6");
+    await saveQuickSaveRecentFolder("7");
+    await saveQuickSaveRecentFolder("8");
     const state = await saveQuickSaveRecentFolder("2");
 
-    expect(state.recentFolderIds).toEqual(["2", "5", "4", "3", "1"]);
+    expect(state.recentFolderIds).toEqual(["2", "8", "7", "6", "5", "4", "3", "1"]);
   });
 
   it("filters unavailable recent folders", () => {

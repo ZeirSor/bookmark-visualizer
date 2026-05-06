@@ -15,16 +15,22 @@ export function PopupFooter({
   selectedTitle: string;
   status: string;
 }) {
+  const trimmedStatus = status.trim();
+  const isSuccess = trimmedStatus.startsWith("已");
+
   return (
     <footer className="popup-footer">
-      <div className={`status-line ${isError ? "is-error" : ""}`} aria-live="polite">
-        {status ? (
-          status
-        ) : (
+      <div
+        className={`status-line ${isError ? "is-error" : ""} ${isSuccess ? "is-success" : ""}`}
+        aria-live="polite"
+      >
+        {trimmedStatus ? (
           <>
-            <CheckIcon />
-            <span>快捷键：Ctrl+Shift+S</span>
+            {isSuccess ? <CheckIcon /> : null}
+            <span>{status}</span>
           </>
+        ) : (
+          <span>快捷键：Ctrl+Shift+S</span>
         )}
       </div>
       <div className="footer-actions">

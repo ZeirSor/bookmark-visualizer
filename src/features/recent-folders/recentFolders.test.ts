@@ -22,12 +22,15 @@ describe("recent folders", () => {
   });
 
   it("dedupes, prioritizes, trims blanks, and caps recent folders", async () => {
-    expect(normalizeRecentFolderIds([" 1 ", "", "2", "1", "3", "4", "5", "6"])).toEqual([
+    expect(normalizeRecentFolderIds([" 1 ", "", "2", "1", "3", "4", "5", "6", "7", "8", "9"])).toEqual([
       "1",
       "2",
       "3",
       "4",
-      "5"
+      "5",
+      "6",
+      "7",
+      "8"
     ]);
   });
 
@@ -37,9 +40,12 @@ describe("recent folders", () => {
     await saveRecentFolder("3");
     await saveRecentFolder("4");
     await saveRecentFolder("5");
+    await saveRecentFolder("6");
+    await saveRecentFolder("7");
+    await saveRecentFolder("8");
     const state = await saveRecentFolder("2");
 
-    expect(state.folderIds).toEqual(["2", "5", "4", "3", "1"]);
+    expect(state.folderIds).toEqual(["2", "8", "7", "6", "5", "4", "3", "1"]);
   });
 
   it("filters unavailable recent folders", () => {

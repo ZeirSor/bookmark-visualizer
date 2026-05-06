@@ -8,7 +8,11 @@ import {
   type FolderOption
 } from "../../features/bookmarks";
 import { formatPopupFolderPath, openWorkspace } from "../../features/popup";
-import { ChevronRightIcon, FolderIcon, FolderPlusIcon, SearchIcon } from "./PopupIcons";
+import { FolderSearchResults } from "./save-location/FolderSearchResults";
+import { FolderSearchRow } from "./save-location/FolderSearchRow";
+import { InlineCreateFolderRow } from "./save-location/InlineCreateFolderRow";
+import { LocationPathRow } from "./save-location/LocationPathRow";
+import { RecentFolderChips } from "./save-location/RecentFolderChips";
 
 const LOCATION_MENU_CLOSE_DELAY_MS = 220;
 
@@ -48,6 +52,7 @@ export function SaveLocationPicker({
   tree: BookmarkNode[];
 }) {
   const [locationMenuOpen, setLocationMenuOpen] = useState(false);
+  const [recentExpanded, setRecentExpanded] = useState(false);
   const locationMenuRef = useRef<HTMLDivElement>(null);
   const closeLocationTimerRef = useRef<number | undefined>(undefined);
   const displayPath = selectedCompactPath || formatPopupFolderPath(selectedPath);
@@ -107,23 +112,12 @@ export function SaveLocationPicker({
         onPointerEnter={keepLocationMenuOpen}
         onPointerLeave={scheduleLocationMenuClose}
       >
-        <button
-          type="button"
-          className="location-path-row"
-          aria-controls="save-location-picker"
-          aria-expanded={locationMenuOpen}
-          aria-haspopup="menu"
-          title={formatPopupFolderPath(selectedPath, "") || undefined}
-          onClick={() => (locationMenuOpen ? closeLocationMenu() : openLocationMenu())}
-          onFocus={openLocationMenu}
-        >
-          <span className="location-folder-icon">
-            <FolderIcon />
-          </span>
-          <span className="path-display">{displayPath}</span>
-          <span className="current-badge">当前位置</span>
-          <ChevronRightIcon />
-        </button>
+        <LocationPathRow
+          displayPath={displayPath}
+          fullPathTitle={formatPopupFolderPath(selectedPath, "")}
+          locationMenuOpen={locationMenuOpen}
+          onToggleMenu={() => (locationMenuOpen ? closeLocationMenu() : openLocationMenu())}
+        />
         {locationMenuOpen ? (
           <div
             id="save-location-picker"
@@ -141,103 +135,73 @@ export function SaveLocationPicker({
               disabledLabel="不可保存"
               canSelect={canCreateBookmarkInFolder}
               onSelect={(folder) => {
-                setSelectedFolderId(folder.id);
-                setQuery("");
-                closeLocationMenu();
+                selectFolder(folder.id);
               }}
+              onCascadeEnter={keepLocationMenuOpen}
+              onCascadeLeave={scheduleLocationMenuClose}
               portalContainer={locationMenuRef.current ?? undefined}
             />
           </div>
         ) : null}
       </div>
 
-      <div className="folder-search-row">
-        <label className="folder-search">
-          <SearchIcon />
-          <input
-            value={query}
-            placeholder="搜索文件夹..."
-            onChange={(event) => setQuery(event.target.value)}
-          />
-        </label>
-        <button
-          type="button"
-          className="icon-button compact"
-          aria-label="新建文件夹"
-          title="新建文件夹"
-          onClick={() => setCreateOpen(!createOpen)}
-        >
-          <FolderPlusIcon />
-        </button>
-      </div>
+      <FolderSearchRow
+        createOpen={createOpen}
+        query={query}
+        onClearQuery={() => setQuery("")}
+        onFocusSearch={closeLocationMenu}
+        onQueryChange={(value) => {
+          setQuery(value);
+          setCreateOpen(false);
+          closeLocationMenu();
+        }}
+        onToggleCreate={() => {
+          setQuery("");
+          closeLocationMenu();
+          setCreateOpen(!createOpen);
+        }}
+      />
 
       {query ? (
-        <div className="folder-results" aria-label="文件夹搜索结果">
-          {searchResults.length === 0 ? <p>没有匹配的文件夹</p> : null}
-          {searchResults.map((option) => (
-            <button
-              key={option.id}
-              type="button"
-              className={option.id === selectedFolderId ? "is-selected" : ""}
-              onClick={() => {
-                setSelectedFolderId(option.id);
-                setQuery("");
-                closeLocationMenu();
-              }}
-            >
-              <FolderIcon />
-              <span>
-                <strong>{option.title}</strong>
-                <small>{formatPopupFolderPath(option.path, option.path)}</small>
-              </span>
-            </button>
-          ))}
-        </div>
+        <FolderSearchResults
+          searchResults={searchResults}
+          selectedFolderId={selectedFolderId}
+          onSelect={selectFolder}
+        />
       ) : null}
 
       {createOpen ? (
-        <div className="create-folder-row">
-          <input
-            value={folderName}
-            placeholder={`新建在 ${selectedTitle || "当前文件夹"}`}
-            onChange={(event) => setFolderName(event.target.value)}
-          />
-          <button type="button" onClick={() => void createFolder()}>
-            新建
-          </button>
-        </div>
+        <InlineCreateFolderRow
+          folderName={folderName}
+          selectedTitle={selectedTitle}
+          onCancel={cancelCreateFolder}
+          onCreate={createFolder}
+          onFolderNameChange={setFolderName}
+        />
       ) : null}
 
-      <div className="recent-row">
-        <div>
-          <strong>最近使用</strong>
-          <button type="button" onClick={() => void openWorkspace()}>
-            管理位置
-          </button>
-        </div>
-        {recentFolders.length === 0 ? (
-          <p>{loading ? "正在读取文件夹..." : "保存成功后会显示最近位置"}</p>
-        ) : (
-          <div className="recent-chips">
-            {recentFolders.map((option) => (
-              <button
-                key={option.id}
-                type="button"
-                onClick={() => {
-                  setSelectedFolderId(option.id);
-                  setQuery("");
-                  closeLocationMenu();
-                }}
-              >
-                <FolderIcon />
-                {option.title}
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
+      <RecentFolderChips
+        loading={loading}
+        recentExpanded={recentExpanded}
+        recentFolders={recentFolders}
+        onManage={() => void openWorkspace()}
+        onSelect={selectFolder}
+        onToggleExpanded={() => setRecentExpanded((current) => !current)}
+      />
     </section>
   );
+
+  function selectFolder(folderId: string) {
+    setSelectedFolderId(folderId);
+    setQuery("");
+    setCreateOpen(false);
+    closeLocationMenu();
+  }
+
+  function cancelCreateFolder() {
+    setFolderName("");
+    setCreateOpen(false);
+  }
 
   function clearLocationMenuCloseTimer() {
     if (closeLocationTimerRef.current) {
@@ -248,6 +212,7 @@ export function SaveLocationPicker({
 
   function openLocationMenu() {
     clearLocationMenuCloseTimer();
+    setCreateOpen(false);
     setLocationMenuOpen(true);
   }
 

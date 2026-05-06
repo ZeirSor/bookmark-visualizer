@@ -61,59 +61,64 @@ export function SaveTab({
 
   return (
     <form id="popup-save-form" className="save-tab" onSubmit={(event) => void save(event)}>
-      <section className={`page-grid ${displayPreview ? "" : "without-preview"}`} aria-label="当前网页">
+      <section className={`save-layout ${displayPreview ? "" : "without-preview"}`} aria-label="当前网页">
         {displayPreview ? (
-          <PagePreviewCard
-            details={pageDetails}
-            previewFailed={previewFailed}
-            setPreviewFailed={setPreviewFailed}
-            title={title}
-          />
+          <aside className="save-preview-column">
+            <PagePreviewCard
+              details={pageDetails}
+              previewFailed={previewFailed}
+              setPreviewFailed={setPreviewFailed}
+              title={title}
+            />
+          </aside>
         ) : null}
-        <div className="field-stack">
-          <label>
-            <span>标题</span>
-            <input value={title} onChange={(event) => setTitle(event.target.value)} />
-          </label>
-          <label>
-            <span>URL</span>
-            <input
-              className="url-input"
-              value={pageDetails?.url ?? ""}
-              readOnly
-              onFocus={(event) => event.currentTarget.select()}
+
+        <div className="save-editor-column">
+          <div className="field-stack compact">
+            <label>
+              <span>标题</span>
+              <input value={title} onChange={(event) => setTitle(event.target.value)} />
+            </label>
+            <label>
+              <span>URL</span>
+              <input
+                className="url-input"
+                value={pageDetails?.url ?? ""}
+                readOnly
+                onFocus={(event) => event.currentTarget.select()}
+              />
+            </label>
+          </div>
+
+          <SaveLocationPicker
+            createFolder={createFolder}
+            createOpen={createOpen}
+            folderName={folderName}
+            loading={loading}
+            query={query}
+            recentFolders={recentFolders}
+            searchResults={searchResults}
+            selectedCompactPath={selectedCompactPath}
+            selectedFolderId={selectedFolderId}
+            selectedPath={selectedPath}
+            selectedTitle={selectedTitle}
+            setCreateOpen={setCreateOpen}
+            setFolderName={setFolderName}
+            setQuery={setQuery}
+            setSelectedFolderId={setSelectedFolderId}
+            tree={tree}
+          />
+
+          <label className="note-field compact">
+            <span>备注</span>
+            <textarea
+              value={note}
+              placeholder="添加一点自己的上下文"
+              onChange={(event) => setNote(event.target.value)}
             />
           </label>
         </div>
       </section>
-
-      <SaveLocationPicker
-        createFolder={createFolder}
-        createOpen={createOpen}
-        folderName={folderName}
-        loading={loading}
-        query={query}
-        recentFolders={recentFolders}
-        searchResults={searchResults}
-        selectedCompactPath={selectedCompactPath}
-        selectedFolderId={selectedFolderId}
-        selectedPath={selectedPath}
-        selectedTitle={selectedTitle}
-        setCreateOpen={setCreateOpen}
-        setFolderName={setFolderName}
-        setQuery={setQuery}
-        setSelectedFolderId={setSelectedFolderId}
-        tree={tree}
-      />
-
-      <label className="note-field">
-        <span>备注</span>
-        <textarea
-          value={note}
-          placeholder="添加一点自己的上下文"
-          onChange={(event) => setNote(event.target.value)}
-        />
-      </label>
     </form>
   );
 }

@@ -32,6 +32,7 @@ import {
   saveSettings,
   type SettingsState
 } from "../features/settings";
+import { normalizeRecentFolderIds } from "../features/recent-folders";
 
 type PopupTab = "save" | "manage" | "settings";
 
@@ -80,8 +81,7 @@ export function PopupApp() {
     () =>
       recentFolderIds
         .map((folderId) => folderOptionMap.get(folderId))
-        .filter((option): option is FolderOption => Boolean(option))
-        .slice(0, 3),
+        .filter((option): option is FolderOption => Boolean(option)),
     [folderOptionMap, recentFolderIds]
   );
   const recentBookmarks = useMemo(() => deriveRecentSavedBookmarks(tree, 3), [tree]);
@@ -187,7 +187,7 @@ export function PopupApp() {
         note,
         previewImageUrl: pageDetails.previewImageUrl
       });
-      setRecentFolderIds((current) => [selectedFolderId, ...current.filter((id) => id !== selectedFolderId)].slice(0, 5));
+      setRecentFolderIds((current) => normalizeRecentFolderIds([selectedFolderId, ...current]));
       setStatus(settings.popupShowSuccessToast ? `已保存到 ${selectedTitle || "当前文件夹"}。` : "");
 
       if (settings.popupAutoCloseAfterSave) {

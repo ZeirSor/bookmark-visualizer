@@ -3,7 +3,7 @@ import type { FolderOption } from "../bookmarks";
 
 const RECENT_FOLDERS_KEY = "bookmarkVisualizerRecentFolders";
 const LEGACY_QUICK_SAVE_UI_STATE_KEY = "bookmarkVisualizerQuickSaveUiState";
-const MAX_RECENT_FOLDERS = 5;
+const MAX_RECENT_FOLDERS = 8;
 
 interface LegacyQuickSaveUiState {
   uiStateVersion?: number;
