@@ -87,15 +87,6 @@ export function SaveTab({
         </div>
       </section>
 
-      <label className="note-field">
-        <span>备注</span>
-        <textarea
-          value={note}
-          placeholder="添加一点自己的上下文"
-          onChange={(event) => setNote(event.target.value)}
-        />
-      </label>
-
       <SaveLocationPicker
         createFolder={createFolder}
         createOpen={createOpen}
@@ -114,6 +105,15 @@ export function SaveTab({
         setSelectedFolderId={setSelectedFolderId}
         tree={tree}
       />
+
+      <label className="note-field">
+        <span>备注</span>
+        <textarea
+          value={note}
+          placeholder="添加一点自己的上下文"
+          onChange={(event) => setNote(event.target.value)}
+        />
+      </label>
     </form>
   );
 }

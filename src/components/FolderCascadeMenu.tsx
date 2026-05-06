@@ -355,6 +355,12 @@ function FolderCascadeRow({
   const isSelected = selectedFolderId === folder.id;
   const isHighlighted = highlightedFolderIdSet.has(folder.id);
   const title = getDisplayTitle(folder);
+  const rowNote = isCurrentFolder
+    ? "当前位置"
+    : !behavior.canSelect && disabledLabel
+      ? disabledLabel
+      : undefined;
+  const hasTrailing = Boolean(rowNote) || behavior.hasSubmenu;
 
   useLayoutEffect(() => {
     const element = rowRef.current;
@@ -382,6 +388,7 @@ function FolderCascadeRow({
         type="button"
         aria-disabled={!behavior.canSelect}
         disabled={behavior.buttonDisabled}
+        title={title}
         onClick={() => {
           if (behavior.canSelect) {
             onSelect(folder);
@@ -397,11 +404,12 @@ function FolderCascadeRow({
           <FolderLineIcon />
         </span>
         <span className="menu-action-label">{title}</span>
-        {isCurrentFolder ? <span className="move-menu-note">当前位置</span> : null}
-        {!behavior.canSelect && disabledLabel && !isCurrentFolder ? (
-          <span className="move-menu-note">{disabledLabel}</span>
+        {hasTrailing ? (
+          <span className="move-folder-row-trailing">
+            {rowNote ? <span className="move-menu-note">{rowNote}</span> : null}
+            {behavior.hasSubmenu ? <span className="menu-chevron" aria-hidden="true" /> : null}
+          </span>
         ) : null}
-        {behavior.hasSubmenu ? <span className="menu-chevron" aria-hidden="true" /> : null}
       </button>
     </div>
   );

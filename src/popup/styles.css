@@ -103,16 +103,16 @@ svg {
 
 .popup-header {
   display: grid;
-  grid-template-columns: 52px minmax(0, 1fr) 40px;
-  gap: 16px;
+  grid-template-columns: 40px minmax(0, 1fr) 40px;
+  gap: 14px;
   align-items: center;
-  padding: 22px 28px 16px;
+  padding: 14px 26px 12px;
 }
 
 .app-logo {
-  width: 52px;
-  height: 52px;
-  border-radius: 12px;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
 }
 
 .brand-block h1 {
@@ -124,9 +124,9 @@ svg {
 }
 
 .brand-block p {
-  margin: 5px 0 0;
+  margin: 4px 0 0;
   color: var(--muted);
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 600;
   line-height: 1.2;
 }
@@ -168,7 +168,7 @@ svg {
   align-items: center;
   justify-content: center;
   gap: 10px;
-  min-height: 56px;
+  min-height: 46px;
   color: #334155;
   font-size: 16px;
   font-weight: 800;
@@ -210,7 +210,7 @@ svg {
 .popup-content {
   min-height: 0;
   overflow: auto;
-  padding: 22px 26px 0;
+  padding: 18px 26px 18px;
 }
 
 .save-tab,
@@ -221,13 +221,13 @@ svg {
 
 .save-tab {
   display: grid;
-  gap: 18px;
+  gap: 14px;
 }
 
 .page-grid {
   display: grid;
-  grid-template-columns: 172px minmax(0, 1fr);
-  gap: 28px;
+  grid-template-columns: 136px minmax(0, 1fr);
+  gap: 22px;
   align-items: start;
 }
 
@@ -238,8 +238,8 @@ svg {
 .page-preview {
   display: grid;
   place-items: center;
-  width: 172px;
-  height: 172px;
+  width: 136px;
+  height: 136px;
   overflow: hidden;
   color: var(--muted);
   text-align: center;
@@ -259,7 +259,7 @@ svg {
   align-content: space-between;
   width: 100%;
   height: 100%;
-  padding: 16px;
+  padding: 14px;
   text-align: left;
 }
 
@@ -274,7 +274,7 @@ svg {
 .page-preview-fallback strong {
   display: -webkit-box;
   color: var(--text);
-  font-size: 18px;
+  font-size: 16px;
   line-height: 1.22;
   overflow: hidden;
   -webkit-box-orient: vertical;
@@ -293,7 +293,7 @@ svg {
 
 .field-stack {
   display: grid;
-  gap: 16px;
+  gap: 12px;
 }
 
 label {
@@ -322,19 +322,19 @@ select {
 
 input,
 select {
-  height: 48px;
-  padding: 0 16px;
-  font-size: 16px;
+  height: 44px;
+  padding: 0 14px;
+  font-size: 15px;
   font-weight: 600;
 }
 
 textarea {
-  min-height: 104px;
-  max-height: 108px;
-  padding: 14px 16px;
+  min-height: 78px;
+  max-height: 84px;
+  padding: 12px 14px;
   overflow: auto;
   resize: none;
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 500;
   line-height: 1.45;
 }
@@ -361,8 +361,8 @@ select:focus {
 
 .location-panel {
   display: grid;
-  gap: 12px;
-  padding: 14px 16px;
+  gap: 10px;
+  padding: 12px 14px;
   border: 1px solid var(--border);
   border-radius: 12px;
   background: #ffffff;
@@ -484,7 +484,7 @@ select:focus {
 
 .move-folder-button {
   display: grid;
-  grid-template-columns: 20px minmax(0, 1fr) auto;
+  grid-template-columns: 20px minmax(0, 1fr) max-content;
   align-items: center;
   gap: 8px;
   width: 100%;
@@ -498,12 +498,15 @@ select:focus {
   background: transparent;
 }
 
-.move-folder-button > span:nth-child(2),
 .move-folder-button > .menu-action-label {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.move-folder-button > .menu-action-icon-slot {
+  justify-self: center;
 }
 
 .move-folder-button:hover,
@@ -569,16 +572,27 @@ select:focus {
   transform: rotate(45deg);
 }
 
+.move-folder-row-trailing {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  justify-self: end;
+  gap: 6px;
+  min-width: max-content;
+  color: var(--muted);
+}
+
+.move-folder-row-trailing .menu-chevron {
+  flex: 0 0 7px;
+  margin-left: 0;
+}
+
 .move-menu-note {
-  margin-left: auto;
+  margin-left: 0;
   color: var(--accent);
   font-size: 11px;
   font-weight: 800;
   white-space: nowrap;
-}
-
-.move-menu-note + .menu-chevron {
-  margin-left: 4px;
 }
 
 .move-menu-empty {
@@ -787,10 +801,10 @@ select:focus {
 .popup-footer {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
-  gap: 18px;
+  gap: 16px;
   align-items: center;
-  min-height: 88px;
-  padding: 16px 26px 22px;
+  min-height: 72px;
+  padding: 12px 26px 14px;
   border-top: 1px solid var(--border);
   background: #ffffff;
 }
@@ -834,10 +848,10 @@ select:focus {
 
 .secondary-action,
 .primary-action {
-  min-height: 50px;
-  padding: 0 20px;
+  min-height: 44px;
+  padding: 0 18px;
   border-radius: 10px;
-  font-size: 17px;
+  font-size: 15px;
   font-weight: 900;
 }
 
@@ -862,11 +876,28 @@ select:focus {
 }
 
 .primary-action {
-  min-width: 190px;
+  min-width: 176px;
   color: #ffffff;
   border: 1px solid var(--accent);
   background: var(--accent);
   box-shadow: 0 8px 18px rgb(79 70 229 / 0.24);
+}
+
+.note-field {
+  gap: 5px;
+  padding: 10px 12px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface-muted);
+}
+
+.note-field > span {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.note-field textarea {
+  border-color: transparent;
 }
 
 .primary-action:hover,

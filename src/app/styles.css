@@ -850,7 +850,7 @@ button {
 
 .move-folder-button {
   display: grid;
-  grid-template-columns: 20px minmax(0, 1fr) auto;
+  grid-template-columns: 20px minmax(0, 1fr) max-content;
   align-items: center;
   gap: 8px;
   width: 100%;
@@ -864,6 +864,17 @@ button {
   border: 0;
   border-radius: 7px;
   cursor: pointer;
+}
+
+.move-folder-button > .menu-action-icon-slot {
+  justify-self: center;
+}
+
+.move-folder-button > .menu-action-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .move-submenu-content {
@@ -925,9 +936,23 @@ button {
   outline: 0;
 }
 
-.move-folder-button .menu-chevron,
 .menu-action-trailing .menu-chevron {
   justify-self: end;
+}
+
+.move-folder-row-trailing {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  justify-self: end;
+  gap: 6px;
+  min-width: max-content;
+  color: var(--muted);
+}
+
+.move-folder-row-trailing .menu-chevron {
+  flex: 0 0 7px;
+  margin-left: 0;
 }
 
 .move-folder-button:disabled,
@@ -997,15 +1022,11 @@ button {
 }
 
 .move-menu-note {
-  margin-left: auto;
+  margin-left: 0;
   color: var(--muted);
   font-size: 0.68rem;
   font-weight: 700;
   white-space: nowrap;
-}
-
-.move-menu-note + .menu-chevron {
-  margin-left: 2px;
 }
 
 .move-menu-empty {

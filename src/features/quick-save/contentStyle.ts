@@ -277,7 +277,7 @@ export function createQuickSaveStyle(): HTMLStyleElement {
     }
     .folder-result strong,
     .recent-folders button span,
-    .move-folder-button span:not(.move-menu-note) {
+    .move-folder-button > .menu-action-label {
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
@@ -379,7 +379,7 @@ export function createQuickSaveStyle(): HTMLStyleElement {
     }
     .move-folder-button {
       display: grid;
-      grid-template-columns: 20px minmax(0, 1fr) auto;
+      grid-template-columns: 20px minmax(0, 1fr) max-content;
       align-items: center;
       gap: 12px;
       width: 100%;
@@ -394,6 +394,15 @@ export function createQuickSaveStyle(): HTMLStyleElement {
       font-weight: 760;
       text-align: left;
       cursor: pointer;
+    }
+    .move-folder-button > .menu-action-icon-slot {
+      justify-self: center;
+    }
+    .move-folder-button > .menu-action-label {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
     .move-folder-button:hover,
     .move-folder-button:focus-visible,
@@ -424,8 +433,21 @@ export function createQuickSaveStyle(): HTMLStyleElement {
       transform: rotate(45deg);
       flex: 0 0 auto;
     }
+    .move-folder-row-trailing {
+      display: inline-flex;
+      align-items: center;
+      justify-content: flex-end;
+      justify-self: end;
+      gap: 7px;
+      min-width: max-content;
+      color: #94a3b8;
+    }
+    .move-folder-row-trailing .menu-chevron {
+      margin-left: 0;
+      flex: 0 0 auto;
+    }
     .move-menu-note {
-      margin-left: auto;
+      margin-left: 0;
       color: #94a3b8;
       font-size: 12px;
       font-weight: 800;
