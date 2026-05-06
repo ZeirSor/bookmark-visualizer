@@ -2,12 +2,14 @@ import { useEffect, useRef } from "react";
 import { CheckIcon, CloseIcon, FolderIcon } from "../PopupIcons";
 
 export function InlineCreateFolderRow({
+  creating,
   folderName,
   selectedTitle,
   onCancel,
   onCreate,
   onFolderNameChange
 }: {
+  creating: boolean;
   folderName: string;
   selectedTitle: string;
   onCancel(): void;
@@ -28,6 +30,7 @@ export function InlineCreateFolderRow({
       <input
         ref={inputRef}
         value={folderName}
+        disabled={creating}
         placeholder={`新建在 ${selectedTitle || "当前文件夹"}`}
         onChange={(event) => onFolderNameChange(event.target.value)}
         onKeyDown={(event) => {
@@ -50,6 +53,7 @@ export function InlineCreateFolderRow({
         className="cancel-action"
         aria-label="取消新建文件夹"
         title="取消"
+        disabled={creating}
         onClick={onCancel}
       >
         <CloseIcon />
@@ -58,7 +62,8 @@ export function InlineCreateFolderRow({
         type="button"
         className="create-action"
         aria-label="确认新建文件夹"
-        title="确认"
+        title={creating ? "正在新建" : "确认"}
+        disabled={!folderName.trim() || creating}
         onClick={() => void onCreate()}
       >
         <CheckIcon />

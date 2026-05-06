@@ -9,6 +9,7 @@ export function SaveTab({
   createParentTitle,
   createFolder,
   createOpen,
+  creatingFolder,
   folderName,
   loading,
   note,
@@ -37,6 +38,7 @@ export function SaveTab({
   createParentTitle: string;
   createFolder(): Promise<void>;
   createOpen: boolean;
+  creatingFolder: boolean;
   folderName: string;
   loading: boolean;
   note: string;
@@ -94,11 +96,21 @@ export function SaveTab({
             </label>
           </div>
 
+          <label className="note-field compact">
+            <span>备注</span>
+            <textarea
+              value={note}
+              placeholder="添加一点自己的上下文"
+              onChange={(event) => setNote(event.target.value)}
+            />
+          </label>
+
           <SaveLocationPicker
             createParentFolderId={createParentFolderId}
             createParentTitle={createParentTitle}
             createFolder={createFolder}
             createOpen={createOpen}
+            creatingFolder={creatingFolder}
             folderName={folderName}
             loading={loading}
             query={query}
@@ -114,15 +126,6 @@ export function SaveTab({
             setSelectedFolderId={setSelectedFolderId}
             tree={tree}
           />
-
-          <label className="note-field compact">
-            <span>备注</span>
-            <textarea
-              value={note}
-              placeholder="添加一点自己的上下文"
-              onChange={(event) => setNote(event.target.value)}
-            />
-          </label>
         </div>
       </section>
     </form>

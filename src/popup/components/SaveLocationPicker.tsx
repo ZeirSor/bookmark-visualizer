@@ -19,6 +19,7 @@ export function SaveLocationPicker({
   createParentTitle,
   createFolder,
   createOpen,
+  creatingFolder,
   folderName,
   loading,
   query,
@@ -38,6 +39,7 @@ export function SaveLocationPicker({
   createParentTitle: string;
   createFolder(): Promise<void>;
   createOpen: boolean;
+  creatingFolder: boolean;
   folderName: string;
   loading: boolean;
   query: string;
@@ -135,6 +137,7 @@ export function SaveLocationPicker({
 
       {createOpen ? (
         <InlineCreateFolderRow
+          creating={creatingFolder}
           folderName={folderName}
           selectedTitle={createParentFolderId ? createParentTitle : selectedTitle}
           onCancel={cancelCreateFolder}
@@ -185,6 +188,7 @@ export function SaveLocationPicker({
 
   function openLocationMenu() {
     clearLocationMenuCloseTimer();
+    setQuery("");
     setCreateOpen(false);
     setCreateParentFolderId(undefined);
     setLocationMenuOpen(true);

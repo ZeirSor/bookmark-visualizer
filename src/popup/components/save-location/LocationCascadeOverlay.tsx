@@ -2,6 +2,7 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { FolderCascadeMenu } from "../../../components/FolderCascadeMenu";
 import {
+  buildFolderCascadeInitialPathIds,
   canCreateBookmarkInFolder,
   type BookmarkNode
 } from "../../../features/bookmarks";
@@ -102,6 +103,10 @@ export function LocationCascadeOverlay({
       menuHeight: POPUP_CASCADE_MENU_HEIGHT
     });
   }, [anchorRect, viewport]);
+  const initialActivePathIds = useMemo(
+    () => buildFolderCascadeInitialPathIds(tree, selectedFolderId),
+    [selectedFolderId, tree]
+  );
 
   if (!placement || typeof document === "undefined") {
     return null;
@@ -129,7 +134,8 @@ export function LocationCascadeOverlay({
         selectedFolderId={selectedFolderId}
         currentFolderId={currentFolderId}
         highlightedFolderIds={highlightedFolderIds}
-        autoExpandInitialPath={false}
+        initialActivePathIds={initialActivePathIds}
+        autoExpandInitialPath
         disabledLabel="不可保存"
         density="compact"
         menuWidth={POPUP_CASCADE_MENU_WIDTH}

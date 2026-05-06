@@ -42,10 +42,19 @@ export function PagePreviewCard({
           </div>
         </>
       ) : (
-        <div className="page-preview-fallback">
-          <span className="preview-domain">{domain}</span>
+        <div className="page-preview-fallback is-article">
+          <div className="preview-card-topline">
+            <span className="preview-domain">{domain}</span>
+            <span className="preview-date">当前页面</span>
+          </div>
           <strong>{fallbackTitle}</strong>
           <small>{details?.url || "当前网页"}</small>
+          <div className="preview-copy-lines" aria-hidden="true">
+            <span />
+            <span />
+            <span />
+            <span />
+          </div>
         </div>
       )}
     </div>

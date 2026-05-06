@@ -53,6 +53,7 @@ export function PopupApp() {
   const [statusTone, setStatusTone] = useState<PopupStatusTone>("idle");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [creatingFolder, setCreatingFolder] = useState(false);
   const [previewFailed, setPreviewFailed] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
   const [folderName, setFolderName] = useState("");
@@ -235,6 +236,7 @@ export function PopupApp() {
       return;
     }
 
+    setCreatingFolder(true);
     try {
       const response = await createQuickSaveFolder({
         parentId,
@@ -250,6 +252,8 @@ export function PopupApp() {
       setPopupStatus(`已新建 ${getDisplayTitle(response.folder)}。`, "success");
     } catch (cause) {
       setPopupStatus(cause instanceof Error ? cause.message : "新建文件夹失败。", "error");
+    } finally {
+      setCreatingFolder(false);
     }
   }
 
@@ -296,6 +300,7 @@ export function PopupApp() {
             createParentTitle={createParentTitle}
             createFolder={createFolder}
             createOpen={createOpen}
+            creatingFolder={creatingFolder}
             folderName={folderName}
             loading={loading}
             note={note}
