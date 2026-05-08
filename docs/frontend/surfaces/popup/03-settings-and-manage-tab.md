@@ -61,7 +61,7 @@ SettingsTab 是 Popup 的常用配置入口，包含：
 |---|---|
 | 保存当前网页 | 展示 `Ctrl+Shift+S` |
 | 打开完整管理页 | 展示“未设置” |
-| 配置快捷键 | 点击打开完整管理页，目前更像引导入口 |
+| 配置快捷键 | 点击 `openExtensionShortcutSettings()`，打开 `chrome://extensions/shortcuts` 并关闭 Popup |
 
 真实 command 在 `public/manifest.json`：
 
@@ -116,7 +116,7 @@ SettingsTab 更改默认位置
 | 默认打开页 | `popupDefaultOpenTab` |
 | 主题 | `popupThemeMode` |
 
-维护重点：`popupThemeMode` 若要真正影响 Popup，需要在 `src/popup/main.tsx` 或 `PopupApp` 中增加 theme class / data attribute，并在 `popup/styles.css` 提供暗色变量映射。
+维护重点：`popupThemeMode` 当前只作为设置状态持久化，用于后续 Popup 主题适配。当前 Popup 视觉仍主要使用默认浅色 token；不要把它描述成已完整生效的暗色主题能力。若要真正影响 Popup，需要在 `src/popup/main.tsx` 或 `PopupApp` 中增加 theme class / data attribute，并在 `popup/styles.css` 提供暗色变量映射。
 
 ## 内部小组件
 

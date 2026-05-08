@@ -62,6 +62,7 @@
 | 取消按钮 | `PopupFooter.tsx` | `.secondary-action` |
 | Settings switch | `SettingsTab.tsx` | `.switch-row input` |
 | Settings select | `SettingsTab.tsx` | `.select-row select` |
+| 配置快捷键 | `SettingsTab.tsx` | `.text-action` |
 | 默认位置更改 | `SettingsTab.tsx` | `.secondary-action.small` |
 
 ## New Tab 元素索引

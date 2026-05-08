@@ -93,6 +93,6 @@
 - 数据结构、storage key、导入导出或 migration 变化时，更新 `docs/data/`。
 - UI surface、组件、CSS selector 或页面链路变化时，更新 `docs/frontend/surfaces/`。
 - 验证命令、手动验收或健康检查变化时，更新 `docs/guides/` 和必要的 `docs/workflow/validation-gate.md`。
-- AI-assisted workflow、run folder、task 状态、playbook 或 local skill 变化时，更新 `docs/workflow/`、`docs/playbooks/`、`.agent/skills/`、`.ai/README.md` 和 `AGENTS.md`。
+- AI-assisted workflow、run folder、task 状态、playbook 或 local skill 变化时，更新 `docs/workflow/`、`docs/playbooks/`、`.agents/skills/`、`.ai/README.md` 和 `AGENTS.md`。
 - 持久技术决策变化时，新增或更新 `docs/adr/`。
 - 非轻量工作收尾按项目规则写入 `.ai/logs/`。

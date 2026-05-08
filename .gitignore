@@ -5,6 +5,15 @@ coverage/
 *.local
 *.log
 docs/tmp/
-AGENTS.md
-AI_HANDOFF.md
-.ai/
+
+# AI runtime records
+.ai/logs/
+.ai/dev-changelog/
+.ai/runs/*
+
+# Keep shared AI workflow docs/templates
+!.ai/
+!.ai/README.md
+!.ai/runs/
+!.ai/runs/_TEMPLATE/
+!.ai/runs/_TEMPLATE/**

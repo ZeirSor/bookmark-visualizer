@@ -75,6 +75,7 @@ interface SettingsState {
 
 - `newTabOverrideEnabled` 默认必须是 `false`，避免安装后直接接管新标签页。
 - `cardDensity` 当前固定 normalize 为 `comfortable`，不是可配置 UI。
+- `popupThemeMode` 当前作为 Popup 主题偏好持久化，用于后续主题适配；当前 Popup CSS 尚未完整消费它，不能描述成已完整生效的暗色主题。
 - `sidebarWidth` 被限制在 220–640。
 - `newTabShortcutsPerRow` 被限制在 4–10。
 - 新增字段必须同步 `defaultSettings`、`normalizeSettings()`、对应 UI 文档和回归测试。

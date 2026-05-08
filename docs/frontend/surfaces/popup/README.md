@@ -93,4 +93,4 @@ popup.html
 - Popup 保存位置搜索最多显示 4 条结果，由 `PopupApp.tsx` slice 控制。
 - 保存位置路径文本只展示，真正打开级联菜单的是箭头按钮。
 - Settings 中默认保存位置的级联菜单挂在 `settings-cascade-host` 内，不是全局 portal。
-- Popup 主题设置存在，但当前需要继续核对是否已完全作用到 CSS dark mode。
+- Popup 主题设置存在并会持久化为 `popupThemeMode`，但当前尚未完整作用到 CSS dark mode。

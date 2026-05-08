@@ -7,7 +7,7 @@ import {
   type BookmarkNode,
   type FolderOption
 } from "../../features/bookmarks";
-import { openWorkspace } from "../../features/popup";
+import { openExtensionShortcutSettings, openWorkspace } from "../../features/popup";
 import type { SettingsState } from "../../features/settings";
 import { SEARCH_CATEGORIES, SEARCH_ENGINES } from "../../features/newtab";
 import { ChevronRightIcon, FolderIcon } from "../components/PopupIcons";
@@ -148,7 +148,11 @@ export function SettingsTab({
           <span>打开完整管理页</span>
           <kbd className="is-muted">未设置</kbd>
         </div>
-        <button type="button" className="text-action" onClick={() => void openWorkspace()}>
+        <button
+          type="button"
+          className="text-action"
+          onClick={() => void openExtensionShortcutSettings()}
+        >
           配置快捷键
         </button>
       </section>

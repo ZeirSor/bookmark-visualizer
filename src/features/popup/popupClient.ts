@@ -91,6 +91,18 @@ export async function openWorkspace(path = "index.html"): Promise<void> {
   window.open(path, "_blank", "noopener,noreferrer");
 }
 
+export async function openExtensionShortcutSettings(): Promise<void> {
+  const shortcutsUrl = "chrome://extensions/shortcuts";
+
+  if (typeof chrome !== "undefined" && chrome.tabs?.create) {
+    await chrome.tabs.create({ url: shortcutsUrl });
+    window.close();
+    return;
+  }
+
+  window.open(shortcutsUrl, "_blank", "noopener,noreferrer");
+}
+
 async function sendQuickSaveRequest(message: QuickSaveRequest): Promise<QuickSaveResponse> {
   if (typeof chrome === "undefined" || !chrome.runtime?.sendMessage) {
     return { ok: false, error: "当前环境不支持扩展消息。" };

@@ -80,7 +80,7 @@ Use this map when running `project-doc-maintenance` to determine which PageDocs 
 - `src/newtab/`
 - `src/features/newtab/`
 - `src/features/settings/`
-- `src/background/newTabRedirect.ts`
+- `src/features/newtab/newTabRedirect.ts`
 - `src/lib/chrome/`
 - `src/styles/`
 
@@ -160,11 +160,11 @@ Also check affected surface docs if the data is displayed, edited, searched, sav
 - `docs/`
 - `README.md`
 - `README.zh-CN.md`
-- `.agent/skills/project-doc-routing/`
-- `.agent/skills/project-doc-maintenance/`
-- `.agent/skills/project-run-orchestration/`
-- `.agent/skills/project-playbook-routing/`
-- `.agent/skills/project-validation-gate/`
+- `.agents/skills/project-doc-routing/`
+- `.agents/skills/project-doc-maintenance/`
+- `.agents/skills/project-run-orchestration/`
+- `.agents/skills/project-playbook-routing/`
+- `.agents/skills/project-validation-gate/`
 - `.ai/README.md`
 - `.ai/runs/_TEMPLATE/`
 - `docs/workflow/`

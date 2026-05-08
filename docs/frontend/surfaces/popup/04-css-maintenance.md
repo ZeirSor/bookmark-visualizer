@@ -83,6 +83,7 @@ Popup 的保存位置级联菜单使用 `document.body` portal。维护时注意
 - Icon-only button 必须有 `aria-label` 和 `title`。
 - readonly URL 仍要保持可读和可选中文本。
 - 搜索和新建互斥，视觉上不能同时占满保存位置区域。
+- `popupThemeMode` 当前只持久化设置状态，尚未接入 `.popup-shell` class / data attribute 或完整暗色变量映射；维护文档不能把它写成已完整生效的 Popup 暗色主题。
 
 ## 回归清单
 

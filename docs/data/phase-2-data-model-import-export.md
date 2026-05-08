@@ -267,21 +267,40 @@ src/features/import-export/
   exportNetscapeHtml.ts
   importNetscapeHtml.ts
 
-src/features/table-view/
+src/domain/table-view/
   columns.ts
   filters.ts
   sorting.ts
   types.ts
 ```
 
-如果不想一次性新增太多目录，可以先最小化：
+当前项目已经采用目录化 domain 分层：
 
 ```text
-src/domain/bookmarkRecord.ts
-src/domain/folderRecord.ts
-src/domain/tagRecord.ts
-src/features/import-export/
+src/domain/bookmark-record/
+  types.ts
+  normalize.ts
+  tableRow.ts
+
+src/domain/folder-record/
+  types.ts
+
+src/domain/tag-record/
+  types.ts
+
+src/domain/table-view/
+  types.ts
 ```
+
+后续继续扩展时，应优先在现有 domain 子目录内补充：
+
+```text
+validators.ts
+denormalize.ts
+mappers.ts
+```
+
+不再新增旧式 camelCase flat file 或旧 table-view feature 目录。
 
 ---
 

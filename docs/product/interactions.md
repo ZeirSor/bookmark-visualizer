@@ -126,6 +126,8 @@
 - “保存”Tab 已实现标题、只读 URL、备注、预览图、保存位置选择、最近文件夹和新建文件夹。
 - “管理”Tab 提供打开完整管理页、最近保存、最近使用位置等入口。
 - “设置”Tab 已实现 New Tab 绑定、默认搜索引擎、搜索类型、布局模式、快捷键说明、默认保存位置、保存行为和界面偏好。
+- “设置”Tab 的“配置快捷键”打开 `chrome://extensions/shortcuts` 并关闭 Popup，不打开完整管理页。
+- `popupThemeMode` 当前只是已持久化的 Popup 主题偏好状态，尚未作为完整暗色主题作用到 Popup CSS。
 - 扩展命令 `Ctrl+Shift+S` / `Command+Shift+S` 保留为 Quick Save Shadow DOM 浮框入口。
 
 ## 撤销

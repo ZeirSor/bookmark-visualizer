@@ -153,7 +153,8 @@
 - 将浮框内新建文件夹请求发回 service worker，由 bookmarks 模块创建真实文件夹。
 - 将保存请求发回 service worker，由 bookmarks 模块创建真实书签。
 - 将备注和预览图片 URL 写入 metadata。
-- 将最近使用文件夹 id 写入 quick-save UI state。
+- 将最近使用文件夹 id 写入共享 recent-folders 状态：`src/features/recent-folders/recentFolders.ts` → `bookmarkVisualizerRecentFolders`。
+- 旧版 `bookmarkVisualizerQuickSaveUiState` 仅作为兼容读取 / 迁移 fallback，不再作为新的 Quick Save 最近文件夹主写入入口。
 
 不负责：
 

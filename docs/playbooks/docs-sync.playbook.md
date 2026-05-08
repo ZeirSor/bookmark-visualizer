@@ -45,7 +45,7 @@ Read:
 | Storage / metadata | `docs/data/` |
 | UI surface / CSS / components | `docs/frontend/surfaces/` |
 | Validation commands | `docs/guides/`, `docs/workflow/validation-gate.md` |
-| AI workflow | `AGENTS.md`, `.ai/README.md`, `docs/workflow/`, `docs/playbooks/`, `.agent/skills/` |
+| AI workflow | `AGENTS.md`, `.ai/README.md`, `docs/workflow/`, `docs/playbooks/`, `.agents/skills/` |
 | Public onboarding | `README.md`, `README.zh-CN.md` |
 
 ## Non-Goals

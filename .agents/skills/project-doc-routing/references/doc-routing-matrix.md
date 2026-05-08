@@ -144,7 +144,7 @@ Update README files only if the public quick-save behavior, shortcut behavior, o
 - `src/newtab/`
 - `src/features/newtab/`
 - `src/features/settings/`
-- `src/background/newTabRedirect.ts`
+- `src/features/newtab/newTabRedirect.ts`
 - `src/lib/chrome/`
 - `src/styles/`
 
@@ -309,8 +309,8 @@ Depends on feature.
 
 - `docs/`
 - root README files
-- `.agent/skills/project-doc-routing/`
-- `.agent/skills/project-doc-maintenance/`
+- `.agents/skills/project-doc-routing/`
+- `.agents/skills/project-doc-maintenance/`
 - `AGENTS.md`
 
 ### Read before work
@@ -318,8 +318,8 @@ Depends on feature.
 - `docs/README.md`
 - `docs/standards/documentation-maintenance.md`
 - `AGENTS.md`
-- `.agent/skills/project-doc-routing/SKILL.md`
-- `.agent/skills/project-doc-maintenance/SKILL.md`
+- `.agents/skills/project-doc-routing/SKILL.md`
+- `.agents/skills/project-doc-maintenance/SKILL.md`
 
 ### Likely affected after work
 
@@ -339,9 +339,9 @@ Depends on feature.
 - `.ai/runs/_TEMPLATE/`
 - `docs/workflow/`
 - `docs/playbooks/`
-- `.agent/skills/project-run-orchestration/`
-- `.agent/skills/project-playbook-routing/`
-- `.agent/skills/project-validation-gate/`
+- `.agents/skills/project-run-orchestration/`
+- `.agents/skills/project-playbook-routing/`
+- `.agents/skills/project-validation-gate/`
 
 ### Read before work
 
@@ -359,7 +359,7 @@ Depends on feature.
 - `.ai/runs/_TEMPLATE/`
 - `docs/workflow/`
 - `docs/playbooks/`
-- local skill docs under `.agent/skills/`
+- local skill docs under `.agents/skills/`
 - `docs/README.md`
 - `docs/standards/documentation-maintenance.md`
 
