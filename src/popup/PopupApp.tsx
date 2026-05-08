@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo } from "react";
 import {
   canCreateBookmarkInFolder,
   filterFolderOptions,
@@ -6,84 +6,52 @@ import {
   flattenFolders,
   getDisplayTitle,
   rankFolderOption,
-  type BookmarkNode,
   type FolderOption
 } from "../features/bookmarks";
 import { ExternalLinkIcon, FolderIcon, SaveIcon, SettingsIcon } from "./components/PopupIcons";
-import { PopupFooter, type PopupStatusTone } from "./components/PopupFooter";
+import { PopupFooter } from "./components/PopupFooter";
 import { TabButton } from "./components/TabButton";
 import { ManageTab } from "./tabs/ManageTab";
 import { SaveTab } from "./tabs/SaveTab";
 import { SettingsTab } from "./tabs/SettingsTab";
 import {
-  createQuickSaveBookmark,
-  createQuickSaveFolder,
-  getCurrentTabDetails,
-  loadQuickSaveInitialState,
   openWorkspace,
   compactFolderPath,
-  deriveRecentSavedBookmarks,
-  selectInitialPopupFolderId,
-  type PopupPageDetails
+  deriveRecentSavedBookmarks
 } from "../features/popup";
-import type { QuickSaveInitialState } from "../features/quick-save";
-import {
-  defaultSettings,
-  loadSettings,
-  saveSettings,
-  type SettingsState
-} from "../features/settings";
-import { normalizeRecentFolderIds } from "../features/recent-folders";
-
-type PopupTab = "save" | "manage" | "settings";
-
-const SAVE_CLOSE_DELAY_MS = 650;
+import { usePopupBootstrap } from "./hooks/usePopupBootstrap";
+import { usePopupSaveActions } from "./hooks/usePopupSaveActions";
+import { usePopupSaveState } from "./hooks/usePopupSaveState";
 
 export function PopupApp() {
-  const [activeTab, setActiveTab] = useState<PopupTab>(defaultSettings.popupDefaultOpenTab);
-  const [settings, setSettings] = useState<SettingsState>(defaultSettings);
-  const [pageDetails, setPageDetails] = useState<PopupPageDetails>();
-  const [tree, setTree] = useState<BookmarkNode[]>([]);
-  const [recentFolderIds, setRecentFolderIds] = useState<string[]>([]);
-  const [selectedFolderId, setSelectedFolderId] = useState("");
-  const [title, setTitle] = useState("");
-  const [note, setNote] = useState("");
-  const [query, setQuery] = useState("");
-  const [status, setStatus] = useState("");
-  const [statusTone, setStatusTone] = useState<PopupStatusTone>("idle");
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [creatingFolder, setCreatingFolder] = useState(false);
-  const [previewFailed, setPreviewFailed] = useState(false);
-  const [createOpen, setCreateOpen] = useState(false);
-  const [folderName, setFolderName] = useState("");
-  const [createParentFolderId, setCreateParentFolderId] = useState<string | undefined>();
+  const bootstrap = usePopupBootstrap();
+  const saveState = usePopupSaveState();
 
   const folderOptions = useMemo(
-    () => flattenFolders(tree).filter((option) => canCreateBookmarkInFolder(option.node)),
-    [tree]
+    () => flattenFolders(bootstrap.tree).filter((option) => canCreateBookmarkInFolder(option.node)),
+    [bootstrap.tree]
   );
   const folderOptionMap = useMemo(
     () => new Map(folderOptions.map((option) => [option.id, option])),
     [folderOptions]
   );
-  const selectedFolder = selectedFolderId ? findNodeById(tree, selectedFolderId) : undefined;
-  const selectedOption = selectedFolderId ? folderOptionMap.get(selectedFolderId) : undefined;
+  const selectedFolder = bootstrap.selectedFolderId ? findNodeById(bootstrap.tree, bootstrap.selectedFolderId) : undefined;
+  const selectedOption = bootstrap.selectedFolderId ? folderOptionMap.get(bootstrap.selectedFolderId) : undefined;
   const selectedTitle = selectedFolder ? getDisplayTitle(selectedFolder) : "";
   const selectedPath = selectedOption?.path ?? selectedTitle;
-  const createParentFolder = createParentFolderId
-    ? findNodeById(tree, createParentFolderId)
+  const createParentFolder = saveState.createParentFolderId
+    ? findNodeById(bootstrap.tree, saveState.createParentFolderId)
     : undefined;
   const createParentTitle = createParentFolder
     ? getDisplayTitle(createParentFolder)
     : selectedTitle;
-  const defaultFolderOption = settings.popupDefaultFolderId
-    ? folderOptionMap.get(settings.popupDefaultFolderId)
+  const defaultFolderOption = bootstrap.settings.popupDefaultFolderId
+    ? folderOptionMap.get(bootstrap.settings.popupDefaultFolderId)
     : undefined;
   const defaultFolderPath = defaultFolderOption?.path ?? selectedPath;
   const defaultCompactPath = compactFolderPath(defaultFolderPath);
   const searchResults = useMemo(() => {
-    const normalized = query.trim();
+    const normalized = saveState.query.trim();
     return normalized
       ? filterFolderOptions(folderOptions, normalized)
           .sort((left, right) => {
@@ -98,56 +66,36 @@ export function PopupApp() {
           })
           .slice(0, 4)
       : [];
-  }, [folderOptions, query]);
+  }, [folderOptions, saveState.query]);
   const recentFolders = useMemo(
     () =>
-      recentFolderIds
+      bootstrap.recentFolderIds
         .map((folderId) => folderOptionMap.get(folderId))
         .filter((option): option is FolderOption => Boolean(option)),
-    [folderOptionMap, recentFolderIds]
+    [bootstrap.recentFolderIds, folderOptionMap]
   );
-  const recentBookmarks = useMemo(() => deriveRecentSavedBookmarks(tree, 3), [tree]);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    async function load() {
-      try {
-        const [details, initialState, storedSettings] = await Promise.all([
-          getCurrentTabDetails(),
-          loadQuickSaveInitialState(),
-          loadSettings()
-        ]);
-
-        if (cancelled) {
-          return;
-        }
-
-        setPageDetails(details);
-        setSettings(storedSettings);
-        setActiveTab(storedSettings.popupDefaultOpenTab);
-        setTitle(details.title);
-        applyInitialState(initialState, storedSettings);
-        setPopupStatus(
-          details.canSave ? "" : details.error ?? "当前页面不支持保存。",
-          details.canSave ? "idle" : "error"
-        );
-      } catch (cause) {
-        if (!cancelled) {
-          setPopupStatus(cause instanceof Error ? cause.message : "无法初始化 Popup。", "error");
-        }
-      } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
-      }
-    }
-
-    void load();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  const recentBookmarks = useMemo(() => deriveRecentSavedBookmarks(bootstrap.tree, 3), [bootstrap.tree]);
+  const actions = usePopupSaveActions({
+    settings: bootstrap.settings,
+    setSettings: bootstrap.setSettings,
+    pageDetails: bootstrap.pageDetails,
+    selectedFolderId: bootstrap.selectedFolderId,
+    setSelectedFolderId: bootstrap.setSelectedFolderId,
+    title: bootstrap.title,
+    note: saveState.note,
+    selectedTitle,
+    folderName: saveState.folderName,
+    createParentFolderId: saveState.createParentFolderId,
+    setRecentFolderIds: bootstrap.setRecentFolderIds,
+    setTree: bootstrap.setTree,
+    setFolderName: saveState.setFolderName,
+    setCreateOpen: saveState.setCreateOpen,
+    setCreateParentFolderId: saveState.setCreateParentFolderId,
+    setQuery: saveState.setQuery,
+    savingState: [saveState.saving, saveState.setSaving],
+    creatingState: [saveState.creatingFolder, saveState.setCreatingFolder],
+    setPopupStatus: bootstrap.setPopupStatus
+  });
 
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
@@ -159,108 +107,6 @@ export function PopupApp() {
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
-
-  function applyInitialState(state: QuickSaveInitialState, storedSettings: SettingsState) {
-    setTree(state.tree);
-    setRecentFolderIds(state.recentFolderIds);
-    const initialFolderId = selectInitialPopupFolderId({
-      tree: state.tree,
-      recentFolderIds: state.recentFolderIds,
-      rememberLastFolder: storedSettings.popupRememberLastFolder,
-      popupDefaultFolderId: storedSettings.popupDefaultFolderId,
-      fallbackFolderId: state.defaultFolderId
-    });
-
-    if (initialFolderId) {
-      setSelectedFolderId(initialFolderId);
-    }
-  }
-
-  async function updateSettings(patch: Partial<SettingsState>) {
-    const nextSettings = await saveSettings({
-      ...settings,
-      ...patch
-    });
-    setSettings(nextSettings);
-  }
-
-  async function updateDefaultFolder(folderId: string) {
-    setSelectedFolderId(folderId);
-    await updateSettings({ popupDefaultFolderId: folderId });
-  }
-
-  async function save(event?: FormEvent<HTMLFormElement>) {
-    event?.preventDefault();
-
-    if (!pageDetails?.canSave) {
-      setPopupStatus("当前页面不支持保存。", "error");
-      return;
-    }
-
-    if (!selectedFolderId) {
-      setPopupStatus("请选择保存位置。", "error");
-      return;
-    }
-
-    setSaving(true);
-    setPopupStatus("", "idle");
-    try {
-      await createQuickSaveBookmark({
-        parentId: selectedFolderId,
-        title,
-        url: pageDetails.url,
-        note,
-        previewImageUrl: pageDetails.previewImageUrl
-      });
-      setRecentFolderIds((current) => normalizeRecentFolderIds([selectedFolderId, ...current]));
-      setPopupStatus(
-        settings.popupShowSuccessToast ? `已保存到 ${selectedTitle || "当前文件夹"}。` : "",
-        settings.popupShowSuccessToast ? "success" : "idle"
-      );
-
-      if (settings.popupAutoCloseAfterSave) {
-        window.setTimeout(() => window.close(), SAVE_CLOSE_DELAY_MS);
-      }
-    } catch (cause) {
-      setPopupStatus(cause instanceof Error ? cause.message : "保存失败。", "error");
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  async function createFolder() {
-    const normalizedName = folderName.trim();
-    const parentId = createParentFolderId ?? selectedFolderId;
-    if (!normalizedName || !parentId) {
-      setPopupStatus("请输入文件夹名称。", "error");
-      return;
-    }
-
-    setCreatingFolder(true);
-    try {
-      const response = await createQuickSaveFolder({
-        parentId,
-        title: normalizedName
-      });
-      setTree(response.state.tree);
-      setRecentFolderIds(response.state.recentFolderIds);
-      setSelectedFolderId(response.folder.id);
-      setFolderName("");
-      setCreateOpen(false);
-      setCreateParentFolderId(undefined);
-      setQuery("");
-      setPopupStatus(`已新建 ${getDisplayTitle(response.folder)}。`, "success");
-    } catch (cause) {
-      setPopupStatus(cause instanceof Error ? cause.message : "新建文件夹失败。", "error");
-    } finally {
-      setCreatingFolder(false);
-    }
-  }
-
-  function setPopupStatus(message: string, tone: PopupStatusTone) {
-    setStatus(message);
-    setStatusTone(message.trim() ? tone : "idle");
-  }
 
   return (
     <main className="popup-shell">
@@ -282,75 +128,75 @@ export function PopupApp() {
       </header>
 
       <nav className="popup-tabs" aria-label="Popup 功能">
-        <TabButton active={activeTab === "save"} icon={<SaveIcon />} onClick={() => setActiveTab("save")}>
+        <TabButton active={bootstrap.activeTab === "save"} icon={<SaveIcon />} onClick={() => bootstrap.setActiveTab("save")}>
           保存
         </TabButton>
-        <TabButton active={activeTab === "manage"} icon={<FolderIcon />} onClick={() => setActiveTab("manage")}>
+        <TabButton active={bootstrap.activeTab === "manage"} icon={<FolderIcon />} onClick={() => bootstrap.setActiveTab("manage")}>
           管理
         </TabButton>
-        <TabButton active={activeTab === "settings"} icon={<SettingsIcon />} onClick={() => setActiveTab("settings")}>
+        <TabButton active={bootstrap.activeTab === "settings"} icon={<SettingsIcon />} onClick={() => bootstrap.setActiveTab("settings")}>
           设置
         </TabButton>
       </nav>
 
       <section className="popup-content">
-        {activeTab === "save" ? (
+        {bootstrap.activeTab === "save" ? (
           <SaveTab
-            createParentFolderId={createParentFolderId}
+            createParentFolderId={saveState.createParentFolderId}
             createParentTitle={createParentTitle}
-            createFolder={createFolder}
-            createOpen={createOpen}
-            creatingFolder={creatingFolder}
-            folderName={folderName}
-            loading={loading}
-            note={note}
-            pageDetails={pageDetails}
-            previewFailed={previewFailed}
-            query={query}
+            createFolder={actions.createFolder}
+            createOpen={saveState.createOpen}
+            creatingFolder={saveState.creatingFolder}
+            folderName={saveState.folderName}
+            loading={bootstrap.loading}
+            note={saveState.note}
+            pageDetails={bootstrap.pageDetails}
+            previewFailed={saveState.previewFailed}
+            query={saveState.query}
             recentFolders={recentFolders}
-            save={save}
+            save={actions.save}
             searchResults={searchResults}
-            selectedFolderId={selectedFolderId}
+            selectedFolderId={bootstrap.selectedFolderId}
             selectedPath={selectedPath}
             selectedTitle={selectedTitle}
-            setCreateParentFolderId={setCreateParentFolderId}
-            setCreateOpen={setCreateOpen}
-            setFolderName={setFolderName}
-            setNote={setNote}
-            setPreviewFailed={setPreviewFailed}
-            setQuery={setQuery}
-            setSelectedFolderId={setSelectedFolderId}
-            setTitle={setTitle}
-            title={title}
-            tree={tree}
-            showThumbnail={settings.popupShowThumbnail}
+            setCreateParentFolderId={saveState.setCreateParentFolderId}
+            setCreateOpen={saveState.setCreateOpen}
+            setFolderName={saveState.setFolderName}
+            setNote={saveState.setNote}
+            setPreviewFailed={saveState.setPreviewFailed}
+            setQuery={saveState.setQuery}
+            setSelectedFolderId={bootstrap.setSelectedFolderId}
+            setTitle={bootstrap.setTitle}
+            title={bootstrap.title}
+            tree={bootstrap.tree}
+            showThumbnail={bootstrap.settings.popupShowThumbnail}
           />
         ) : null}
-        {activeTab === "manage" ? (
+        {bootstrap.activeTab === "manage" ? (
           <ManageTab recentBookmarks={recentBookmarks} recentFolders={recentFolders} />
         ) : null}
-        {activeTab === "settings" ? (
+        {bootstrap.activeTab === "settings" ? (
           <SettingsTab
             defaultCompactPath={defaultCompactPath}
-            defaultFolderId={defaultFolderOption?.id ?? selectedFolderId}
+            defaultFolderId={defaultFolderOption?.id ?? bootstrap.selectedFolderId}
             defaultPath={defaultFolderPath}
             recentFolders={recentFolders}
-            settings={settings}
-            tree={tree}
-            updateDefaultFolder={(folderId) => void updateDefaultFolder(folderId)}
-            updateSettings={(patch) => void updateSettings(patch)}
+            settings={bootstrap.settings}
+            tree={bootstrap.tree}
+            updateDefaultFolder={(folderId) => void actions.updateDefaultFolder(folderId)}
+            updateSettings={(patch) => void actions.updateSettings(patch)}
           />
         ) : null}
       </section>
 
-      {activeTab === "save" ? (
+      {bootstrap.activeTab === "save" ? (
         <PopupFooter
-          canSave={Boolean(pageDetails?.canSave && selectedFolderId)}
+          canSave={Boolean(bootstrap.pageDetails?.canSave && bootstrap.selectedFolderId)}
           formId="popup-save-form"
-          saving={saving}
+          saving={saveState.saving}
           selectedTitle={selectedTitle}
-          status={status}
-          statusTone={statusTone}
+          status={bootstrap.status}
+          statusTone={bootstrap.statusTone}
         />
       ) : null}
     </main>

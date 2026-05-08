@@ -1,18 +1,10 @@
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { FolderCascadeMenu } from "../../components/FolderCascadeMenu";
-import {
-  buildFolderCascadeInitialPathIds,
-  buildFolderPathHighlightIds,
-  canCreateBookmarkInFolder,
-  type BookmarkNode,
-  type FolderOption
-} from "../../features/bookmarks";
+import type { BookmarkNode, FolderOption } from "../../features/bookmarks";
 import { openExtensionShortcutSettings, openWorkspace } from "../../features/popup";
 import type { SettingsState } from "../../features/settings";
 import { SEARCH_CATEGORIES, SEARCH_ENGINES } from "../../features/newtab";
-import { ChevronRightIcon, FolderIcon } from "../components/PopupIcons";
-
-const DEFAULT_FOLDER_MENU_CLOSE_DELAY_MS = 220;
+import { ChevronRightIcon } from "../components/PopupIcons";
+import { DefaultFolderMenu } from "./settings/DefaultFolderMenu";
+import { SelectRow, SwitchRow } from "./settings/SettingsRows";
 
 export function SettingsTab({
   defaultCompactPath,
@@ -33,56 +25,6 @@ export function SettingsTab({
   updateDefaultFolder(folderId: string): void;
   updateSettings(patch: Partial<SettingsState>): void;
 }) {
-  const [folderMenuOpen, setFolderMenuOpen] = useState(false);
-  const folderMenuRef = useRef<HTMLDivElement>(null);
-  const closeTimerRef = useRef<number | undefined>(undefined);
-  const initialPathIds = useMemo(
-    () => buildFolderCascadeInitialPathIds(tree, defaultFolderId),
-    [defaultFolderId, tree]
-  );
-  const highlightedFolderIds = useMemo(
-    () => buildFolderPathHighlightIds(tree, defaultFolderId),
-    [defaultFolderId, tree]
-  );
-
-  useEffect(() => {
-    return () => clearCloseTimer();
-  }, []);
-
-  useEffect(() => {
-    if (!folderMenuOpen) {
-      return;
-    }
-
-    function handlePointerDown(event: PointerEvent) {
-      const target = event.target;
-
-      if (target instanceof Node && folderMenuRef.current?.contains(target)) {
-        return;
-      }
-
-      closeFolderMenu();
-    }
-
-    function handleKeyDown(event: KeyboardEvent) {
-      if (event.key !== "Escape") {
-        return;
-      }
-
-      event.preventDefault();
-      event.stopPropagation();
-      closeFolderMenu();
-    }
-
-    window.addEventListener("pointerdown", handlePointerDown, true);
-    window.addEventListener("keydown", handleKeyDown, true);
-
-    return () => {
-      window.removeEventListener("pointerdown", handlePointerDown, true);
-      window.removeEventListener("keydown", handleKeyDown, true);
-    };
-  }, [folderMenuOpen]);
-
   return (
     <section className="settings-tab tab-scroll-area">
       <section className="settings-card">
@@ -161,61 +103,14 @@ export function SettingsTab({
         <div className="section-heading">
           <h2>默认保存位置</h2>
         </div>
-        <div className="default-folder-row">
-          <span className="location-folder-icon">
-            <FolderIcon />
-          </span>
-          <span title={defaultPath || undefined}>{defaultCompactPath || "正在读取保存位置"}</span>
-          <div
-            ref={folderMenuRef}
-            className="settings-cascade-host"
-            onPointerEnter={keepFolderMenuOpen}
-            onPointerLeave={scheduleFolderMenuClose}
-          >
-            <button
-              type="button"
-              className="secondary-action small"
-              aria-expanded={folderMenuOpen}
-              aria-haspopup="menu"
-              onClick={openFolderMenu}
-              onFocus={openFolderMenu}
-            >
-              更改
-            </button>
-            {folderMenuOpen ? (
-              <div
-                className="settings-cascade-menu"
-                role="menu"
-                onPointerEnter={keepFolderMenuOpen}
-                onPointerLeave={scheduleFolderMenuClose}
-              >
-                <FolderCascadeMenu
-                  nodes={tree}
-                  selectedFolderId={defaultFolderId}
-                  currentFolderId={defaultFolderId}
-                  initialActivePathIds={initialPathIds}
-                  highlightedFolderIds={highlightedFolderIds}
-                  disabledLabel="不可保存"
-                  canSelect={canCreateBookmarkInFolder}
-                  onSelect={(folder) => {
-                    updateDefaultFolder(folder.id);
-                    closeFolderMenu();
-                  }}
-                  portalContainer={folderMenuRef.current ?? undefined}
-                />
-              </div>
-            ) : null}
-          </div>
-        </div>
-        {recentFolders.length > 0 ? (
-          <div className="settings-mini-chips" aria-label="最近位置">
-            {recentFolders.map((option) => (
-              <button key={option.id} type="button" onClick={() => updateDefaultFolder(option.id)}>
-                {option.title}
-              </button>
-            ))}
-          </div>
-        ) : null}
+        <DefaultFolderMenu
+          defaultCompactPath={defaultCompactPath}
+          defaultFolderId={defaultFolderId}
+          defaultPath={defaultPath}
+          recentFolders={recentFolders}
+          tree={tree}
+          updateDefaultFolder={updateDefaultFolder}
+        />
       </section>
 
       <section className="settings-card">
@@ -276,76 +171,5 @@ export function SettingsTab({
         打开高级设置 <ChevronRightIcon />
       </button>
     </section>
-  );
-
-  function clearCloseTimer() {
-    if (closeTimerRef.current) {
-      window.clearTimeout(closeTimerRef.current);
-      closeTimerRef.current = undefined;
-    }
-  }
-
-  function openFolderMenu() {
-    clearCloseTimer();
-    setFolderMenuOpen(true);
-  }
-
-  function closeFolderMenu() {
-    clearCloseTimer();
-    setFolderMenuOpen(false);
-  }
-
-  function keepFolderMenuOpen() {
-    clearCloseTimer();
-  }
-
-  function scheduleFolderMenuClose() {
-    clearCloseTimer();
-    closeTimerRef.current = window.setTimeout(
-      closeFolderMenu,
-      DEFAULT_FOLDER_MENU_CLOSE_DELAY_MS
-    );
-  }
-}
-
-function SwitchRow({
-  checked,
-  label,
-  onChange
-}: {
-  checked: boolean;
-  label: string;
-  onChange(value: boolean): void;
-}) {
-  return (
-    <label className="switch-row">
-      <span>{label}</span>
-      <input
-        type="checkbox"
-        checked={checked}
-        onChange={(event) => onChange(event.target.checked)}
-      />
-    </label>
-  );
-}
-
-function SelectRow({
-  children,
-  label,
-  onChange,
-  value
-}: {
-  children: ReactNode;
-  label: string;
-  value: string;
-  onChange(value: string): void;
-}) {
-  return (
-    <label className="select-row">
-      <span>{label}</span>
-      <select value={value} onChange={(event) => onChange(event.target.value)}>
-        {children}
-      </select>
-    </label>
   );
 }

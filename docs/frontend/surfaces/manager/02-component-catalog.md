@@ -4,9 +4,9 @@
 
 - 文件：`src/app/App.tsx`
 - 角色：管理页总控组件。
-- 持有：搜索、拖拽、高亮、右键菜单、弹窗、操作日志、最近文件夹、展开文件夹、toast、settings、metadata、selection。
-- 依赖：`useBookmarks()`、`useMetadata()`、`useSettings()`、`useSelectionState()`。
-- 写操作：`bookmarksAdapter.create/update/move/remove`、`updateNote()`、`saveRecentFolder()`、`updateSettings()`。
+- 持有：搜索、高亮、右键菜单、弹窗、toast、settings、metadata、selection，以及由 workspace hooks 返回的拖拽、操作日志、最近文件夹、展开文件夹状态。
+- 依赖：`useBookmarks()`、`useMetadata()`、`useSettings()`、`useSelectionState()`、`useWorkspaceDragDrop()`、`useRecentFolders()`、`useExpandedFolders()`、`useOperationLog()`、`useWorkspaceDeepLink()`。
+- 写操作：`bookmarksAdapter.create/update/move/remove`、`updateNote()`、`rememberRecentFolder()`、`updateSettings()`。
 
 关键职责：
 
@@ -30,6 +30,7 @@
 - 树内书签开启后，书签 row 也能拖拽。
 - 文件夹 row 的拖拽区分中部 drop-in 与上下边缘 reorder。
 - 自动滚动和滚轮滚动不能被外层布局截断。
+- 内部模块位于 `src/components/folder-tree/*`；`FolderTree.tsx` 只保留 public wrapper 和顶层 drop 状态编排。
 
 ## `TopToolbar`
 

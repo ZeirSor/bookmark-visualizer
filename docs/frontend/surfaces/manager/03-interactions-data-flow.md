@@ -13,7 +13,8 @@
   → useSettings()
     → settingsService.loadSettings()
     → storageAdapter.get()
-  → loadRecentFolderState()
+  → useRecentFolders()
+    → loadRecentFolderState()
     → storageAdapter.get()
 ```
 
@@ -34,7 +35,7 @@ SearchBar input
 ## 选择文件夹链路
 
 ```text
-FolderTree row click / Breadcrumb click / FolderStrip click / New Tab deep link
+FolderTree row click / Breadcrumb click / FolderStrip click / useWorkspaceDeepLink()
   → handleSelectFolder() / handleBreadcrumbSelectFolder()
   → setQuery("") 或保留 query 逻辑
   → selectFolder(folderId) from useBookmarks()

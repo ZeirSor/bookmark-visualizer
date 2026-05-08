@@ -93,7 +93,7 @@ SettingsTab 是 Popup 的常用配置入口，包含：
 ```text
 SettingsTab 更改默认位置
   → updateDefaultFolder(folder.id)
-  → PopupApp.updateDefaultFolder(folderId)
+  → usePopupSaveActions.updateDefaultFolder(folderId)
   → setSelectedFolderId(folderId)
   → updateSettings({ popupDefaultFolderId: folderId })
   → saveSettings()
@@ -122,7 +122,8 @@ SettingsTab 更改默认位置
 
 | 组件 | 文件 | 说明 |
 |---|---|---|
-| `SwitchRow` | `SettingsTab.tsx` | label + checkbox；写入布尔 settings |
-| `SelectRow` | `SettingsTab.tsx` | label + select；写入枚举 settings |
+| `SwitchRow` | `src/popup/tabs/settings/SettingsRows.tsx` | label + checkbox；写入布尔 settings |
+| `SelectRow` | `src/popup/tabs/settings/SettingsRows.tsx` | label + select；写入枚举 settings |
+| `DefaultFolderMenu` | `src/popup/tabs/settings/DefaultFolderMenu.tsx` | 默认保存位置级联菜单、最近位置 chips、hover 延迟关闭 |
 
 建议：当 settings 表单继续变复杂时，将 `SwitchRow`、`SelectRow` 上移为 Popup 局部 primitive。候选未来路径可以是 `src/popup/components/SettingsRows.tsx`；该文件当前尚不存在，不能在代码导航中当作现有文件引用。

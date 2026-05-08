@@ -43,7 +43,7 @@ SearchPanel query state
   → createMixedSearchSuggestions({ tree, query, engineId, category, shortcuts })
   → suggestions
   → 用户点击/Enter
-  → NewTabApp.handleOpenSuggestion(suggestion)
+  → useNewTabActions.handleOpenSuggestion(suggestion)
 ```
 
 ### 建议类型

@@ -1,7 +1,6 @@
 import {
   useEffect,
   useMemo,
-  useRef,
   useState,
   type CSSProperties,
   type DragEvent,
@@ -25,11 +24,18 @@ import { RightRail } from "./workspace/components/RightRail";
 import { SearchFilterSummary } from "./workspace/components/SearchFilterSummary";
 import { SelectionActionBar } from "./workspace/components/SelectionActionBar";
 import { TopToolbar } from "./workspace/components/TopToolbar";
+import { useExpandedFolders } from "./workspace/hooks/useExpandedFolders";
+import { useOperationLog } from "./workspace/hooks/useOperationLog";
+import { useRecentFolders } from "./workspace/hooks/useRecentFolders";
 import { useSelectionState } from "./workspace/hooks/useSelectionState";
+import { useWorkspaceDragDrop } from "./workspace/hooks/useWorkspaceDragDrop";
+import { useWorkspaceDeepLink } from "./workspace/hooks/useWorkspaceDeepLink";
 import {
+  formatFolderUpdatedLabel,
   getDirectFolders,
   getFolderDisplayLabel,
-  getFolderStats
+  getFolderStats,
+  getSelectedBookmarksForAction
 } from "./workspace/selectors/workspaceSelectors";
 import type {
   BookmarkContextMenuState,
@@ -37,7 +43,6 @@ import type {
   FolderPickerDialogState,
   NewBookmarkDraftState,
   NewFolderDialogState,
-  OperationLogEntry,
   ToastState
 } from "./workspace/types";
 import {
@@ -48,12 +53,9 @@ import {
 } from "./workspace/helpers";
 import { bookmarksAdapter } from "../lib/chrome";
 import {
-  buildFolderBreadcrumbItems,
   buildRetainedFolderBreadcrumbItems,
   canCreateBookmarkInFolder,
-  collectFolderIds,
   canRenameFolder,
-  findNodeById,
   getDisplayTitle,
   getFolderEndIndex,
   getRetainedBreadcrumbTailIds,
@@ -79,23 +81,14 @@ import {
   type FolderDropIntent
 } from "../features/drag-drop";
 import { useMetadata } from "../features/metadata";
-import {
-  loadRecentFolderState,
-  resolveRecentFolderOptions,
-  saveRecentFolder
-} from "../features/recent-folders";
+import { resolveRecentFolderOptions } from "../features/recent-folders";
 import { searchBookmarks } from "../features/search";
 import { useSettings } from "../features/settings";
 
 export function App() {
   const [query, setQuery] = useState("");
-  const [draggedBookmark, setDraggedBookmark] = useState<DraggedBookmarkSnapshot>();
-  const [draggedFolder, setDraggedFolder] = useState<DraggedFolderSnapshot>();
   const [highlightedBookmarkId, setHighlightedBookmarkId] = useState<string>();
   const [highlightPulseId, setHighlightPulseId] = useState<string>();
-  const [operationLogOpen, setOperationLogOpen] = useState(false);
-  const [operationLog, setOperationLog] = useState<OperationLogEntry[]>([]);
-  const operationLogRef = useRef<OperationLogEntry[]>([]);
   const [contextMenu, setContextMenu] = useState<BookmarkContextMenuState>();
   const [folderContextMenu, setFolderContextMenu] = useState<FolderContextMenuState>();
   const [inlineEditRequest, setInlineEditRequest] = useState<{ bookmarkId: string; requestId: number }>();
@@ -104,12 +97,21 @@ export function App() {
   const [newBookmarkDraft, setNewBookmarkDraft] = useState<NewBookmarkDraftState>();
   const [folderPickerDialog, setFolderPickerDialog] = useState<FolderPickerDialogState>();
   const [shortcutDialogOpen, setShortcutDialogOpen] = useState(false);
-  const [activeBookmarkDropIntent, setActiveBookmarkDropIntent] = useState<BookmarkDropIntent>();
-  const [recentFolderIds, setRecentFolderIds] = useState<string[]>([]);
-  const [expandedFolderIds, setExpandedFolderIds] = useState<Set<string>>(new Set());
   const [retainedBreadcrumbTailIds, setRetainedBreadcrumbTailIds] = useState<string[]>([]);
   const [toast, setToast] = useState<ToastState>();
-  const deepLinkHandledRef = useRef(false);
+  const dragDrop = useWorkspaceDragDrop();
+  const {
+    draggedBookmark,
+    setDraggedBookmark,
+    draggedFolder,
+    setDraggedFolder,
+    activeBookmarkDropIntent,
+    setActiveBookmarkDropIntent,
+    handleBookmarkDragEnd
+  } = dragDrop;
+  const { recentFolderIds, rememberRecentFolder } = useRecentFolders();
+  const { operationLogOpen, setOperationLogOpen, operationLog, addOperation, undoOperation } =
+    useOperationLog({ setToast });
   const { metadata, updateNote } = useMetadata();
   const { settings, updateSettings } = useSettings();
   const selection = useSelectionState();
@@ -125,6 +127,22 @@ export function App() {
     selectFolder,
     updateTree
   } = useBookmarks();
+  const {
+    expandedFolderIds,
+    toggleFolderExpanded,
+    expandAllFolders,
+    collapseAllFolders,
+    expandFolders,
+    expandFolderPath
+  } = useExpandedFolders(tree);
+
+  useWorkspaceDeepLink({
+    tree,
+    selectFolder,
+    expandFolderPath,
+    setHighlightedBookmarkId,
+    setRetainedBreadcrumbTailIds
+  });
 
   useEffect(() => {
     document.documentElement.dataset.theme = settings.theme;
@@ -140,80 +158,6 @@ export function App() {
       window.history.replaceState({}, "", window.location.pathname);
     }
   }, []);
-
-  useEffect(() => {
-    if (deepLinkHandledRef.current || tree.length === 0) {
-      return;
-    }
-
-    const params = new URLSearchParams(window.location.search);
-    const folderId = params.get("folderId");
-    const bookmarkId = params.get("bookmarkId");
-    const linkedFolder = folderId ? findNodeById(tree, folderId) : undefined;
-
-    if (linkedFolder?.children) {
-      deepLinkHandledRef.current = true;
-      setHighlightedBookmarkId(undefined);
-      setRetainedBreadcrumbTailIds([]);
-      selectFolder(linkedFolder.id);
-      expandFolderPath(linkedFolder.id);
-      return;
-    }
-
-    const linkedBookmark = bookmarkId ? findNodeById(tree, bookmarkId) : undefined;
-
-    if (linkedBookmark?.url && linkedBookmark.parentId) {
-      deepLinkHandledRef.current = true;
-      setHighlightedBookmarkId(linkedBookmark.id);
-      setRetainedBreadcrumbTailIds([]);
-      selectFolder(linkedBookmark.parentId);
-      expandFolderPath(linkedBookmark.parentId);
-    }
-  }, [tree, selectFolder]);
-
-  useEffect(() => {
-    operationLogRef.current = operationLog;
-  }, [operationLog]);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    async function loadRecentFolders() {
-      try {
-        const state = await loadRecentFolderState();
-        if (!cancelled) {
-          setRecentFolderIds(state.folderIds);
-        }
-      } catch {
-        // 最近文件夹只是辅助 UI，读取失败不阻塞主界面。
-      }
-    }
-
-    void loadRecentFolders();
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  useEffect(() => {
-    const folderIds = collectFolderIds(tree);
-    const availableFolderIds = new Set(folderIds);
-
-    setExpandedFolderIds((current) => {
-      if (folderIds.length === 0) {
-        return current.size === 0 ? current : new Set();
-      }
-
-      const next = new Set([...current].filter((id) => availableFolderIds.has(id)));
-
-      if (next.size === 0) {
-        return new Set(folderIds);
-      }
-
-      return next;
-    });
-  }, [tree]);
 
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
@@ -285,10 +229,7 @@ export function App() {
       }))
     : selectedBookmarks.map((bookmark) => ({ bookmark, folderPath: undefined }));
   const selectedBookmarksForAction = useMemo(
-    () =>
-      [...selection.selectedIds]
-        .map((id) => findNodeById(tree, id))
-        .filter((bookmark): bookmark is BookmarkNode => Boolean(bookmark?.url)),
+    () => getSelectedBookmarksForAction(selection.selectedIds, tree),
     [selection.selectedIds, tree]
   );
   const storageSummary = useMemo(() => {
@@ -605,28 +546,6 @@ export function App() {
     selectFolder(folderId);
   }
 
-  function toggleFolderExpanded(folderId: string) {
-    setExpandedFolderIds((current) => {
-      const next = new Set(current);
-
-      if (next.has(folderId)) {
-        next.delete(folderId);
-      } else {
-        next.add(folderId);
-      }
-
-      return next;
-    });
-  }
-
-  function expandAllFolders() {
-    setExpandedFolderIds(new Set(collectFolderIds(tree)));
-  }
-
-  function collapseAllFolders() {
-    setExpandedFolderIds(new Set());
-  }
-
   function handleSidebarResizeStart(event: ReactMouseEvent<HTMLDivElement>) {
     event.preventDefault();
     const startX = event.clientX;
@@ -668,11 +587,6 @@ export function App() {
     }
 
     await reorderBookmarkWithUndo(snapshot, intent);
-  }
-
-  function handleBookmarkDragEnd() {
-    setDraggedBookmark(undefined);
-    setActiveBookmarkDropIntent(undefined);
   }
 
   function handleBookmarkCardDragOver(bookmark: BookmarkNode, event: DragEvent<HTMLElement>) {
@@ -823,15 +737,6 @@ export function App() {
       setToast({ message: getErrorMessage(cause, "调整书签顺序失败。") });
     } finally {
       setDraggedBookmark(undefined);
-    }
-  }
-
-  async function rememberRecentFolder(folderId: string) {
-    try {
-      const state = await saveRecentFolder(folderId);
-      setRecentFolderIds(state.folderIds);
-    } catch {
-      // 最近文件夹写入失败不影响书签移动结果。
     }
   }
 
@@ -1227,25 +1132,6 @@ export function App() {
     window.open(bookmark.url, "_blank", "noopener,noreferrer");
   }
 
-  function expandFolders(...folderIds: Array<string | undefined>) {
-    setExpandedFolderIds((current) => {
-      const next = new Set(current);
-
-      folderIds.forEach((folderId) => {
-        if (folderId) {
-          next.add(folderId);
-        }
-      });
-
-      return next;
-    });
-  }
-
-  function expandFolderPath(folderId: string) {
-    const pathItems = buildFolderBreadcrumbItems(tree, folderId);
-    expandFolders(...pathItems.map((item) => item.id));
-  }
-
   async function handleSaveTitle(bookmark: BookmarkNode, title: string) {
     const trimmedTitle = title.trim();
 
@@ -1340,69 +1226,4 @@ export function App() {
     }
   }
 
-  function addOperation(operation: Omit<OperationLogEntry, "id" | "createdAt" | "status">): string {
-    const id = crypto.randomUUID();
-    const entry: OperationLogEntry = {
-      id,
-      createdAt: Date.now(),
-      status: "ready",
-      ...operation
-    };
-
-    operationLogRef.current = [entry, ...operationLogRef.current];
-    setOperationLog(operationLogRef.current);
-
-    return id;
-  }
-
-  async function undoOperation(id: string) {
-    const entry = operationLogRef.current.find((item) => item.id === id);
-
-    if (!entry?.undo || entry.status !== "ready") {
-      return;
-    }
-
-    try {
-      await entry.undo();
-      operationLogRef.current = operationLogRef.current.map((item) =>
-        item.id === id ? { ...item, status: "undone" } : item
-      );
-      setOperationLog(operationLogRef.current);
-      setToast({ message: "已撤回该操作。" });
-    } catch (cause) {
-      operationLogRef.current = operationLogRef.current.map((item) =>
-        item.id === id ? { ...item, status: "failed" } : item
-      );
-      setOperationLog(operationLogRef.current);
-      setToast({ message: getErrorMessage(cause, "撤回失败。") });
-    }
-  }
-}
-
-function formatFolderUpdatedLabel(timestamp?: number): string | undefined {
-  if (!timestamp) {
-    return undefined;
-  }
-
-  const diffMs = Date.now() - timestamp;
-  const minuteMs = 60 * 1000;
-  const hourMs = 60 * minuteMs;
-  const dayMs = 24 * hourMs;
-
-  if (diffMs < minuteMs) {
-    return "刚刚更新";
-  }
-
-  if (diffMs < hourMs) {
-    return `上次更新 ${Math.max(1, Math.floor(diffMs / minuteMs))} 分钟前`;
-  }
-
-  if (diffMs < dayMs) {
-    return `上次更新 ${Math.floor(diffMs / hourMs)} 小时前`;
-  }
-
-  return `上次更新 ${new Intl.DateTimeFormat("zh-CN", {
-    month: "2-digit",
-    day: "2-digit"
-  }).format(new Date(timestamp))}`;
 }

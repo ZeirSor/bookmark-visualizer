@@ -21,10 +21,12 @@ popup.html
 
 | 责任 | 文件 |
 |---|---|
-| Popup 总控、状态、保存、新建文件夹、设置更新 | `src/popup/PopupApp.tsx` |
+| Popup 总控、tab 条件渲染、派生 view data | `src/popup/PopupApp.tsx` |
+| Popup 初始状态 / 保存表单 / actions hooks | `src/popup/hooks/*` |
 | 保存 Tab | `src/popup/tabs/SaveTab.tsx` |
 | 管理 Tab | `src/popup/tabs/ManageTab.tsx` |
 | 设置 Tab | `src/popup/tabs/SettingsTab.tsx` |
+| 设置 Tab 子组件 | `src/popup/tabs/settings/*` |
 | 页面预览卡 | `src/popup/components/PagePreviewCard.tsx` |
 | 保存位置组合控件 | `src/popup/components/SaveLocationPicker.tsx` |
 | 保存位置子组件 | `src/popup/components/save-location/*` |
@@ -62,20 +64,9 @@ popup.html
 
 | 状态 | 文件 | 用途 |
 |---|---|---|
-| `activeTab` | `PopupApp.tsx` | 当前 Tab：save / manage / settings |
-| `settings` | `PopupApp.tsx` | Popup 行为、新标签页设置、默认保存位置 |
-| `pageDetails` | `PopupApp.tsx` | 当前标签页 title/url/preview/canSave |
-| `tree` | `PopupApp.tsx` | 文件夹树，用于保存位置选择 |
-| `recentFolderIds` | `PopupApp.tsx` | 最近保存位置 |
-| `selectedFolderId` | `PopupApp.tsx` | 当前保存目标 |
-| `title` | `PopupApp.tsx` | 可编辑保存标题 |
-| `note` | `PopupApp.tsx` | 保存备注 |
-| `query` | `PopupApp.tsx` | 文件夹搜索词 |
-| `status` / `statusTone` | `PopupApp.tsx` | Footer 状态反馈 |
-| `saving` | `PopupApp.tsx` | 保存按钮 loading/disabled |
-| `creatingFolder` | `PopupApp.tsx` | 新建文件夹 loading |
-| `createOpen` / `folderName` / `createParentFolderId` | `PopupApp.tsx` | 原位新建文件夹 |
-| `previewFailed` | `PopupApp.tsx` | 页面预览图片 fallback |
+| `activeTab` / `settings` / `pageDetails` / `tree` / `recentFolderIds` / `selectedFolderId` / `title` / footer status | `usePopupBootstrap.ts` | 初始加载和主状态 |
+| `note` / `query` / `saving` / `creatingFolder` / `createOpen` / `folderName` / `createParentFolderId` / `previewFailed` | `usePopupSaveState.ts` | 保存表单瞬时状态 |
+| `save()` / `createFolder()` / `updateSettings()` / `updateDefaultFolder()` | `usePopupSaveActions.ts` | 保存、新建和设置写入副作用 |
 
 ## 当前已实现能力
 
@@ -90,7 +81,7 @@ popup.html
 ## 当前边界
 
 - Popup 内不做完整书签管理。
-- Popup 保存位置搜索最多显示 4 条结果，由 `PopupApp.tsx` slice 控制。
+- Popup 保存位置搜索最多显示 4 条结果，由 `PopupApp.tsx` 派生 searchResults 时 slice 控制。
 - 保存位置路径文本只展示，真正打开级联菜单的是箭头按钮。
 - Settings 中默认保存位置的级联菜单挂在 `settings-cascade-host` 内，不是全局 portal。
 - Popup 主题设置存在并会持久化为 `popupThemeMode`，但当前尚未完整作用到 CSS dark mode。

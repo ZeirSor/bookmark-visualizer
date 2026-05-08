@@ -30,7 +30,12 @@
 | `src/app/workspace/components/SelectionActionBar.tsx` | 批量选择条 |
 | `src/app/workspace/components/RightRail.tsx` | 右侧辅助栏 |
 | `src/app/workspace/hooks/useSelectionState.ts` | 批量选择状态 |
-| `src/app/workspace/selectors/workspaceSelectors.ts` | 子文件夹和统计 selector |
+| `src/app/workspace/hooks/useRecentFolders.ts` | 最近文件夹读取与记忆 |
+| `src/app/workspace/hooks/useExpandedFolders.ts` | 文件夹树展开状态 |
+| `src/app/workspace/hooks/useOperationLog.ts` | 操作日志和撤销状态 |
+| `src/app/workspace/hooks/useWorkspaceDeepLink.ts` | URL folder/bookmark deep link |
+| `src/app/workspace/hooks/useWorkspaceDragDrop.ts` | 管理页拖拽瞬时状态 |
+| `src/app/workspace/selectors/workspaceSelectors.ts` | 子文件夹、统计、选中书签和更新时间 selector |
 | `src/app/workspace/helpers.ts` | 管理页 helper |
 | `src/app/workspace/types.ts` | 管理页类型 |
 
@@ -39,10 +44,15 @@
 | 文件 | 说明 |
 |---|---|
 | `src/popup/PopupApp.tsx` | Popup 主控：tab、settings、initial state、保存状态 |
+| `src/popup/hooks/usePopupBootstrap.ts` | Popup 初始加载、settings、当前页、书签树和 footer 状态 |
+| `src/popup/hooks/usePopupSaveState.ts` | Popup 保存表单瞬时状态 |
+| `src/popup/hooks/usePopupSaveActions.ts` | Popup 保存、新建文件夹、settings 写入 |
 | `src/popup/styles.css` | Popup 样式 |
 | `src/popup/tabs/SaveTab.tsx` | 保存 Tab |
 | `src/popup/tabs/ManageTab.tsx` | 管理 Tab |
 | `src/popup/tabs/SettingsTab.tsx` | 设置 Tab |
+| `src/popup/tabs/settings/SettingsRows.tsx` | Settings switch/select 行 |
+| `src/popup/tabs/settings/DefaultFolderMenu.tsx` | 默认保存位置级联菜单 |
 | `src/popup/components/PagePreviewCard.tsx` | 页面预览卡 |
 | `src/popup/components/PopupFooter.tsx` | 保存 footer |
 | `src/popup/components/SaveLocationPicker.tsx` | 保存位置组合控件 |
@@ -63,9 +73,13 @@
 | 文件 | 说明 |
 |---|---|
 | `src/newtab/NewTabApp.tsx` | New Tab 主控 |
+| `src/newtab/hooks/useNewTabBootstrap.ts` | New Tab settings/tree/state/activity bootstrap |
+| `src/newtab/hooks/useNewTabActions.ts` | New Tab 打开、记录、shortcut、settings actions |
 | `src/newtab/styles.css` | New Tab 样式 |
 | `src/newtab/components/SearchPanel.tsx` | 搜索 hero 和建议；`.nt-search-row` 是搜索输入行，`.nt-suggestion-item` 是建议项 |
 | `src/newtab/components/NewTabSections.tsx` | 快捷方式、分组、精选、右侧面板 |
+| `src/newtab/components/NewTabModeTabs.tsx` | tabs 布局内容分区 |
+| `src/newtab/components/NewTabSidebar.tsx` | sidebar 布局左侧文件夹栏 |
 | `src/newtab/components/CustomizeLayoutPanel.tsx` | 自定义布局抽屉 |
 | `src/newtab/components/ShortcutDialog.tsx` | 添加快捷方式对话框 |
 | `src/features/newtab/newTabRedirect.ts` | New Tab runtime redirect |
@@ -83,6 +97,12 @@
 |---|---|
 | `src/features/quick-save/content.tsx` | 内容脚本入口，创建 Shadow DOM host |
 | `src/features/quick-save/QuickSaveDialog.tsx` | Quick Save UI |
+| `src/features/quick-save/hooks/useQuickSaveInitialState.ts` | 初始状态读取 |
+| `src/features/quick-save/hooks/useQuickSaveFolderBrowser.ts` | 文件夹搜索、浏览、最近和创建状态 |
+| `src/features/quick-save/hooks/useQuickSaveFormState.ts` | 标题、备注、预览 fallback、保存状态 |
+| `src/features/quick-save/components/FolderBreadcrumb.tsx` | 浏览路径面包屑 |
+| `src/features/quick-save/components/CreateFolderAction.tsx` | Quick Save 新建文件夹入口 |
+| `src/features/quick-save/focusTrap.ts` | Shadow DOM 焦点限制 |
 | `src/features/quick-save/contentStyle.ts` | Shadow DOM CSS |
 | `src/features/quick-save/pageDetails.ts` | 页面信息提取 |
 | `src/features/quick-save/createFolder.ts` | 创建文件夹 helper |
@@ -109,6 +129,8 @@
 | `src/components/BookmarkCard.tsx` | 管理页书签卡片 |
 | `src/components/FolderTree.tsx` | 管理页左侧树 |
 | `src/components/FolderCascadeMenu.tsx` | 共享级联菜单 |
+| `src/components/folder-tree/*` | FolderTree 内部节点、书签行、重命名、drop helper、auto-scroll |
+| `src/components/folder-cascade/*` | FolderCascadeMenu 内部 list / row / layer / placement / behavior |
 | `src/components/FolderMoveSubmenuContent.tsx` | 移动子菜单内容 |
 | `src/components/SearchBar.tsx` | 管理页搜索框 |
 | `src/components/icons/*` | 管理页 / Popup / 菜单图标 |

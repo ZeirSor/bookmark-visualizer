@@ -6,14 +6,19 @@
 |---|---|---|
 | 管理页右键移动 | `src/app/workspace/WorkspaceComponents.tsx` + `FolderMoveSubmenuContent.tsx` | 将书签移动到目标文件夹 |
 | Popup 保存位置 | `src/popup/components/save-location/LocationCascadeOverlay.tsx` | 选择保存文件夹 |
-| Popup 设置默认保存位置 | `src/popup/tabs/SettingsTab.tsx` | 修改 `popupDefaultFolderId` |
+| Popup 设置默认保存位置 | `src/popup/tabs/settings/DefaultFolderMenu.tsx` | 修改 `popupDefaultFolderId` |
 | Quick Save 浏览文件夹 | `src/features/quick-save/QuickSaveDialog.tsx` | 浏览 / 选择保存位置 |
 
 ## 主要文件
 
 | 文件 | 责任 |
 |---|---|
-| `src/components/FolderCascadeMenu.tsx` | 级联菜单主体、层级 hover、floating layer、定位计算 |
+| `src/components/FolderCascadeMenu.tsx` | public wrapper、active path / anchor / portal 编排 |
+| `src/components/folder-cascade/FolderCascadeList.tsx` | 当前层级列表容器 |
+| `src/components/folder-cascade/FolderCascadeRow.tsx` | 单行 hover / focus / select 行为 |
+| `src/components/folder-cascade/FloatingCascadeLayer.tsx` | floating 子级菜单和创建入口 |
+| `src/components/folder-cascade/cascadePlacement.ts` | folder flatten、尺寸估算、anchor 和 layer style helper |
+| `src/components/folder-cascade/cascadeBehavior.ts` | submenu 延迟关闭与 blur 外部关闭 |
 | `src/components/FolderMoveSubmenuContent.tsx` | 管理页移动菜单内容：搜索、最近、所有文件夹 |
 | `src/features/context-menu/popupCascadePlacement.ts` | Popup cascade root 定位 |
 | `src/features/bookmarks/bookmarkTree.ts` | 文件夹 flatten、路径、高亮、可选判断 |

@@ -77,6 +77,16 @@ close()
 | 状态 | `.status` | `QuickSaveDialog.tsx` | `aria-live="polite"` |
 | 保存按钮 | `.primary-button` | `QuickSaveDialog.tsx` | disabled when saving / no selectedFolderId |
 
+Quick Save 状态边界：
+
+| 责任 | 文件 |
+|---|---|
+| 背景消息发送 | `src/features/quick-save/quickSaveClient.ts` |
+| 初始状态读取 | `src/features/quick-save/hooks/useQuickSaveInitialState.ts` |
+| 文件夹搜索 / 浏览 / 最近 / 创建 | `src/features/quick-save/hooks/useQuickSaveFolderBrowser.ts` |
+| title / note / preview fallback / save submit | `src/features/quick-save/hooks/useQuickSaveFormState.ts` |
+| Shadow DOM Tab 焦点限制 | `src/features/quick-save/focusTrap.ts` |
+
 ## 快捷键与焦点
 
 `QuickSaveDialog` 在 shadowRoot 上监听 keydown：
@@ -91,7 +101,7 @@ close()
 ## 保存链路
 
 ```text
-QuickSaveDialog.save()
+useQuickSaveFormState.save()
   → if saving return
   → if !selectedFolderId setStatus("请选择保存位置。")
   → payload = { parentId, title, url, note, previewImageUrl }
@@ -109,7 +119,7 @@ QuickSaveDialog.save()
 
 ```text
 CreateFolderAction submit
-  → QuickSaveDialog.createFolder(parentFolder, title)
+  → useQuickSaveFolderBrowser.createFolder(parentFolder, title)
   → sendMessage({ type: QUICK_SAVE_CREATE_FOLDER, payload })
   → background create folder
   → response.state.tree + response.state.recentFolderIds

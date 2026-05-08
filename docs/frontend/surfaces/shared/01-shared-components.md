@@ -63,3 +63,10 @@
 | 搜索框 | `SearchBar.tsx`、`SearchPanel.tsx`、Popup folder search | 搜索语义不同：全局书签 / 混合 web / 文件夹 |
 
 原则：先共享 feature 逻辑和 token，不急着强行合并 UI 组件。
+
+## 共享组件内部边界
+
+| 组件 | 内部模块 | 维护重点 |
+|---|---|---|
+| `FolderTree` | `src/components/folder-tree/*` | public wrapper 保留在 `FolderTree.tsx`；递归节点、书签行、重命名输入、拖拽 drop helper、auto-scroll hook 分开维护 |
+| `FolderCascadeMenu` | `src/components/folder-cascade/*` | public wrapper 保留在 `FolderCascadeMenu.tsx`；list / row / floating layer / placement / blur-close 行为分开维护 |

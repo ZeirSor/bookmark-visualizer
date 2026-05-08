@@ -32,8 +32,10 @@ src/service-worker.ts
 | 责任 | 文件 |
 |---|---|
 | New Tab 页面总控 | `src/newtab/NewTabApp.tsx` |
+| New Tab 初始加载 / actions | `src/newtab/hooks/useNewTabBootstrap.ts`、`src/newtab/hooks/useNewTabActions.ts` |
 | 搜索 hero / 建议浮层 | `src/newtab/components/SearchPanel.tsx` |
 | 快速访问、分组、精选、最近活动、快捷操作 | `src/newtab/components/NewTabSections.tsx` |
+| Tabs / Sidebar 布局子组件 | `src/newtab/components/NewTabModeTabs.tsx`、`src/newtab/components/NewTabSidebar.tsx` |
 | 自定义布局抽屉 | `src/newtab/components/CustomizeLayoutPanel.tsx` |
 | 添加快捷方式对话框 | `src/newtab/components/ShortcutDialog.tsx` |
 | New Tab 状态存储 | `src/features/newtab/newTabState.ts` |
@@ -80,16 +82,14 @@ src/service-worker.ts
 
 | 状态 | 来源 | 用途 |
 |---|---|---|
-| `settings` | `loadSettings()` | 搜索引擎、搜索类型、布局模式、显示模块 |
-| `tree` | `bookmarksAdapter.getTree()` | 本地书签搜索、分组、精选书签 |
-| `state` | `loadNewTabState()` | pinned shortcuts、hidden URLs、selected folders、featured bookmarks |
-| `activities` | `loadRecentActivities()` | 最近活动右侧栏 |
-| `usageStats` | `loadUsageStats()` | 生成常用 shortcut |
+| `settings` / `tree` / `state` / `activities` / `usageStats` | `useNewTabBootstrap()` | 初始读取、loading、error |
 | `activeFolderId` | NewTabApp local state | 当前分组和精选书签 |
 | `customizeOpen` | NewTabApp local state | 自定义布局抽屉 |
 | `shortcutDialogOpen` | NewTabApp local state | 添加网站对话框 |
 | `activeContentTab` | NewTabApp local state | tabs 布局模式下的内容分区 |
 | `toast` | NewTabApp local state | 添加 shortcut 等短反馈 |
+
+副作用 actions（打开建议、记录 activity、添加 / 隐藏 shortcut、保存 settings）集中在 `useNewTabActions()`。
 
 ## 当前已实现能力
 

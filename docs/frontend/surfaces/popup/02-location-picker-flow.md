@@ -89,7 +89,7 @@
 ## FolderSearchResults
 
 - selector：`.folder-results`、`.folder-result-main`、`.result-badge`。
-- 数据：`PopupApp.searchResults`，由 `filterFolderOptions()` + `rankFolderOption()` 排序后 `.slice(0, 4)`。
+- 数据：`PopupApp` 派生的 `searchResults`，由 `filterFolderOptions()` + `rankFolderOption()` 排序后 `.slice(0, 4)`。
 - “最佳匹配”条件：第一项且 rank <= 2。
 - 选中项追加 `.is-selected`。
 
@@ -108,7 +108,7 @@
 
 ```text
 用户输入文件夹名
-  → createFolder() in PopupApp
+  → createFolder() from usePopupSaveActions()
   → createQuickSaveFolder({ parentId, title })
   → background quick save handler / bookmarksAdapter.create
   → 更新 tree / recentFolderIds
