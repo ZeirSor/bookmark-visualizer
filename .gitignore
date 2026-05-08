@@ -4,6 +4,7 @@ dist/
 coverage/
 *.local
 *.log
+docs/tmp/
 AGENTS.md
 AI_HANDOFF.md
 .ai/
