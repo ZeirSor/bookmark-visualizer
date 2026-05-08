@@ -9,6 +9,7 @@
 | Popup entry | `npm run build`, `npm run verify:popup-entry` |
 | Quick Save shortcut / injection | `npm run typecheck`, `npm run build`, shortcut manual QA |
 | New Tab redirect | `npm run typecheck`, `npm run build`, New Tab enable / disable manual QA |
-| Documentation-only | Markdown link / path check |
+| Documentation-only | `npm run docs:check`, Markdown link / path check |
+| AI workflow / validation docs | `npm run docs:check`, targeted stale-path `rg` checks, `npm run typecheck` if scripts or package commands changed |
 
 If a command is unavailable, record that explicitly and do not claim it passed.

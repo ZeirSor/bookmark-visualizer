@@ -56,7 +56,7 @@ The toolbar action opens `popup.html`. The full manager workspace opens from `in
 
 ## Preview
 
-A maintained screenshot or demo GIF should be committed before the first public release. If the demo asset is added to the repository, place it under `docs/assets/` and reference it from this section.
+A maintained screenshot or demo GIF should be committed before the first public release. Future demo assets should be placed under `docs/assets/` when that directory is added to the repository, then referenced from this section.
 
 ## Installation
 

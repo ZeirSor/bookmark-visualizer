@@ -64,6 +64,7 @@ Do not mix these layers:
 - Do not use `docs/` as a scratchpad for temporary task progress.
 - Do not leave durable product, architecture, or data rules only in `.ai/` records.
 - Do not claim planned files, features, or commands exist unless they are present in code or explicitly marked as planned.
+- Active documentation path validation excludes historical/generated records such as `.ai/logs/`, `.ai/dev-changelog/`, `.ai/archive/`, concrete `.ai/runs/*` folders except `.ai/runs/_TEMPLATE/`, `docs/tmp/`, `dist/`, and `node_modules/`.
 
 ## Work Mode Decision
 

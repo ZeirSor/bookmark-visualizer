@@ -251,6 +251,21 @@ Bookmark Visualizer Product
 
 ## 3. 当前项目结构：哪些地方挺好，哪些地方要改
 
+### Current Entry Points
+
+当前仓库入口文件是：
+
+- `src/main.tsx` — Manager workspace entry.
+- `src/popup/main.tsx` — Toolbar popup entry.
+- `src/newtab/main.tsx` — Optional New Tab dashboard entry.
+- `src/service-worker.ts` — Manifest V3 service worker entry.
+- `src/features/quick-save/content.tsx` — Quick Save content script entry.
+- `src/background/*` — Background-side runtime integration and message / command handlers.
+
+### Proposed Future Entrypoint Layout
+
+本节后续出现的 `src/entrypoints/...` 结构是未来重构提案，不代表当前仓库路径。当前实现路径以上方 Current Entry Points 为准。
+
 ### 3.1 值得保留的设计
 
 #### 1. 使用浏览器原生书签作为基础数据源
@@ -304,7 +319,7 @@ src/infrastructure/browser/chrome/
 纯领域逻辑       → src/domain/*
 业务用例         → src/application/*
 React hooks      → src/features/*/hooks 或 src/ui/hooks
-页面入口状态     → src/entrypoints/*
+未来页面入口状态 → src/entrypoints/*（Proposed future structure, not current repository path）
 ```
 
 ---
@@ -344,7 +359,7 @@ manifest 里没有全局 `host_permissions` 和全局 `content_scripts`，这对
 
 这已经不是一个页面组件，而是一个“前端业务中枢”。
 
-建议拆成：
+建议的未来拆分如下；这是 Proposed future structure, not current repository path：
 
 ```text
 src/entrypoints/workspace/
@@ -380,7 +395,7 @@ App.tsx 只负责组合，不负责具体业务细节
 
 当前 popup 已经承担保存、管理、设置三个 Tab。继续堆下去会变成第二个 `App.tsx`。
 
-建议拆成：
+建议的未来拆分如下；这是 Proposed future structure, not current repository path：
 
 ```text
 src/entrypoints/popup/
@@ -416,7 +431,7 @@ content script 的职责应当尽量薄：
 
 不建议在 content script 中长期堆复杂业务逻辑，因为它运行在网页上下文附近，受页面环境、CSP、iframe、权限等影响更大。
 
-建议拆成：
+建议的未来拆分如下；这是 Proposed future structure, not current repository path：
 
 ```text
 src/entrypoints/content-scripts/quick-save-content.tsx
@@ -448,7 +463,7 @@ src/application/quick-save/
 - 创建文件夹；
 - 最近文件夹处理。
 
-建议改为：
+建议的未来拆分如下；这是 Proposed future structure, not current repository path：
 
 ```text
 src/entrypoints/background/serviceWorker.ts

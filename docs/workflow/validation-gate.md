@@ -17,7 +17,8 @@ Do not mark a task `[x]` until relevant validation passes or a documented except
 | Popup entry | `npm run build`, `npm run verify:popup-entry`, popup manual QA |
 | Quick Save command / content script | `npm run typecheck`, `npm run build`, shortcut / injection manual QA |
 | New Tab redirect | `npm run typecheck`, `npm run build`, New Tab enable / disable manual QA |
-| Documentation-only | Markdown links, referenced paths, README links if touched |
+| Documentation-only | `npm run docs:check`, Markdown links, referenced paths, README links if touched |
+| AI workflow / validation docs | `npm run docs:check`, targeted stale-path `rg` checks, `npm run typecheck` if scripts or package commands changed |
 
 ## Manual QA By Surface
 
@@ -61,3 +62,19 @@ At minimum include:
 - relevant output summary;
 - whether failure is new, pre-existing, or unrelated;
 - what remains unverified.
+
+## Active Documentation Path Validation
+
+Use `npm run docs:check` when documentation work changes active path references, validation rules, local skills, or workflow docs.
+
+Historical AI records are not active source-of-truth documents. Documentation path validation must exclude:
+
+- `.ai/logs/`
+- `.ai/dev-changelog/`
+- `.ai/archive/`
+- concrete `.ai/runs/*` folders except `.ai/runs/_TEMPLATE/`
+- `node_modules/`
+- `dist/`
+- `docs/tmp/`
+
+Future or proposed paths are allowed only when the nearby text explicitly marks them as future, proposed, planned, or not current implementation.

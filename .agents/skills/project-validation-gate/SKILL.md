@@ -35,6 +35,22 @@ Read:
 5. Decide whether the task may be marked complete.
 6. Record results in `test-log.md` when a run folder exists.
 
+## Documentation Path Validation Rule
+
+For documentation-only, AI workflow, local skill, or validation-command changes that touch path references, include `npm run docs:check`.
+
+The docs path check validates active source-of-truth docs and skills. It must exclude historical/generated records:
+
+- `.ai/logs/`
+- `.ai/dev-changelog/`
+- `.ai/archive/`
+- concrete `.ai/runs/*` folders except `.ai/runs/_TEMPLATE/`
+- `node_modules/`
+- `dist/`
+- `docs/tmp/`
+
+Do not require mass-editing historical AI logs to satisfy current path validation. Future or proposed paths are acceptable only when nearby text clearly marks them as future, proposed, planned, or not current implementation.
+
 ## Output Format
 
 ```md
