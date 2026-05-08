@@ -1,34 +1,113 @@
 ---
 name: project-doc-routing
-description: Use when a task in this repository needs to decide which formal docs to read first, which module README to open, and which formal documents must be updated before finishing.
+description: Use before implementation or analysis to route a task to the smallest relevant set of formal project docs. This skill identifies docs to read and docs likely affected; it does not update documentation or write logs.
 ---
 
 # Project Doc Routing
 
-## Quick Start
+## Purpose
 
-- 在读取大量 `docs/` 正文前先用本 skill。
-- 先读 [doc-routing-matrix.md](references/doc-routing-matrix.md)。
-- 先看 `docs/README.md`，再按任务语义进入目标模块 README。
-- 不整仓通读 `docs/`；只读取最小必要正式文档集合。
+Use this skill before implementation, investigation, or documentation editing to find the formal project documents that provide the right context.
+
+This skill is a context router. It answers:
+
+- What type of change is this?
+- Which docs should be read before implementation?
+- Which docs are likely to require updates after implementation?
+- Which docs are intentionally not needed?
+
+This skill does **not** perform documentation maintenance. Use `project-doc-maintenance` after implementation and validation to synchronize docs with the current code.
+
+## Owned Scope
+
+This skill routes formal project documentation:
+
+- `docs/product/`
+- `docs/architecture/`
+- `docs/data/`
+- `docs/frontend/surfaces/`
+- `docs/guides/`
+- `docs/standards/`
+- `docs/workflow/`
+- `docs/playbooks/`
+- `docs/adr/`
+- `README.md`
+- `README.zh-CN.md`
+
+## Out Of Scope
+
+This skill does not maintain or write:
+
+- `.ai/logs/`
+- `.ai/dev-changelog/`
+- `.ai/runs/` task state, except to identify whether workflow docs should be read
+- `CHANGELOG.md`
+- release notes
+- ADRs, except to identify when an ADR workflow may be needed
+- test reports
+
+Global repo-record skills own transient work records and changelog-style records.
+
+## When To Use
+
+Use this skill before starting work when a task involves any of the following:
+
+- product behavior
+- Manager workspace
+- toolbar popup
+- Quick Save
+- optional New Tab
+- shared UI components
+- settings
+- storage keys
+- metadata
+- Chrome API boundaries
+- background service worker routing
+- manifest permissions
+- docs structure
+- AI workflow docs
+- playbook docs
+- README content
+- architecture boundaries
+- testing or acceptance instructions
+
+Skip this skill only for very small edits where the target doc or file is explicitly named and no surrounding context is needed.
 
 ## Workflow
 
-1. 识别当前任务更接近需求、功能、架构、API、数据、标准、演示，还是 ADR。
-2. 先读 `docs/README.md`。
-3. 按路由矩阵进入目标模块 README。
-4. 只继续读取当前任务需要的少量正式文档。
-5. 在任务结束前，根据路由矩阵判断哪些正式文档必须同步更新。
+1. Classify the task.
+2. Look up the task in `references/doc-routing-matrix.md`.
+3. Return the smallest useful reading set.
+4. Identify likely post-change docs for `project-doc-maintenance`.
+5. Note docs that are not needed to avoid broad context loading.
 
-## Reference Map
+## Output Format
 
-- [doc-routing-matrix.md](references/doc-routing-matrix.md): 任务语义、优先阅读入口和收尾更新目标
+Return a short routing note in this structure:
 
-## Output Rules
+```md
+## Doc Routing
 
-完成后只返回：
+Task type: <type>
 
-- 当前任务类型
-- 建议先读的 README 与正式文档
-- 当前不需要读的模块
-- 若任务落地修改，结束前应同步更新的正式文档列表
+Read before work:
+- <doc path> — <why>
+
+Likely affected after work:
+- <doc path> — <why>
+
+Probably not needed:
+- <doc path or area> — <why>
+```
+
+Keep the routing narrow. Do not list every doc in the repository.
+
+## Routing Principles
+
+- Prefer page-level PageDocs for UI tasks.
+- Prefer `docs/data/storage.md` for storage key and metadata changes.
+- Prefer `docs/architecture/module-boundaries.md` for ownership / dependency changes.
+- Prefer root README files only for public onboarding, entrypoint, feature, browser support, permission, command, or docs-index changes.
+- Prefer `docs/workflow/` and `docs/playbooks/` for Agent execution rules, not product facts.
+- Prefer ADR only for durable decisions, not ordinary implementation changes.
+- When unsure whether a doc is affected, mark it as "likely affected" for the maintenance skill to verify later.

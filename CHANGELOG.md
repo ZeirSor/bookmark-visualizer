@@ -1,5 +1,7 @@
 # Changelog
 
+This file records user-facing and release-relevant changes only. Use `.ai/logs/` for AI worklogs, `.ai/dev-changelog/` for development summaries, and `.ai/runs/` for active task state.
+
 ## [Unreleased]
 
 ### Added

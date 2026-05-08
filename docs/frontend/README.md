@@ -1,6 +1,6 @@
 # Frontend
 
-本目录维护 Bookmark Visualizer 的前端设计系统、跨界面一致性、组件模式、交互可访问性和实施路线图。
+本目录维护 Bookmark Visualizer 的前端设计系统、跨界面一致性、组件模式、交互可访问性、surface 级 UI 实现文档和实施路线图。
 
 ## Reading Order
 
@@ -8,8 +8,9 @@
 2. [Surface alignment plan](surface-alignment-plan.md)：管理页、New Tab、Popup 的角色分工和统一边界。
 3. [Component patterns](component-patterns.md)：按钮、输入、卡片、chip、菜单、浮层和反馈状态。
 4. [Accessibility and interaction](accessibility-and-interaction.md)：键盘、focus、target size、搜索建议和级联菜单规则。
-5. [Implementation roadmap](implementation-roadmap.md)：按阶段落地前端完善。
-6. [Documentation maintenance](documentation-maintenance.md)：前端文档维护触发条件和同步规则。
+5. [Frontend surfaces](surfaces/README.md)：Manager、Popup、New Tab 和 Quick Save 的 UI 结构、组件路径、selector 和回归清单。
+6. [Implementation roadmap](implementation-roadmap.md)：按阶段落地前端完善。
+7. [Documentation maintenance](documentation-maintenance.md)：前端文档维护触发条件和同步规则。
 
 ## Design Direction
 
@@ -17,4 +18,4 @@
 
 ## Maintenance
 
-当 UI token、跨页面视觉规范、组件交互、可访问性规则或前端验收口径变化时，更新本目录。产品行为变化同步更新 `docs/product/`；模块边界变化同步更新 `docs/architecture/`；验证命令和手动验收变化同步更新 `docs/guides/`。
+当 UI token、跨页面视觉规范、组件交互、可访问性规则、surface 实现导航或前端验收口径变化时，更新本目录。产品行为变化同步更新 `docs/product/`；模块边界变化同步更新 `docs/architecture/`；数据和 storage 变化同步更新 `docs/data/`；验证命令和手动验收变化同步更新 `docs/guides/`。

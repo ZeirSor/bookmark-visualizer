@@ -1,0 +1,63 @@
+# Validation Gate
+
+The validation gate decides whether a task can be marked complete.
+
+## General Rule
+
+Do not mark a task `[x]` until relevant validation passes or a documented exception exists.
+
+## Command Map
+
+| Change type | Required validation |
+|---|---|
+| TypeScript logic | `npm run typecheck`, relevant tests, `npm run build` |
+| UI surface behavior | `npm run typecheck`, `npm run build`, surface manual QA |
+| Storage / metadata | `npm run test`, `npm run typecheck`, `npm run build`, storage docs check |
+| Chrome API / manifest | `npm run typecheck`, `npm run build`, manifest / entry verification, affected manual QA |
+| Popup entry | `npm run build`, `npm run verify:popup-entry`, popup manual QA |
+| Quick Save command / content script | `npm run typecheck`, `npm run build`, shortcut / injection manual QA |
+| New Tab redirect | `npm run typecheck`, `npm run build`, New Tab enable / disable manual QA |
+| Documentation-only | Markdown links, referenced paths, README links if touched |
+
+## Manual QA By Surface
+
+### Manager Workspace
+
+- Open the manager workspace.
+- Confirm folder tree renders.
+- Select folders and breadcrumbs.
+- Search bookmarks.
+- Check card actions affected by the change.
+
+### Toolbar Popup
+
+- Open popup from toolbar action.
+- Confirm Save, Manage, and Settings tabs behave as expected.
+- Check current page title / URL detection if affected.
+- Check save location picker if affected.
+
+### Quick Save
+
+- Trigger the configured extension command.
+- Confirm the overlay injects into a normal webpage.
+- Confirm Shadow DOM styles remain isolated.
+- Confirm save location and save action still work if affected.
+
+### Optional New Tab
+
+- Enable New Tab override in settings.
+- Open a new tab and confirm redirect behavior.
+- Disable override and confirm browser default behavior returns.
+- Test search engine / category behavior if affected.
+
+## Recording Results
+
+Record every validation attempt in `.ai/runs/<run-id>/test-log.md` when a run folder exists.
+
+At minimum include:
+
+- command or manual check;
+- result;
+- relevant output summary;
+- whether failure is new, pre-existing, or unrelated;
+- what remains unverified.

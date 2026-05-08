@@ -2,32 +2,68 @@
 
 ## 愿景
 
-Bookmark Visualizer 希望把浏览器书签从“层级菜单”变成“可浏览、可搜索、可整理的工作台”。它不试图重建一个独立收藏系统，而是在浏览器原生书签之上提供更好的可视化和管理体验。
+Bookmark Visualizer 希望把浏览器书签从“层级菜单”变成“可浏览、可搜索、可整理、可快速保存的工作台”。它不重建一套独立收藏系统，而是在浏览器原生书签之上提供更好的可视化、保存、搜索和整理体验。
+
+## 当前入口
+
+当前项目是 Manifest V3 浏览器扩展，入口由 `public/manifest.json` 定义：
+
+```text
+public/manifest.json
+  → action.default_popup = popup.html
+  → background.service_worker = service-worker.js
+  → commands.open-quick-save = Ctrl+Shift+S / Command+Shift+S
+```
+
+因此，**点击浏览器工具栏插件图标时打开的是 `popup.html`，不是直接打开完整管理页**。
+
+当前主要页面与运行场景：
+
+| 页面 / 场景 | 入口 | 代码链路 | 用途 |
+|---|---|---|---|
+| Toolbar Popup | `popup.html` | `src/popup/main.tsx` → `src/popup/PopupApp.tsx` | 保存当前网页、进入管理页、修改基础设置 |
+| 完整管理页 | `index.html` | `src/main.tsx` → `src/app/App.tsx` | 书签树浏览、搜索、拖拽整理、批量操作、右侧辅助信息 |
+| New Tab Portal | `newtab.html` | `src/newtab/main.tsx` → `src/newtab/NewTabApp.tsx` | 可选的新标签页搜索与快捷入口 |
+| Quick Save 浮框 | `quick-save-content.js` | `src/features/quick-save/content.tsx` → `QuickSaveDialog.tsx` | 通过扩展命令注入网页的快捷保存浮框 |
+| Service Worker | `service-worker.js` | `src/service-worker.ts` → `src/background/serviceWorker.ts` | 注册命令、消息路由、New Tab 条件重定向 |
 
 ## 使用场景
 
-- 用户点击扩展工具栏图标，打开完整书签工作台并看到自己的书签文件夹结构。
-- 用户点击左侧某个文件夹，在右侧查看该文件夹下的书签卡片。
-- 用户搜索关键词，当前结果匹配标题和 URL；备注和摘要搜索是后续增强。
-- 用户把一个书签卡片拖到左侧另一个文件夹，浏览器原生书签位置同步变化。
-- 用户在当前文件夹内拖拽书签卡片，浏览器原生书签顺序同步变化。
-- 用户通过书签右键菜单进入行内编辑、在前后新建书签，或把书签移动到其他文件夹。
+- 用户点击工具栏图标，打开 Popup 的“保存”Tab，确认标题、URL、备注和保存位置后保存当前网页。
+- 用户在 Popup 的“管理”Tab 点击入口，打开完整管理页 `index.html`。
+- 用户在完整管理页查看三栏工作台：左侧文件夹树、中间书签工作区、右侧辅助栏。
+- 用户点击左侧某个文件夹，在中间区域查看该文件夹下的子文件夹、书签卡片和命令栏。
+- 用户通过顶部搜索框搜索书签标题和 URL；备注 / 摘要搜索仍属于后续增强。
+- 用户拖拽书签卡片或树节点，浏览器原生书签位置同步变化。
+- 用户通过书签卡片右键菜单编辑、新建、移动或删除书签。
 - 用户通过文件夹右键菜单新建子文件夹或重命名普通文件夹。
-- 用户可以删除书签并通过操作日志在本次会话内撤回。
-- 用户发现某个书签难以识别，为它补充备注；网页描述摘要暂只保留入口。
+- 用户删除或移动书签后，可以在本次会话内通过操作日志撤回部分操作。
+- 用户在 Popup 设置中开启“绑定新标签页”后，浏览器新标签页会被运行时重定向到 `newtab.html`；默认保持关闭。
+- 用户通过 `Ctrl+Shift+S` / `Command+Shift+S` 扩展命令触发 Quick Save 浮框；它是键盘快捷入口，不是默认全站常驻监听。
 
 ## 产品边界
 
 Bookmark Visualizer 管理的是浏览器当前 Profile 的原生书签。文件夹、标题、URL、书签位置等主数据来自 `chrome.bookmarks` API。
 
-插件只保存浏览器原生书签没有的数据，例如备注、摘要、展开状态、主题和导入导出设置。这些数据不得成为书签结构的唯一事实来源。
+插件只保存浏览器原生书签没有的数据，例如备注、预览图 URL、最近使用文件夹、New Tab 个性化状态和 UI 设置。这些数据不得成为书签结构的唯一事实来源。
 
-当前实现已经保存备注、主题、卡片尺寸、侧栏宽度和“显示树内书签”开关。摘要、导入导出和持久化展开状态仍是后续规划。
+当前已落地的主要本地存储 key：
+
+| key | 说明 |
+|---|---|
+| `bookmarkVisualizerSettings` | 管理页、Popup、New Tab 的 UI 与行为设置 |
+| `bookmarkVisualizerMetadata` | 书签备注、预览图 URL 等扩展元数据 |
+| `bookmarkVisualizerRecentFolders` | 最近保存 / 移动目标文件夹 |
+| `bookmarkVisualizerNewTabState` | New Tab 固定快捷方式、隐藏项、选中分组等状态 |
+| `bookmarkVisualizerNewTabActivity` | New Tab 最近活动 |
+| `bookmarkVisualizerNewTabUsageStats` | New Tab URL 使用统计 |
+| `bookmarkVisualizerQuickSaveUiState` | 旧版兼容读取 key；当前已迁移到 `bookmarkVisualizerRecentFolders` |
 
 ## 成功标准
 
 - 用户无需导出书签 HTML，就能看到当前浏览器书签层级。
-- 用户能用搜索快速找到目标书签。
-- 用户能用拖拽或右键移动完成日常整理。
-- 用户能放心执行修改操作，并能在误操作后撤销。
-- 后续工程实现者能通过文档理解边界，不需要重新定义架构。
+- 用户能在 Popup 内快速保存当前网页。
+- 用户能在完整管理页中搜索、拖拽、编辑、移动、删除和批量整理书签。
+- 用户能通过 New Tab 快速搜索网页、打开快捷站点和进入常用书签分组。
+- 用户能放心执行修改操作，并能在误操作后获得明确反馈或撤回入口。
+- 后续工程实现者能通过文档追踪页面、组件、样式、状态和 Chrome API 链路。
