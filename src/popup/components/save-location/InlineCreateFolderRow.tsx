@@ -66,7 +66,7 @@ export function InlineCreateFolderRow({
         disabled={!folderName.trim() || creating}
         onClick={() => void onCreate()}
       >
-        <CheckIcon />
+        {creating ? <span className="button-spinner" aria-hidden="true" /> : <CheckIcon />}
       </button>
     </div>
   );

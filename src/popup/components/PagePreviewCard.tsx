@@ -6,15 +6,31 @@ import {
 
 export function PagePreviewCard({
   details,
+  loading,
   previewFailed,
   setPreviewFailed,
   title
 }: {
   details?: PopupPageDetails;
+  loading: boolean;
   previewFailed: boolean;
   setPreviewFailed(value: boolean): void;
   title: string;
 }) {
+  if (loading && !details) {
+    return (
+      <div className="page-preview is-loading" aria-label="正在读取当前网页预览">
+        <div className="page-preview-skeleton" aria-hidden="true">
+          <span />
+          <strong />
+          <small />
+          <small />
+          <i />
+        </div>
+      </div>
+    );
+  }
+
   const shouldContainImage = shouldContainPreviewImage(
     details?.previewImageUrl,
     details?.faviconUrl

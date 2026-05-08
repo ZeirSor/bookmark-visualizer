@@ -78,7 +78,9 @@ export function SaveLocationPicker({
       >
         <LocationPathRow
           displayPath={displayPath}
+          disabled={loading || !selectedFolderId}
           fullPathTitle={formatPopupFolderPath(selectedPath, "")}
+          loading={loading}
           locationMenuOpen={locationMenuOpen}
           onToggleMenu={() => (locationMenuOpen ? closeLocationMenu() : openLocationMenu())}
         />

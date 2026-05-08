@@ -57,10 +57,24 @@ svg {
   height: 64px;
   align-items: center;
   justify-content: space-between;
+  gap: 18px;
   padding: 0 28px;
   background: rgba(247, 248, 252, 0.82);
   border-bottom: 1px solid var(--nt-line-soft);
   backdrop-filter: blur(18px);
+}
+
+.nt-header-top,
+.nt-brand-copy,
+.nt-main-nav {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.nt-header-top {
+  gap: 12px;
+  flex: 0 1 auto;
 }
 
 .nt-brand-compact,
@@ -82,6 +96,10 @@ svg {
   gap: 12px;
 }
 
+.nt-brand-copy {
+  gap: 10px;
+}
+
 .nt-brand-mark {
   width: 28px;
   height: 28px;
@@ -97,6 +115,39 @@ svg {
   font-weight: 800;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.nt-main-nav {
+  gap: 8px;
+  flex: 0 0 auto;
+}
+
+.nt-main-nav button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 36px;
+  padding: 0 13px;
+  color: var(--nt-text-soft);
+  font-size: 13px;
+  font-weight: 760;
+  border: 1px solid transparent;
+  border-radius: 11px;
+  background: transparent;
+}
+
+.nt-main-nav button svg {
+  width: 17px;
+  height: 17px;
+}
+
+.nt-main-nav button.is-active,
+.nt-main-nav button:hover,
+.nt-main-nav button:focus-visible {
+  color: var(--nt-accent);
+  border-color: var(--nt-accent-ring);
+  background: var(--nt-accent-softer);
+  outline: none;
 }
 
 .nt-page-pill {

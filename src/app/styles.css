@@ -1,36 +1,18 @@
 :root {
-  --bg: #f6f7fb;
-  --panel: #ffffff;
-  --panel-subtle: #f1f3f8;
-  --line: #e4e7ef;
-  --line-strong: #d6dbea;
-  --text: #202432;
-  --muted: #6e7689;
-  --faint: #9aa2b4;
-  --accent: #4f46e5;
-  --accent-soft: #ecebff;
-  --danger: #c2410c;
-  --shadow: 0 10px 26px rgba(30, 41, 59, 0.06);
-  --font-ui:
-    "Inter",
-    "SF Pro Text",
-    "Segoe UI Variable Text",
-    "Segoe UI",
-    "Roboto",
-    "PingFang SC",
-    "Noto Sans SC",
-    "Source Han Sans SC",
-    "Microsoft YaHei UI",
-    "Microsoft YaHei",
-    Arial,
-    sans-serif;
-  --font-mono:
-    "SFMono-Regular",
-    "Cascadia Mono",
-    "JetBrains Mono",
-    "Roboto Mono",
-    "Consolas",
-    monospace;
+  --bg: var(--app-bg);
+  --panel: var(--app-panel);
+  --panel-subtle: var(--app-panel-subtle);
+  --line: var(--app-line);
+  --line-strong: var(--app-line-strong);
+  --text: var(--app-text);
+  --muted: var(--app-muted);
+  --faint: var(--app-faint);
+  --accent: var(--app-accent);
+  --accent-soft: var(--app-accent-soft);
+  --danger: var(--app-danger);
+  --shadow: var(--app-shadow);
+  --font-ui: var(--app-font-ui);
+  --font-mono: var(--app-font-mono);
   color: var(--text);
   background: var(--bg);
   font-family: var(--font-ui);
@@ -42,18 +24,18 @@
 }
 
 :root[data-theme="dark"] {
-  --bg: #111522;
-  --panel: #171c2b;
-  --panel-subtle: #202638;
-  --line: #2a3144;
-  --line-strong: #37405a;
-  --text: #eef2ff;
-  --muted: #a6afc4;
-  --faint: #78839b;
-  --accent: #8b8cff;
-  --accent-soft: #24264f;
-  --danger: #fb923c;
-  --shadow: 0 10px 26px rgba(0, 0, 0, 0.18);
+  --bg: var(--app-dark-bg);
+  --panel: var(--app-dark-panel);
+  --panel-subtle: var(--app-dark-panel-subtle);
+  --line: var(--app-dark-line);
+  --line-strong: var(--app-dark-line-strong);
+  --text: var(--app-dark-text);
+  --muted: var(--app-dark-muted);
+  --faint: var(--app-dark-faint);
+  --accent: var(--app-dark-accent);
+  --accent-soft: var(--app-dark-accent-soft);
+  --danger: var(--app-dark-danger);
+  --shadow: var(--app-dark-shadow);
 }
 
 * {

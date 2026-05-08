@@ -130,8 +130,8 @@ export function NewTabApp() {
             <div className="nt-brand-compact">
               <img className="nt-brand-mark" src="icons/icon-48.png" alt="" />
               <span className="nt-brand-copy">
-                <strong>我的书签</strong>
-                <span>Bookmark Visualizer</span>
+                <strong>Bookmark Visualizer</strong>
+                <span className="nt-page-pill">新标签页</span>
               </span>
             </div>
             <button

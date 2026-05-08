@@ -72,6 +72,7 @@ export function SaveTab({
           <aside className="save-preview-column">
             <PagePreviewCard
               details={pageDetails}
+              loading={loading}
               previewFailed={previewFailed}
               setPreviewFailed={setPreviewFailed}
               title={title}
