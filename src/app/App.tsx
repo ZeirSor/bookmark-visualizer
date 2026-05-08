@@ -7,13 +7,10 @@ import {
   type DragEvent,
   type MouseEvent as ReactMouseEvent
 } from "react";
-import { BreadcrumbNav } from "../components/BreadcrumbNav";
 import { FolderTree } from "../components/FolderTree";
-import { SearchBar } from "../components/SearchBar";
 import { WorkspaceContent } from "./workspace/WorkspaceContent";
 import {
   BookmarkContextMenu,
-  CardSizeControl,
   FolderContextMenu,
   FolderPickerDialog,
   NewFolderDialog,
@@ -21,6 +18,19 @@ import {
   ShortcutSettingsDialog,
   Toast
 } from "./workspace/WorkspaceComponents";
+import { BookmarkCommandBar } from "./workspace/components/BookmarkCommandBar";
+import { FolderHeader } from "./workspace/components/FolderHeader";
+import { FolderStrip } from "./workspace/components/FolderStrip";
+import { RightRail } from "./workspace/components/RightRail";
+import { SearchFilterSummary } from "./workspace/components/SearchFilterSummary";
+import { SelectionActionBar } from "./workspace/components/SelectionActionBar";
+import { TopToolbar } from "./workspace/components/TopToolbar";
+import { useSelectionState } from "./workspace/hooks/useSelectionState";
+import {
+  getDirectFolders,
+  getFolderDisplayLabel,
+  getFolderStats
+} from "./workspace/selectors/workspaceSelectors";
 import type {
   BookmarkContextMenuState,
   FolderContextMenuState,
@@ -57,7 +67,6 @@ import { getContextMenuPlacement } from "../features/context-menu";
 import {
   canDropBookmarkOnFolder,
   canDropFolderOnIntent,
-  canMoveBookmarkToFolder,
   canReorderBookmarkOnIntent,
   createDraggedBookmarkSnapshot,
   createDraggedFolderSnapshot,
@@ -103,13 +112,13 @@ export function App() {
   const deepLinkHandledRef = useRef(false);
   const { metadata, updateNote } = useMetadata();
   const { settings, updateSettings } = useSettings();
+  const selection = useSelectionState();
   const {
     tree,
     folders,
     selectedFolder,
     selectedFolderId,
     selectedBookmarks,
-    folderPathMap,
     loading,
     error,
     reload,
@@ -212,6 +221,17 @@ export function App() {
         return;
       }
 
+      const hasActiveLayer = Boolean(
+        contextMenu ||
+          folderContextMenu ||
+          newFolderDialog ||
+          newBookmarkDraft ||
+          folderPickerDialog ||
+          shortcutDialogOpen ||
+          renamingFolderId ||
+          activeBookmarkDropIntent
+      );
+
       setContextMenu(undefined);
       setFolderContextMenu(undefined);
       setNewFolderDialog(undefined);
@@ -220,19 +240,32 @@ export function App() {
       setShortcutDialogOpen(false);
       setRenamingFolderId(undefined);
       setActiveBookmarkDropIntent(undefined);
+
+      if (!hasActiveLayer && selection.selectionMode) {
+        selection.clear();
+      }
     }
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, []);
+  }, [
+    activeBookmarkDropIntent,
+    contextMenu,
+    folderContextMenu,
+    folderPickerDialog,
+    newBookmarkDraft,
+    newFolderDialog,
+    renamingFolderId,
+    selection,
+    shortcutDialogOpen
+  ]);
 
   const searchResults = useMemo(() => searchBookmarks(tree, query), [query, tree]);
   const isSearching = query.trim().length > 0;
-  const heading = isSearching
-    ? `搜索结果：${searchResults.length}`
-    : selectedFolder
-      ? getDisplayTitle(selectedFolder)
-      : "选择一个文件夹";
+  const childFolders = useMemo(() => getDirectFolders(selectedFolder), [selectedFolder]);
+  const folderStats = useMemo(() => getFolderStats(selectedFolder), [selectedFolder]);
+  const folderTitle = getFolderDisplayLabel(selectedFolder);
+  const folderUpdatedLabel = formatFolderUpdatedLabel(folderStats.updatedAt);
   const breadcrumbItems = useMemo(
     () => buildRetainedFolderBreadcrumbItems(tree, selectedFolderId, retainedBreadcrumbTailIds),
     [retainedBreadcrumbTailIds, selectedFolderId, tree]
@@ -243,6 +276,7 @@ export function App() {
   );
   const homeFolderId = folders[0]?.id;
   const canCreateBookmarkHere = !isSearching && canCreateBookmarkInFolder(selectedFolder);
+  const canCreateFolderHere = Boolean(selectedFolder && canCreateBookmarkInFolder(selectedFolder));
 
   const displayedBookmarks = isSearching
     ? searchResults.map((result) => ({
@@ -250,6 +284,21 @@ export function App() {
         folderPath: result.folderPath
       }))
     : selectedBookmarks.map((bookmark) => ({ bookmark, folderPath: undefined }));
+  const selectedBookmarksForAction = useMemo(
+    () =>
+      [...selection.selectedIds]
+        .map((id) => findNodeById(tree, id))
+        .filter((bookmark): bookmark is BookmarkNode => Boolean(bookmark?.url)),
+    [selection.selectedIds, tree]
+  );
+  const storageSummary = useMemo(() => {
+    const noteCount = Object.values(metadata.bookmarkMetadata).filter((item) => item.note?.trim()).length;
+
+    return {
+      label: "本地扩展元数据",
+      detail: noteCount > 0 ? `${noteCount} 条备注` : "尚无备注数据"
+    };
+  }, [metadata.bookmarkMetadata]);
   useEffect(() => {
     if (!highlightedBookmarkId || isSearching) {
       return;
@@ -353,104 +402,116 @@ export function App() {
       />
 
       <section className="workspace">
-        <header className="toolbar">
-          <BreadcrumbNav
-            items={breadcrumbItems}
-            homeFolderId={homeFolderId}
-            onSelectFolder={handleBreadcrumbSelectFolder}
-          />
-          <SearchBar value={query} onChange={setQuery} />
-          <div className="toolbar-meta">
-            <CardSizeControl
-              value={settings.cardSize}
-              onChange={(cardSize) => void handleSettingsChange({ ...settings, cardSize })}
-            />
-            <button
-              className="log-button"
-              type="button"
-              aria-expanded={operationLogOpen}
-              onClick={() => setOperationLogOpen((current) => !current)}
-            >
-              操作日志
-              {operationLog.length > 0 ? <span>{operationLog.length}</span> : null}
-            </button>
-            <button
-              className="shortcut-button"
-              type="button"
-              aria-label="打开快捷键设置"
-              title="快捷键设置"
-              onClick={() => setShortcutDialogOpen(true)}
-            >
-              快捷键
-            </button>
-            <button
-              className="theme-button"
-              type="button"
-              aria-label={settings.theme === "light" ? "切换为深色主题" : "切换为浅色主题"}
-              title={settings.theme === "light" ? "切换为深色主题" : "切换为浅色主题"}
-              onClick={() =>
-                void handleSettingsChange({
-                  ...settings,
-                  theme: settings.theme === "light" ? "dark" : "light"
-                })
+        <TopToolbar
+          breadcrumbItems={breadcrumbItems}
+          homeFolderId={homeFolderId}
+          query={query}
+          cardSize={settings.cardSize}
+          theme={settings.theme}
+          operationLogCount={operationLog.length}
+          operationLogOpen={operationLogOpen}
+          onSelectBreadcrumb={handleBreadcrumbSelectFolder}
+          onSearchChange={setQuery}
+          onClearSearch={() => setQuery("")}
+          onCardSizeChange={(cardSize) => void handleSettingsChange({ ...settings, cardSize })}
+          onToggleOperationLog={() => setOperationLogOpen((current) => !current)}
+          onOpenShortcutSettings={() => setShortcutDialogOpen(true)}
+          onToggleTheme={() =>
+            void handleSettingsChange({
+              ...settings,
+              theme: settings.theme === "light" ? "dark" : "light"
+            })
+          }
+        />
+
+        <div className="manager-layout">
+          <main className="manager-main" aria-live="polite">
+            {selection.selectionMode ? (
+              <SelectionActionBar
+                selectedCount={selection.selectedCount}
+                onDeleteSelected={() => void handleDeleteSelectedBookmarks()}
+                onCancel={selection.clear}
+              />
+            ) : null}
+            <FolderHeader
+              title={folderTitle}
+              bookmarkCount={folderStats.bookmarkCount}
+              folderCount={folderStats.folderCount}
+              updatedLabel={folderUpdatedLabel}
+              isSearching={isSearching}
+              resultCount={searchResults.length}
+              canCreateBookmark={canCreateBookmarkHere && Boolean(selectedFolder)}
+              onCreateBookmark={() => {
+                if (selectedFolder) {
+                  openNewBookmarkDraftAtEnd(selectedFolder);
+                }
+              }}
+              onOpenMore={
+                selectedFolder ? (event) => handleFolderContextMenu(selectedFolder, event) : undefined
               }
-            >
-              <span className={settings.theme === "light" ? "moon-mark" : "sun-mark"} />
-            </button>
-          </div>
-        </header>
-
-        <section className="content-panel" aria-live="polite">
-          <div className="section-heading">
-            <div>
-              <p>{isSearching ? "Title and URL" : "Current folder"}</p>
-              <h2>{heading}</h2>
-            </div>
-            <div className="section-heading-actions">
-              <span>{isSearching ? "只读搜索" : `${selectedBookmarks.length} 个直接书签`}</span>
-              {canCreateBookmarkHere && selectedFolder ? (
-                <button
-                  className="section-action-button"
-                  type="button"
-                  onClick={() => openNewBookmarkDraftAtEnd(selectedFolder)}
-                >
-                  新建书签
-                </button>
-              ) : null}
-            </div>
-          </div>
-
-                    <WorkspaceContent
-            activeBookmarkDropIntent={activeBookmarkDropIntent}
-            canCreateBookmarkHere={canCreateBookmarkHere}
-            displayedBookmarks={displayedBookmarks}
-            error={error}
-            handleBookmarkCardDragLeave={handleBookmarkCardDragLeave}
-            handleBookmarkCardDragOver={handleBookmarkCardDragOver}
-            handleBookmarkContextMenu={handleBookmarkContextMenu}
-            handleBookmarkDragEnd={handleBookmarkDragEnd}
-            handleCreateBookmark={handleCreateBookmark}
-            handleDropBookmarkOnCard={handleDropBookmarkOnCard}
-            handleSaveNote={handleSaveNote}
-            handleSaveTitle={handleSaveTitle}
-            handleSaveUrl={handleSaveUrl}
-            highlightedBookmarkId={highlightedBookmarkId}
-            highlightPulseId={highlightPulseId}
-            inlineEditRequest={inlineEditRequest}
-            isSearching={isSearching}
-            loading={loading}
-            metadata={metadata}
-            newBookmarkDraft={newBookmarkDraft}
-            openBookmark={openBookmark}
-            openNewBookmarkDraftAtEnd={openNewBookmarkDraftAtEnd}
-            searchResults={searchResults}
-            selectedBookmarks={selectedBookmarks}
-            selectedFolder={selectedFolder}
-            selectedFolderId={selectedFolderId}
-            setDraggedBookmark={setDraggedBookmark}
-            setNewBookmarkDraft={setNewBookmarkDraft}
+            />
+            <SearchFilterSummary
+              query={query}
+              resultCount={searchResults.length}
+              onClearQuery={() => setQuery("")}
+              onRefresh={() => void reload()}
+            />
+            <BookmarkCommandBar
+              sortLabel={isSearching ? "匹配度" : "默认顺序"}
+              filterLabel="全部"
+              selectionMode={selection.selectionMode}
+              onEnterSelectionMode={selection.enter}
+            />
+            {!isSearching ? (
+              <FolderStrip folders={childFolders} onSelectFolder={handleSelectFolder} />
+            ) : null}
+            <WorkspaceContent
+              activeBookmarkDropIntent={activeBookmarkDropIntent}
+              canCreateBookmarkHere={canCreateBookmarkHere}
+              displayedBookmarks={displayedBookmarks}
+              error={error}
+              handleBookmarkCardDragLeave={handleBookmarkCardDragLeave}
+              handleBookmarkCardDragOver={handleBookmarkCardDragOver}
+              handleBookmarkContextMenu={handleBookmarkContextMenu}
+              handleBookmarkDragEnd={handleBookmarkDragEnd}
+              handleCreateBookmark={handleCreateBookmark}
+              handleDropBookmarkOnCard={handleDropBookmarkOnCard}
+              handleSaveNote={handleSaveNote}
+              handleSaveTitle={handleSaveTitle}
+              handleSaveUrl={handleSaveUrl}
+              highlightedBookmarkId={highlightedBookmarkId}
+              highlightPulseId={highlightPulseId}
+              inlineEditRequest={inlineEditRequest}
+              isSearching={isSearching}
+              loading={loading}
+              metadata={metadata}
+              newBookmarkDraft={newBookmarkDraft}
+              openBookmark={openBookmark}
+              openNewBookmarkDraftAtEnd={openNewBookmarkDraftAtEnd}
+              onClearSearch={() => setQuery("")}
+              onToggleBookmarkSelected={(bookmark) => selection.toggle(bookmark.id)}
+              searchResults={searchResults}
+              selectedBookmarkIds={selection.selectedIds}
+              selectedBookmarks={selectedBookmarks}
+              selectedFolder={selectedFolder}
+              selectedFolderId={selectedFolderId}
+              selectionMode={selection.selectionMode}
+              setDraggedBookmark={setDraggedBookmark}
+              setNewBookmarkDraft={setNewBookmarkDraft}
+            />
+          </main>
+          <RightRail
+            activities={operationLog}
+            canCreateFolder={canCreateFolderHere}
+            storage={storageSummary}
+            onCreateFolder={() => {
+              if (selectedFolder) {
+                openNewFolderDialog(selectedFolder);
+              }
+            }}
+            onViewAllActivity={() => setOperationLogOpen(true)}
           />
-        </section>
+        </div>
       </section>
       <OperationLogDrawer
         open={operationLogOpen}
@@ -1064,6 +1125,41 @@ export function App() {
     await moveBookmarkWithUndo(createDraggedBookmarkSnapshot(bookmark), folder);
   }
 
+  async function handleDeleteSelectedBookmarks() {
+    const deletableBookmarks = selectedBookmarksForAction;
+
+    if (deletableBookmarks.length === 0) {
+      setToast({ message: "请先选择要删除的书签。" });
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `确定要删除选中的 ${deletableBookmarks.length} 个书签吗？此批量操作暂不支持撤回。`
+    );
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      for (const bookmark of deletableBookmarks) {
+        await bookmarksAdapter.remove(bookmark.id);
+      }
+
+      await reload();
+      selection.clear();
+      setHighlightedBookmarkId(undefined);
+      setHighlightPulseId(undefined);
+      addOperation({
+        title: "批量删除书签",
+        detail: `已删除 ${deletableBookmarks.length} 个书签。此批量操作不可撤回。`
+      });
+      setToast({ message: `已删除 ${deletableBookmarks.length} 个书签，当前批量操作不可撤回。` });
+    } catch (cause) {
+      await reload();
+      setToast({ message: getErrorMessage(cause, "批量删除书签失败。") });
+    }
+  }
+
   async function handleDeleteBookmark(bookmark: BookmarkNode) {
     setContextMenu(undefined);
 
@@ -1281,4 +1377,32 @@ export function App() {
       setToast({ message: getErrorMessage(cause, "撤回失败。") });
     }
   }
+}
+
+function formatFolderUpdatedLabel(timestamp?: number): string | undefined {
+  if (!timestamp) {
+    return undefined;
+  }
+
+  const diffMs = Date.now() - timestamp;
+  const minuteMs = 60 * 1000;
+  const hourMs = 60 * minuteMs;
+  const dayMs = 24 * hourMs;
+
+  if (diffMs < minuteMs) {
+    return "刚刚更新";
+  }
+
+  if (diffMs < hourMs) {
+    return `上次更新 ${Math.max(1, Math.floor(diffMs / minuteMs))} 分钟前`;
+  }
+
+  if (diffMs < dayMs) {
+    return `上次更新 ${Math.floor(diffMs / hourMs)} 小时前`;
+  }
+
+  return `上次更新 ${new Intl.DateTimeFormat("zh-CN", {
+    month: "2-digit",
+    day: "2-digit"
+  }).format(new Date(timestamp))}`;
 }

@@ -32,10 +32,14 @@ export function WorkspaceContent({
   newBookmarkDraft,
   openBookmark,
   openNewBookmarkDraftAtEnd,
+  onClearSearch,
+  onToggleBookmarkSelected,
   searchResults,
+  selectedBookmarkIds,
   selectedBookmarks,
   selectedFolder,
   selectedFolderId,
+  selectionMode,
   setDraggedBookmark,
   setNewBookmarkDraft
 }: {
@@ -61,15 +65,19 @@ export function WorkspaceContent({
   newBookmarkDraft?: NewBookmarkDraftState;
   openBookmark(bookmark: BookmarkNode): void;
   openNewBookmarkDraftAtEnd(folder: BookmarkNode): void;
+  onClearSearch(): void;
+  onToggleBookmarkSelected(bookmark: BookmarkNode): void;
   searchResults: unknown[];
+  selectedBookmarkIds: Set<string>;
   selectedBookmarks: BookmarkNode[];
   selectedFolder?: BookmarkNode;
   selectedFolderId?: string;
+  selectionMode: boolean;
   setDraggedBookmark(snapshot: ReturnType<typeof createDraggedBookmarkSnapshot>): void;
   setNewBookmarkDraft(state: NewBookmarkDraftState | undefined): void;
 }) {
   if (loading) {
-    return <EmptyState title="正在加载书签" body="如果在 Vite dev 环境中运行，会自动使用 mock 数据。" />;
+    return <LoadingState />;
   }
 
   if (error) {
@@ -78,7 +86,13 @@ export function WorkspaceContent({
 
   if (isSearching) {
     if (searchResults.length === 0) {
-      return <EmptyState title="没有找到匹配项" body="试试输入书签标题、域名或 URL 片段。" />;
+      return (
+        <EmptyState
+          title="没有找到匹配书签"
+          body="试试换一个标题、域名或 URL 片段。"
+          action={{ label: "清除搜索", onClick: onClearSearch }}
+        />
+      );
     }
 
     return renderCards(displayedBookmarks);
@@ -144,6 +158,9 @@ export function WorkspaceContent({
                   onSaveUrl={handleSaveUrl}
                   onSaveNote={handleSaveNote}
                   onContextMenu={handleBookmarkContextMenu}
+                  selectable={selectionMode}
+                  selected={selectedBookmarkIds.has(bookmark.id)}
+                  onToggleSelected={onToggleBookmarkSelected}
                 />
               </div>
               {shouldShowDraft && draftIndex === index + 1 ? renderNewBookmarkDraft() : null}
@@ -170,4 +187,19 @@ export function WorkspaceContent({
       />
     );
   }
+}
+
+function LoadingState() {
+  return (
+    <div className="loading-grid" aria-label="正在加载书签">
+      {Array.from({ length: 8 }, (_, index) => (
+        <div key={index} className="bookmark-card loading-card" aria-hidden="true">
+          <span className="loading-card-top" />
+          <span className="loading-line is-strong" />
+          <span className="loading-line" />
+          <span className="loading-line is-short" />
+        </div>
+      ))}
+    </div>
+  );
 }

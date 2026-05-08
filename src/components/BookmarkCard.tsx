@@ -8,7 +8,8 @@ import {
   type MouseEvent
 } from "react";
 import type { BookmarkNode } from "../features/bookmarks";
-import { ExternalLinkIcon } from "./icons/AppIcons";
+import { ExternalLinkIcon, StarIcon } from "./icons/AppIcons";
+import { MoreIcon } from "./icons/ManagerIcons";
 
 interface BookmarkCardProps {
   bookmark: BookmarkNode;
@@ -27,6 +28,9 @@ interface BookmarkCardProps {
   onSaveUrl(bookmark: BookmarkNode, url: string): Promise<void>;
   onSaveNote(bookmark: BookmarkNode, note: string): Promise<void>;
   onContextMenu(bookmark: BookmarkNode, event: MouseEvent<HTMLElement>): void;
+  selectable?: boolean;
+  selected?: boolean;
+  onToggleSelected?(bookmark: BookmarkNode): void;
 }
 
 export function BookmarkCard({
@@ -45,7 +49,10 @@ export function BookmarkCard({
   onSaveTitle,
   onSaveUrl,
   onSaveNote,
-  onContextMenu
+  onContextMenu,
+  selectable = false,
+  selected = false,
+  onToggleSelected
 }: BookmarkCardProps) {
   const url = bookmark.url ?? "";
   const hostname = getHostname(url);
@@ -78,19 +85,40 @@ export function BookmarkCard({
     setEditingNote(true);
   }, [editRequestId]);
 
+  function handleCardActivate() {
+    if (selectable) {
+      onToggleSelected?.(bookmark);
+      return;
+    }
+
+    onOpen(bookmark);
+  }
+
+  function handleInlineEditClick(event: MouseEvent<HTMLButtonElement>, startEditing: () => void) {
+    event.stopPropagation();
+
+    if (selectable) {
+      onToggleSelected?.(bookmark);
+      return;
+    }
+
+    startEditing();
+  }
+
   return (
     <article
       className={`bookmark-card ${highlighted ? "is-highlighted" : ""} ${
         highlightPulse ? "is-highlight-pulse" : ""
-      }`}
+      } ${selectable ? "is-selectable" : ""} ${selected ? "is-selected" : ""}`}
       data-bookmark-id={bookmark.id}
-      draggable
+      draggable={!selectable}
       tabIndex={0}
-      onClick={() => onOpen(bookmark)}
+      onClick={handleCardActivate}
       onContextMenu={(event) => onContextMenu(bookmark, event)}
       onKeyDown={(event) => {
-        if (event.key === "Enter") {
-          onOpen(bookmark);
+        if (event.key === "Enter" || (selectable && event.key === " ")) {
+          event.preventDefault();
+          handleCardActivate();
         }
       }}
       onDragStart={(event) => {
@@ -102,24 +130,55 @@ export function BookmarkCard({
       onDragOver={(event) => onDragOverBookmark(bookmark, event)}
       onDragLeave={(event) => onDragLeaveBookmark(bookmark, event)}
       onDrop={(event) => onDropOnBookmark(bookmark, event)}
-      aria-label={`打开书签 ${bookmark.title || hostname}`}
+      aria-label={`${selectable ? "选择" : "打开"}书签 ${bookmark.title || hostname}`}
+      aria-selected={selectable ? selected : undefined}
     >
-      <button
-        className="open-link-button"
-        type="button"
-        draggable={false}
-        aria-label={`打开链接 ${bookmark.title || hostname}`}
-        title="打开链接"
-        onClick={(event) => {
-          event.stopPropagation();
-          onOpen(bookmark);
-        }}
-        onKeyDown={(event) => event.stopPropagation()}
-      >
-        <ExternalLinkIcon className="open-link-icon" />
-      </button>
-      <span className="favicon" aria-hidden="true">
-        <img src={getFaviconUrl(url)} alt="" loading="lazy" />
+      <span className="bookmark-card-top">
+        {selectable ? (
+          <button
+            className="bookmark-selection-check"
+            type="button"
+            draggable={false}
+            aria-pressed={selected}
+            aria-label={`${selected ? "取消选择" : "选择"} ${bookmark.title || hostname}`}
+            onClick={(event) => {
+              event.stopPropagation();
+              onToggleSelected?.(bookmark);
+            }}
+          >
+            <span aria-hidden="true" />
+          </button>
+        ) : null}
+        <span className="favicon" aria-hidden="true">
+          <img src={getFaviconUrl(url)} alt="" loading="lazy" />
+        </span>
+        <span className="bookmark-card-actions">
+          <button
+            className="open-link-button"
+            type="button"
+            draggable={false}
+            aria-label={`打开链接 ${bookmark.title || hostname}`}
+            title="打开链接"
+            onClick={(event) => {
+              event.stopPropagation();
+              onOpen(bookmark);
+            }}
+            onKeyDown={(event) => event.stopPropagation()}
+          >
+            <ExternalLinkIcon className="open-link-icon" />
+          </button>
+          <button
+            className="more-card-button"
+            type="button"
+            draggable={false}
+            aria-label={`打开书签菜单 ${bookmark.title || hostname}`}
+            title="更多操作"
+            onClick={(event) => onContextMenu(bookmark, event)}
+            onKeyDown={(event) => event.stopPropagation()}
+          >
+            <MoreIcon />
+          </button>
+        </span>
       </span>
       <span className="card-content">
         {editingTitle ? (
@@ -146,10 +205,7 @@ export function BookmarkCard({
           <button
             className="inline-edit-title"
             type="button"
-            onClick={(event) => {
-              event.stopPropagation();
-              setEditingTitle(true);
-            }}
+            onClick={(event) => handleInlineEditClick(event, () => setEditingTitle(true))}
           >
             {bookmark.title || "Untitled bookmark"}
           </button>
@@ -178,10 +234,7 @@ export function BookmarkCard({
           <button
             className="inline-edit-url"
             type="button"
-            onClick={(event) => {
-              event.stopPropagation();
-              setEditingUrl(true);
-            }}
+            onClick={(event) => handleInlineEditClick(event, () => setEditingUrl(true))}
           >
             {hostname || url}
           </button>
@@ -210,15 +263,27 @@ export function BookmarkCard({
           <button
             className={`inline-edit-note ${note ? "" : "is-empty"}`}
             type="button"
-            onClick={(event) => {
-              event.stopPropagation();
-              setEditingNote(true);
-            }}
+            onClick={(event) => handleInlineEditClick(event, () => setEditingNote(true))}
           >
             {note || "添加备注"}
           </button>
         )}
         {folderPath ? <span className="bookmark-path">{folderPath}</span> : null}
+      </span>
+      <span className="bookmark-card-footer">
+        <span>{formatBookmarkDate(bookmark.dateAdded)}</span>
+        <span className="bookmark-card-status">
+          {note ? <span className="tag-chip">有备注</span> : null}
+          <button
+            className="bookmark-star-button"
+            type="button"
+            disabled
+            aria-label="收藏书签功能即将支持"
+            title="收藏书签功能即将支持"
+          >
+            <StarIcon />
+          </button>
+        </span>
       </span>
     </article>
   );
@@ -306,4 +371,15 @@ function getFaviconUrl(url: string): string {
   } catch {
     return "";
   }
+}
+
+function formatBookmarkDate(timestamp?: number): string {
+  if (!timestamp) {
+    return "添加时间未知";
+  }
+
+  return `添加于：${new Intl.DateTimeFormat("zh-CN", {
+    month: "2-digit",
+    day: "2-digit"
+  }).format(new Date(timestamp))}`;
 }
