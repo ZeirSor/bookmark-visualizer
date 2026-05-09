@@ -10,6 +10,8 @@
 | 编辑列 | `.save-editor-column` | `SaveTab.tsx` | 标题 / URL / 备注 / 保存位置 |
 | 字段组 | `.field-stack.compact` | `SaveTab.tsx` | 标题和 URL |
 | 备注字段 | `.note-field.compact` | `SaveTab.tsx` | textarea |
+| 字数提示 | `.note-label-row small` | `SaveTab.tsx` | 显示当前备注长度，例如 `0/200` |
+| 内部页面说明 | `.save-info-banner` | `SaveTab.tsx` | `pageKind === "browser-internal"` 时说明浏览器内部页面可保存 |
 
 ## PagePreviewCard
 
@@ -20,6 +22,7 @@
 | 图片 | `.page-preview img` | `PagePreviewCard.tsx` | `details.previewImageUrl` 可用且未失败 |
 | fallback | `.page-preview-fallback` | `PagePreviewCard.tsx` | 无图或加载失败 |
 | fallback 文章态 | `.is-article` | `PagePreviewCard.tsx` | 强化文本预览感 |
+| 浏览器内部页面态 | `.page-preview.is-browser-internal` / `.browser-preview-window` | `PagePreviewCard.tsx` | `chrome://` / `edge://` 等页面显示内部页面 preview，不显示不可保存 |
 | domain/date | `.preview-domain` / `.preview-date` | `PagePreviewCard.tsx` | 展示来源信息 |
 | 文本骨架 | `.preview-copy-lines` | `PagePreviewCard.tsx` | fallback 视觉填充 |
 
@@ -97,3 +100,4 @@ saving = true 时展示保存中态
 - 备注写入 metadata，管理页对应卡片显示“有备注”。
 - 关闭预览图设置后，表单布局不塌陷。
 - 图片加载失败后 fallback 可用，保存不受影响。
+- `chrome://extensions/` 等浏览器内部页面显示可保存说明，保存按钮不因 page kind 灰掉。

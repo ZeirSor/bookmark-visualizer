@@ -8,12 +8,14 @@
 
 | 元素 | selector | 行为 |
 |---|---|---|
-| 打开完整管理页卡片 | `.workspace-card` | 点击 → `openWorkspace()` |
+| 打开完整管理页卡片 | `.workspace-card.manager-hero-card` | 点击 → `openWorkspace()` |
+| 搜索入口 | `.manager-search-row` | 点击 → `openWorkspace()`，进入完整管理页搜索 |
 | 最近保存 section | `.popup-section` | 展示 `recentBookmarks` |
 | 最近保存列表 | `.recent-bookmark-list` | 每项点击 `window.open(bookmark.url)` |
-| favicon fallback | `.favicon-fallback` | 使用 domain 首字母 |
+| favicon / fallback | `.recent-bookmark-favicon` / `.site-favicon-fallback` | 优先本地 favicon，失败时使用 domain 首字母 |
 | 最近保存主文案 | `.recent-bookmark-main` | 标题 + domain / folder path |
 | 最近使用文件夹 | `.folder-summary-chips` | 点击打开完整管理页，目前未 deep link 到具体文件夹 |
+| 快捷操作 | `.manager-action-grid` | 仅展示可用操作，当前均跳转完整管理页 |
 | 空态 | `.empty-copy` | 无数据时显示 |
 
 数据链路：
@@ -25,7 +27,7 @@ PopupApp
   → <ManageTab recentBookmarks recentFolders />
 ```
 
-维护建议：最近使用文件夹 chip 后续应 deep link 到 `index.html?folderId=...`，而不是只打开管理页。
+维护建议：最近使用文件夹 chip 已通过 `index.html?folderId=...` deep link 到完整管理页对应文件夹。
 
 ## SettingsTab 总览
 
@@ -45,9 +47,9 @@ SettingsTab 是 Popup 的常用配置入口，包含：
 | UI | 代码 | 写入字段 |
 |---|---|---|
 | 绑定新标签页 SwitchRow | `SwitchRow` | `settings.newTabOverrideEnabled` |
-| 默认搜索引擎 SelectRow | `SEARCH_ENGINES` | `settings.newTabDefaultSearchEngineId` |
-| 默认搜索类型 SelectRow | `SEARCH_CATEGORIES` | `settings.newTabDefaultSearchCategory` |
-| 布局模式 SelectRow | hardcoded options | `settings.newTabLayoutMode` |
+| 默认搜索引擎 SelectRow / CustomSelect | `SEARCH_ENGINES` | `settings.newTabDefaultSearchEngineId` |
+| 默认搜索类型 SelectRow / CustomSelect | `SEARCH_CATEGORIES` | `settings.newTabDefaultSearchCategory` |
+| 布局模式 SelectRow / CustomSelect | hardcoded options | `settings.newTabLayoutMode` |
 
 维护重点：
 
@@ -123,7 +125,9 @@ SettingsTab 更改默认位置
 | 组件 | 文件 | 说明 |
 |---|---|---|
 | `SwitchRow` | `src/popup/tabs/settings/SettingsRows.tsx` | label + checkbox；写入布尔 settings |
-| `SelectRow` | `src/popup/tabs/settings/SettingsRows.tsx` | label + select；写入枚举 settings |
+| `SettingsSection` | `src/popup/tabs/settings/SettingsRows.tsx` | 设置卡片 section 结构 |
+| `SettingRow` | `src/popup/tabs/settings/SettingsRows.tsx` | label / helper text / control 行结构 |
+| `Keycap` | `src/popup/tabs/settings/SettingsRows.tsx` | 快捷键 pill |
+| `Switch` | `src/popup/tabs/settings/SettingsRows.tsx` | 设置开关控件 |
+| `SelectRow` / `CustomSelect` | `src/popup/tabs/settings/SettingsRows.tsx` | 非原生下拉外观；支持 click、Esc、外部点击、ArrowUp / ArrowDown、Enter / Space |
 | `DefaultFolderMenu` | `src/popup/tabs/settings/DefaultFolderMenu.tsx` | 默认保存位置级联菜单、最近位置 chips、hover 延迟关闭 |
-
-建议：当 settings 表单继续变复杂时，将 `SwitchRow`、`SelectRow` 上移为 Popup 局部 primitive。候选未来路径可以是 `src/popup/components/SettingsRows.tsx`；该文件当前尚不存在，不能在代码导航中当作现有文件引用。

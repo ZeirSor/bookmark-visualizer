@@ -61,11 +61,12 @@
 关键设计：
 
 - 使用 `document.body` portal，避免被 Popup shell 裁剪。
-- `POPUP_CASCADE_MENU_WIDTH = 224`，`POPUP_CASCADE_MENU_HEIGHT = 330`。
+- `POPUP_CASCADE_MENU_WIDTH = 236`，`POPUP_CASCADE_MENU_HEIGHT = 330`。
 - 点击外部、Escape、pointer leave 延迟关闭。
 - `initialActivePathIds = buildFolderCascadeInitialPathIds(tree, selectedFolderId)`，自动展开当前路径。
 - `highlightedFolderIds = buildFolderPathHighlightIds(tree, selectedFolderId)`，当前路径高亮。
 - 只允许选择 `canCreateBookmarkInFolder(folder)` 的目标。
+- `save.html` 入口通过 `src/save-window/styles.css` 提供更宽的菜单行、浅紫 current/path 高亮和保存窗口级 popover 阴影；不要把这些视觉要求写入 `FolderCascadeMenu` 业务逻辑。
 
 ## FolderSearchRow
 

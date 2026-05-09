@@ -11,7 +11,7 @@ import {
   type PopupCascadeAnchorRect
 } from "../../../features/context-menu/popupCascadePlacement";
 
-const POPUP_CASCADE_MENU_WIDTH = 224;
+const POPUP_CASCADE_MENU_WIDTH = 236;
 const POPUP_CASCADE_MENU_HEIGHT = 330;
 
 export function LocationCascadeOverlay({

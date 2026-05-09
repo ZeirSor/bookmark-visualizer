@@ -17,7 +17,7 @@ save.html
     → import src/popup/styles.css
     → import src/save-window/styles.css
     → render <SaveWindowApp />
-      → <PopupApp bootstrapOptions={sourceParams} />
+      → <PopupApp variant="save-window" bootstrapOptions={sourceParams} />
 
 popup.html
   → src/popup/main.tsx
@@ -51,7 +51,7 @@ popup.html
 ## 保存窗口组件树
 
 ```text
-<PopupApp>
+<PopupApp variant="save-window">
   <header.popup-header>
     logo + brand + open workspace icon button
   <nav.popup-tabs>
@@ -78,15 +78,22 @@ popup.html
 | `note` / `query` / `saving` / `creatingFolder` / `createOpen` / `folderName` / `createParentFolderId` / `previewFailed` | `usePopupSaveState.ts` | 保存表单瞬时状态 |
 | `save()` / `createFolder()` / `updateSettings()` / `updateDefaultFolder()` | `usePopupSaveActions.ts` | 保存、新建和设置写入副作用 |
 
+## 保存窗口视觉层
+
+- `src/styles/tokens.css` 提供独立 `--save-*` alias，保存窗口不再直接依赖 popup radius / width / height。
+- `src/save-window/styles.css` 只覆盖 `save.html` 入口，默认视觉尺寸为 960 × 680，最小适配 840 × 600。
+- `PopupApp` 通过 `variant="save-window"` 在根节点追加 `.save-window-shell` 和 `data-surface="save-window"`。
+- `popup.html` 仍使用默认 `.popup-shell` fallback，不继承保存窗口尺寸。
+
 ## 当前已实现能力
 
 - 保存当前网页为浏览器原生书签。
 - 通过 `sourceTabId` 自动读取原始标签页标题、URL、候选预览图。
-- `chrome://` / `edge://` 等浏览器内部页面可保存，但不执行 metadata 注入。
+- `chrome://` / `edge://` 等浏览器内部页面可保存，但不执行 metadata 注入；保存窗口显示浏览器内部页面预览和可保存说明。
 - 编辑标题、填写备注、复制只读 URL。
 - 选择保存位置：路径行、箭头打开级联菜单、原位搜索、原位新建、最近位置。
-- 管理 Tab：打开完整管理页、最近保存、最近使用文件夹。
-- 设置 Tab：New Tab 绑定、搜索引擎、搜索类型、布局模式、快捷键说明、默认保存位置、保存行为、界面偏好。
+- 管理 Tab：dashboard 入口、搜索入口、最近保存、最近使用文件夹、可用快捷操作。
+- 设置 Tab：New Tab 绑定、搜索引擎、搜索类型、布局模式、快捷键说明、默认保存位置、保存行为、界面偏好；主表单使用 `CustomSelect`，不使用原生 `<select>` 外观。
 - 保存后可自动关闭保存窗口。
 
 ## 当前边界

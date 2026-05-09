@@ -6,6 +6,11 @@
 src/popup/main.tsx
   → import "../styles/tokens.css"
   → import "./styles.css"
+
+src/save-window/main.tsx
+  → import "../styles/tokens.css"
+  → import "../popup/styles.css"
+  → import "./styles.css"
 ```
 
 ## Popup 尺寸
@@ -20,11 +25,23 @@ Popup 固定尺寸来自 token：
 | `--popup-row-height` | `34px` | 紧凑列表行高 |
 | `--popup-tab-height` | `42px` | 顶部 Tab 高度 |
 
+## 保存窗口尺寸
+
+独立 `save.html` 入口使用 `--save-*` alias，不改变 `popup.html` fallback 尺寸。
+
+| token | 值 | 用途 |
+|---|---|---|
+| `--save-window-width` | `960px` | 保存窗口默认宽度 |
+| `--save-window-height` | `680px` | 保存窗口默认高度 |
+| `--save-window-min-width` | `840px` | 保存窗口最小适配宽度 |
+| `--save-window-min-height` | `600px` | 保存窗口最小适配高度 |
+
 ## 页面结构 selector
 
 | selector | 说明 |
 |---|---|
 | `.popup-shell` | Popup 根，grid rows：header / tabs / content / footer |
+| `.save-window-shell` | 保存窗口根 variant，覆盖尺寸、header、tabs、content、footer |
 | `.popup-header` | logo + brand + 打开管理页按钮 |
 | `.popup-tabs` | 三个 Tab，active 下划线 |
 | `.popup-content` | 当前 Tab 内容滚动区 |
@@ -42,7 +59,9 @@ Popup 固定尺寸来自 token：
 | `.save-editor-column` | 表单列 |
 | `.field-stack.compact` | 标题 / URL 组 |
 | `.note-field.compact` | 备注 |
+| `.note-label-row` | 备注 label + 字数提示 |
 | `.url-input` | readonly URL |
+| `.save-info-banner` | 浏览器内部页面可保存提示 |
 
 ## 保存位置 selector
 
@@ -66,6 +85,17 @@ Popup 固定尺寸来自 token：
 | `.recent-row` | 最近位置区域 |
 | `.recent-chips` / `.is-expanded` | 最近位置 chips |
 
+## Settings / Manage selector
+
+| selector | 用途 |
+|---|---|
+| `.settings-section-body` | Settings section 内容栈 |
+| `.setting-row` | Settings label / helper / control 行 |
+| `.custom-select` / `.custom-select-trigger` / `.custom-select-menu` / `.custom-select-option` | Settings 非原生 select |
+| `.manager-hero-card` | Manage dashboard 主入口 |
+| `.manager-search-row` | Manage 搜索入口 |
+| `.manager-action-grid` | Manage 快捷操作 |
+
 ## 菜单层级
 
 Popup 的保存位置级联菜单使用 `document.body` portal。维护时注意：
@@ -88,8 +118,11 @@ Popup 的保存位置级联菜单使用 `document.body` portal。维护时注意
 ## 回归清单
 
 - 780×600 下所有 Tab 不出现双重横向滚动。
+- 960×680 保存窗口下 Save / Manage / Settings 三个 Tab 层级一致。
+- 840×600 保存窗口下 Save Tab 隐藏 preview，Settings 行改为单列。
 - SaveTab footer 固定，内容滚动时保存按钮仍可见。
 - 保存位置 cascade 不被裁剪。
+- Settings 主表单不出现原生 select 外观。
 - 搜索结果过长时单行省略，不撑破布局。
 - 最近 chips 展开时正常换行，图标和文字间距一致。
 - Settings 默认保存位置菜单 hover 不闪烁。

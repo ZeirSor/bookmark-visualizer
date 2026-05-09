@@ -41,6 +41,23 @@ export function PagePreviewCard({
   const imageFitClass = shouldContainImage ? "uses-contain-image" : "uses-cover-image";
   const domain = details?.domain || "Bookmark Visualizer";
   const fallbackTitle = title.trim() || details?.title || "Untitled bookmark";
+  const isBrowserInternal = details?.pageKind === "browser-internal";
+
+  if (isBrowserInternal) {
+    return (
+      <div className="page-preview is-browser-internal">
+        <div className="browser-preview-window" aria-hidden="true">
+          <span />
+          <span />
+          <span />
+          <div />
+        </div>
+        <span className="preview-domain">浏览器内部页面</span>
+        <strong>{fallbackTitle}</strong>
+        <small>{details?.url || "当前页面"}</small>
+      </div>
+    );
+  }
 
   return (
     <div

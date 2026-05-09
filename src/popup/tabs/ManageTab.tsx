@@ -1,10 +1,11 @@
 import { openWorkspace } from "../../features/popup";
+import { SiteFavicon } from "../../components/SiteFavicon";
 import type { FolderOption } from "../../features/bookmarks";
 import {
   getFolderCountLabel,
   type PopupRecentBookmark
 } from "../../features/popup";
-import { ExternalLinkIcon, FolderIcon } from "../components/PopupIcons";
+import { ChevronRightIcon, ExternalLinkIcon, FolderIcon, SearchIcon } from "../components/PopupIcons";
 
 export function ManageTab({
   recentBookmarks,
@@ -15,12 +16,18 @@ export function ManageTab({
 }) {
   return (
     <section className="manage-tab tab-scroll-area">
-      <button type="button" className="workspace-card" onClick={() => void openWorkspace()}>
+      <button type="button" className="workspace-card manager-hero-card" onClick={() => void openWorkspace()}>
         <span>
           <strong>打开完整管理页</strong>
           <small>浏览全部书签、搜索、整理和管理</small>
         </span>
         <ExternalLinkIcon />
+      </button>
+
+      <button type="button" className="manager-search-row" onClick={() => void openWorkspace()}>
+        <SearchIcon />
+        <span>搜索书签或文件夹</span>
+        <ChevronRightIcon />
       </button>
 
       <section className="popup-section" aria-labelledby="recent-saved-heading">
@@ -35,7 +42,13 @@ export function ManageTab({
                 type="button"
                 onClick={() => window.open(bookmark.url, "_blank", "noopener,noreferrer")}
               >
-                <span className="favicon-fallback">{bookmark.domain.slice(0, 1).toUpperCase()}</span>
+                <SiteFavicon
+                  url={bookmark.url}
+                  title={bookmark.title}
+                  size={32}
+                  className="recent-bookmark-favicon"
+                  fallback={bookmark.domain.slice(0, 1).toUpperCase()}
+                />
                 <span className="recent-bookmark-main">
                   <strong>{bookmark.title}</strong>
                   <small>
@@ -68,6 +81,23 @@ export function ManageTab({
             ))}
           </div>
         )}
+      </section>
+
+      <section className="manager-action-grid" aria-label="快捷操作">
+        <button type="button" onClick={() => void openWorkspace()}>
+          <ExternalLinkIcon />
+          <span>
+            <strong>继续整理</strong>
+            <small>进入完整工作台</small>
+          </span>
+        </button>
+        <button type="button" onClick={() => void openWorkspace()}>
+          <FolderIcon />
+          <span>
+            <strong>按文件夹浏览</strong>
+            <small>使用左侧书签树</small>
+          </span>
+        </button>
       </section>
     </section>
   );

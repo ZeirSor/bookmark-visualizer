@@ -64,6 +64,8 @@ export function SaveTab({
   showThumbnail: boolean;
 }) {
   const displayPreview = showThumbnail;
+  const noteLength = note.length;
+  const isBrowserInternal = pageDetails?.pageKind === "browser-internal";
 
   return (
     <form id="popup-save-form" className="save-tab" onSubmit={(event) => void save(event)}>
@@ -98,13 +100,23 @@ export function SaveTab({
           </div>
 
           <label className="note-field compact">
-            <span>备注</span>
+            <span className="note-label-row">
+              <span>备注</span>
+              <small>{noteLength}/200</small>
+            </span>
             <textarea
               value={note}
               placeholder="添加一点自己的上下文"
               onChange={(event) => setNote(event.target.value)}
             />
           </label>
+
+          {isBrowserInternal ? (
+            <div className="save-info-banner" role="note">
+              <span aria-hidden="true">i</span>
+              <p>这是浏览器内部页面，可以保存为书签或引用，之后可从书签中直接访问。</p>
+            </div>
+          ) : null}
 
           <SaveLocationPicker
             createParentFolderId={createParentFolderId}
