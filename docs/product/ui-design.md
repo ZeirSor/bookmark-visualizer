@@ -7,7 +7,8 @@
 | Surface | 入口 | 样式入口 | 设计定位 |
 |---|---|---|---|
 | 管理页 Manager | `index.html` → `src/app/App.tsx` | `src/app/styles.css` | 三栏书签工作台 |
-| Toolbar Popup | `popup.html` → `src/popup/PopupApp.tsx` | `src/popup/styles.css` | 当前网页保存 + 管理 / 设置入口 |
+| 保存小窗口 | `save.html` → `src/save-window/SaveWindowApp.tsx` → `src/popup/PopupApp.tsx` | `src/popup/styles.css` + `src/save-window/styles.css` | 当前网页保存 + 管理 / 设置入口 |
+| Popup fallback | `popup.html` → `src/popup/PopupApp.tsx` | `src/popup/styles.css` | fallback / dev entry |
 | New Tab Portal | `newtab.html` → `src/newtab/NewTabApp.tsx` | `src/newtab/styles.css` | 搜索优先的新标签页 |
 | Quick Save Dialog | `quick-save-content.js` → `QuickSaveDialog.tsx` | `src/features/quick-save/contentStyle.ts` | Shadow DOM 快捷保存浮框 |
 
@@ -116,16 +117,17 @@ src/components/BookmarkCard.tsx
 - 更多按钮 / 右键菜单提供编辑、新建到前后、移动、删除。
 - 搜索结果状态不允许当前文件夹内重排。
 
-## Popup 保存页
+## 保存小窗口
 
-当前 Popup 是工具栏图标的默认 UI，不是简单跳板。设计上应保持轻量，但保存能力完整。
+当前 `save.html` 独立小窗口是工具栏图标和 `Ctrl+Shift+S` 的默认 UI，不是简单跳板。设计上沿用 Popup 的轻量表单系统，但窗口尺寸更稳定，保存能力完整。
 
 ```text
-popup.html
-  → src/popup/main.tsx
+save.html
+  → src/save-window/main.tsx
+  → src/save-window/SaveWindowApp.tsx
   → src/popup/PopupApp.tsx
   → SaveTab / ManageTab / SettingsTab
-  → src/popup/styles.css
+  → src/popup/styles.css + src/save-window/styles.css
 ```
 
 保存 Tab 采用两列结构：
@@ -205,8 +207,8 @@ QuickSaveDialog.save()
   → saveQuickSaveRecentFolder(parentId)
 ```
 
-维护重点：`FolderCascadeMenu` 被管理页、Popup、Settings、Quick Save 多处复用；修改 class、hover buffer、portal 定位或滚动逻辑时，必须同时验证四个入口。
+维护重点：`FolderCascadeMenu` 被管理页、保存窗口 / Popup fallback、Settings、Quick Save 多处复用；修改 class、hover buffer、portal 定位或滚动逻辑时，必须同时验证相关入口。
 
 ## 视觉方向
 
-当前视觉锚点是干净、明亮、轻量阴影、较大圆角和清晰网格。管理页偏效率工作台，Popup 偏小型表单，New Tab 偏搜索首页，Quick Save 偏隔离浮框。不要把 New Tab 的背景光斑、大面积 hero 风格直接迁移到管理页或 Popup。
+当前视觉锚点是干净、明亮、轻量阴影、较大圆角和清晰网格。管理页偏效率工作台，保存窗口偏小型表单，New Tab 偏搜索首页，Quick Save 偏隔离浮框。不要把 New Tab 的背景光斑、大面积 hero 风格直接迁移到管理页或保存窗口。

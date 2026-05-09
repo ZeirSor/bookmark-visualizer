@@ -1,6 +1,10 @@
+import type { SavePageKind } from "../../domain/page-kind";
+
 export interface BookmarkMetadata {
   note?: string;
   previewImageUrl?: string;
+  pageKind?: SavePageKind;
+  sourceUrl?: string;
   summary?: string;
   summarySource?: "manual" | "meta-description" | "ai";
   updatedAt?: number;

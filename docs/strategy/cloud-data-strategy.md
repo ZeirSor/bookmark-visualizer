@@ -12,7 +12,7 @@
 - `src/features/` 按业务能力拆模块；
 - `src/components/` 放可复用 UI；
 - `src/app/` 承载完整管理工作台；
-- `src/popup/` 承载工具栏浮窗入口；
+- `src/save-window/` 承载独立保存小窗口入口，`src/popup/` 承载可复用保存窗口 UI 和 popup fallback；
 - `src/service-worker.ts` 作为 Manifest V3 后台入口。
 
 但它已经出现了典型的 MVP 后期压力：
@@ -37,10 +37,10 @@
 当前项目文档里存在旧路线与新路线并存的问题。最新实际实现是：
 
 ```text
-点击扩展图标 → 打开 popup.html
-popup 默认进入保存页 → 可保存当前网页
-popup 管理页 → 可打开 index.html 完整管理工作台
-Ctrl + Shift + S / Command + Shift + S → 保留快捷保存入口
+点击扩展图标 → 打开或聚焦 save.html 独立保存小窗口
+保存小窗口默认进入保存页 → 可保存当前网页
+保存小窗口管理页 → 可打开 index.html 完整管理工作台
+Ctrl + Shift + S / Command + Shift + S → 打开或聚焦同一个保存小窗口
 Ctrl + S → 暂停，不作为当前验收路径
 ```
 
@@ -52,7 +52,7 @@ Ctrl + S → 暂停，不作为当前验收路径
 - `docs/adr/0006*`
 - `docs/adr/0008*`
 
-完成标准：任何新接手的程序员只看文档，也不会误以为扩展 action 会绕过 popup 直接进入完整工作台。
+完成标准：任何新接手的程序员只看文档，也不会误以为扩展 action 会打开 toolbar popup、旧 content dialog 或直接进入完整工作台。
 
 ---
 
@@ -84,13 +84,13 @@ npm run build
 
 ---
 
-### P0-3：真实浏览器手动验收 popup 保存主流程
+### P0-3：真实浏览器手动验收保存小窗口主流程
 
 目前构建和类型检查通过，不等于扩展在真实 Chrome / Edge 里主流程稳定。Manifest V3 的 service worker 生命周期、popup 关闭行为、权限弹窗、activeTab 权限都需要实机验证。
 
 必须验收：
 
-1. 点击扩展图标后打开 popup；
+1. 点击扩展图标后打开或聚焦保存小窗口；
 2. 自动读取当前标签页标题、URL、预览图候选；
 3. 搜索保存文件夹；
 4. 最近文件夹可用；

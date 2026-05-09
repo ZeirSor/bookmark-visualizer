@@ -57,7 +57,11 @@ export function ManageTab({
         ) : (
           <div className="folder-summary-chips">
             {recentFolders.map((option) => (
-              <button key={option.id} type="button" onClick={() => void openWorkspace()}>
+              <button
+                key={option.id}
+                type="button"
+                onClick={() => void openWorkspace(buildWorkspaceFolderPath(option.id))}
+              >
                 <FolderIcon />
                 {getFolderCountLabel(option)}
               </button>
@@ -67,4 +71,8 @@ export function ManageTab({
       </section>
     </section>
   );
+}
+
+function buildWorkspaceFolderPath(folderId: string): string {
+  return `index.html?folderId=${encodeURIComponent(folderId)}`;
 }

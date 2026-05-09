@@ -6,7 +6,7 @@
 
 本阶段完成后，应达到：
 
-- 文档入口、权限、popup 保存路径和模块边界描述一致。
+- 文档入口、权限、保存小窗口路径和模块边界描述一致。
 - P0 稳定性问题被修复或有明确验收记录。
 - 大入口文件的职责拆分方向明确，后续可以小步实施。
 - 后续功能有清晰落点，不继续堆进页面入口或 service worker。
@@ -25,7 +25,7 @@ UI entrypoints
 当前第一阶段不要求一次性创建所有目录。推荐方向是：
 
 - `src/app/workspace/`：完整工作台入口、布局和工作台专用 hooks。
-- `src/popup/`：工具栏 popup 小应用，`main.tsx` 只负责挂载。
+- `src/save-window/`：独立保存小窗口入口；`src/popup/`：保存窗口复用 UI 和 popup fallback，`main.tsx` 只负责 fallback 挂载。
 - `src/background/`：service worker 注册、消息路由和 command handler。
 - `src/features/*`：业务能力和用例编排。
 - `src/lib/chrome/`：当前继续作为 Chrome API infrastructure adapter 边界。
@@ -35,7 +35,7 @@ UI entrypoints
 
 本阶段保留现有用户行为：
 
-- 工具栏 action 打开 `popup.html`，popup 保存是当前网页保存主路径。
+- 工具栏 action 打开独立 `save.html` 保存小窗口，保存窗口是当前网页保存主路径；`popup.html` 保留为 fallback / dev entry。
 - 完整工作台继续由 popup 入口打开。
 - `Ctrl + Shift + S` / macOS `Command + Shift + S` 保留为低权限快捷保存命令。
 - `Ctrl + S` 不作为当前验收路径。
@@ -48,7 +48,7 @@ UI entrypoints
 
 - 同步过时文档，移除 toolbar 直接打开完整工作台的旧说法。
 - 收敛测试脚本，避免测试扫描范围失控。
-- 在 Chrome 和 Edge 干净 profile 中手动验收 popup 保存主流程。
+- 在 Chrome 和 Edge 干净 profile 中手动验收保存小窗口主流程。
 - 修复 metadata 备注清空语义：字段缺失表示不修改，空字符串表示明确清空。
 
 ## 后续代码拆分顺序
@@ -95,5 +95,5 @@ UI entrypoints
 - `npm run typecheck` 通过。
 - `npm run test` 通过。
 - `npm run build` 通过。
-- `npm run verify:popup-entry` 通过。
-- popup 保存主流程在 Chrome / Edge 干净 profile 中有手动验收记录。
+- `npm run verify:save-window-entry` 通过。
+- 保存小窗口主流程在 Chrome / Edge 干净 profile 中有手动验收记录。

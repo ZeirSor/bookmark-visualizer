@@ -8,9 +8,9 @@
 - Test affected card / folder actions.
 - Check search if affected.
 
-## Toolbar Popup
+## Save Window / Popup Fallback
 
-- Open popup from toolbar action.
+- Open save window from toolbar action and extension command.
 - Confirm tabs render.
 - Confirm Save tab current-page fields if affected.
 - Confirm save location picker and recent folders if affected.

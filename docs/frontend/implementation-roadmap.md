@@ -33,7 +33,7 @@ Validation:
 Validation:
 
 - Popup 默认态、级联态、搜索态、新建态、最近展开态都能手动验收。
-- `npm run verify:popup-entry`
+- `npm run verify:save-window-entry`
 
 ## Phase 4: Management Surface Consistency
 

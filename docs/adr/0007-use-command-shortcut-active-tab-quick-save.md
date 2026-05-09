@@ -29,7 +29,7 @@
 
 注入脚本必须保持可重复执行：运行时代码包在局部闭包中，只通过一个命名的 `window.__bookmarkVisualizerQuickSaveOpen__` 入口暴露重开能力，关闭浮框时清理该入口。这样同一页面连续触发命令时，不会因为内容脚本顶层 lexical 声明重复而在 guard 运行前失败。
 
-自定义 `Ctrl + Shift + S` 命令快捷键仍交给 Chrome / Edge 原生扩展快捷键管理页处理。稳定 `Ctrl + S` 不再由默认 content script listener 提供，当前主入口改为 toolbar popup。
+自定义 `Ctrl + Shift + S` 命令快捷键仍交给 Chrome / Edge 原生扩展快捷键管理页处理。稳定 `Ctrl + S` 不再由默认 content script listener 提供，当前主入口改为独立 `save.html` 保存小窗口。
 
 ## 后果
 

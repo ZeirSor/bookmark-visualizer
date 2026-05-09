@@ -6,7 +6,7 @@
 
 ## 背景
 
-Bookmark Visualizer 需要新增一个浏览器 New Tab Portal，用于搜索、打开常用网站和轻量浏览书签分组。该页面不是完整管理页，也不替代工具栏 popup 保存入口。
+Bookmark Visualizer 需要新增一个浏览器 New Tab Portal，用于搜索、打开常用网站和轻量浏览书签分组。该页面不是完整管理页，也不替代独立保存小窗口入口。
 
 用户需要能在 popup 设置中运行时开启或关闭“绑定新标签页”。Chrome / Edge 的 `chrome_url_overrides.newtab` 是 manifest 静态声明，适合永久覆盖新标签页，但不能被扩展内设置真正启停。
 

@@ -10,7 +10,6 @@
     "128": "icons/icon-128.png"
   },
   "action": {
-    "default_popup": "popup.html",
     "default_title": "Open Bookmark Visualizer",
     "default_icon": {
       "16": "icons/icon-16.png",
@@ -29,7 +28,7 @@
         "default": "Ctrl+Shift+S",
         "mac": "Command+Shift+S"
       },
-      "description": "Save the current page to Bookmark Visualizer"
+      "description": "Open the Bookmark Visualizer save window"
     }
   },
   "permissions": ["bookmarks", "storage", "activeTab", "scripting", "tabs", "favicon"]

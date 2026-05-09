@@ -5,7 +5,7 @@
 | 使用场景 | 调用文件 | 用途 |
 |---|---|---|
 | 管理页右键移动 | `src/app/workspace/WorkspaceComponents.tsx` + `FolderMoveSubmenuContent.tsx` | 将书签移动到目标文件夹 |
-| Popup 保存位置 | `src/popup/components/save-location/LocationCascadeOverlay.tsx` | 选择保存文件夹 |
+| 保存窗口 / Popup fallback 保存位置 | `src/popup/components/save-location/LocationCascadeOverlay.tsx` | 选择保存文件夹 |
 | Popup 设置默认保存位置 | `src/popup/tabs/settings/DefaultFolderMenu.tsx` | 修改 `popupDefaultFolderId` |
 | Quick Save 浏览文件夹 | `src/features/quick-save/QuickSaveDialog.tsx` | 浏览 / 选择保存位置 |
 
@@ -76,7 +76,7 @@
 | 改动 | 风险 |
 |---|---|
 | 改 className | 需要同步 `app/styles.css`、`popup/styles.css`、`contentStyle.ts` |
-| 改 hover 延迟 | 可能导致 Popup 保存位置闪烁或管理页右键菜单难用 |
+| 改 hover 延迟 | 可能导致保存窗口位置菜单闪烁或管理页右键菜单难用 |
 | 改 portalContainer 默认值 | 可能被 Popup shell / Shadow DOM 裁剪 |
 | 改 canSelect 逻辑 | 可能允许保存到不可写根节点 |
 | 改菜单宽度 | Popup placement 和 nested placement 都要回归 |
@@ -90,7 +90,7 @@
 - hover 多级菜单不会被主页面裁剪。
 - 不可移动到自身非法目标。
 
-### Popup 保存位置
+### 保存窗口 / Popup fallback 保存位置
 
 - 箭头打开级联菜单。
 - 当前路径自动展开并高亮。

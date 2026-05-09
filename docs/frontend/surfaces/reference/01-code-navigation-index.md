@@ -5,11 +5,13 @@
 | 文件 | 说明 |
 |---|---|
 | `index.html` | 完整管理页 HTML entry |
-| `popup.html` | Toolbar Popup HTML entry；由 `public/manifest.json` 的 `action.default_popup` 指向 |
+| `save.html` | Independent save-window HTML entry；由 background action click / command 打开 |
+| `popup.html` | Toolbar popup fallback HTML entry；不再由 `action.default_popup` 指向 |
 | `newtab.html` | New Tab Portal HTML entry；通过 runtime redirect 条件打开 |
 | `public/manifest.json` | MV3 manifest、popup、service worker、commands、permissions |
 | `vite.config.ts` | 多入口构建 + Quick Save content script esbuild bundle |
 | `src/main.tsx` | 管理页 React mount |
+| `src/save-window/main.tsx` | Save window React mount |
 | `src/popup/main.tsx` | Popup React mount |
 | `src/newtab/main.tsx` | New Tab React mount |
 | `src/service-worker.ts` | service worker build entry，调用 `registerServiceWorker()` |
@@ -43,10 +45,11 @@
 
 | 文件 | 说明 |
 |---|---|
-| `src/popup/PopupApp.tsx` | Popup 主控：tab、settings、initial state、保存状态 |
-| `src/popup/hooks/usePopupBootstrap.ts` | Popup 初始加载、settings、当前页、书签树和 footer 状态 |
-| `src/popup/hooks/usePopupSaveState.ts` | Popup 保存表单瞬时状态 |
-| `src/popup/hooks/usePopupSaveActions.ts` | Popup 保存、新建文件夹、settings 写入 |
+| `src/save-window/SaveWindowApp.tsx` | 独立保存窗口入口，解析 source tab query 并复用 PopupApp |
+| `src/popup/PopupApp.tsx` | 保存窗口 / Popup fallback 主控：tab、settings、initial state、保存状态 |
+| `src/popup/hooks/usePopupBootstrap.ts` | 初始加载、settings、source tab 当前页、书签树和 footer 状态 |
+| `src/popup/hooks/usePopupSaveState.ts` | 保存表单瞬时状态 |
+| `src/popup/hooks/usePopupSaveActions.ts` | 保存、新建文件夹、settings 写入 |
 | `src/popup/styles.css` | Popup 样式 |
 | `src/popup/tabs/SaveTab.tsx` | 保存 Tab |
 | `src/popup/tabs/ManageTab.tsx` | 管理 Tab |
@@ -64,8 +67,9 @@
 | `src/popup/components/save-location/LocationCascadeOverlay.tsx` | 保存位置级联菜单 overlay |
 | `src/popup/components/save-location/LocationPathRow.tsx` | 当前保存位置路径行 |
 | `src/popup/components/save-location/RecentFolderChips.tsx` | 最近位置 chips |
-| `src/features/popup/popupClient.ts` | Popup 与 tabs / scripting / runtime message 的交互 helper |
-| `src/features/popup/tabDetails.ts` | Popup 当前页详情 normalize 与 URL 可保存判断 |
+| `src/features/popup/popupClient.ts` | 保存窗口 / Popup fallback 与 tabs / scripting / runtime message 的交互 helper |
+| `src/features/popup/saveSource.ts` | 保存窗口 source tab query 解析与 source tab 解析 |
+| `src/features/popup/tabDetails.ts` | 当前页详情 normalize、page kind 和 URL 可保存 / 可注入判断 |
 | `src/features/popup/popupViewModels.ts` | Popup view model 推导 |
 
 ## New Tab
@@ -116,10 +120,11 @@
 | 文件 | 说明 |
 |---|---|
 | `src/service-worker.ts` | 构建入口，只导入并执行 `registerServiceWorker()` |
-| `src/background/serviceWorker.ts` | 聚合注册：commands、message router、New Tab redirect |
-| `src/background/commandHandlers.ts` | 处理 `open-quick-save` 命令，注入 Quick Save 或打开 workspace fallback |
+| `src/background/serviceWorker.ts` | 聚合注册：save window action、commands、message router、New Tab redirect |
+| `src/background/saveWindow.ts` | 打开 / 聚焦独立保存窗口并刷新 source tab 参数 |
+| `src/background/commandHandlers.ts` | 处理 `open-quick-save` 命令，打开独立保存窗口 |
 | `src/background/messageRouter.ts` | runtime message 总路由 |
-| `src/background/quickSaveHandlers.ts` | Quick Save / Popup 保存请求处理，创建书签 / 文件夹 / metadata / recent folder |
+| `src/background/quickSaveHandlers.ts` | Quick Save / 保存窗口 / Popup fallback 保存请求处理，创建书签 / 文件夹 / metadata / recent folder |
 | `src/background/openWorkspace.ts` | 打开完整管理页并携带 fallback 参数 |
 
 ## Shared / features

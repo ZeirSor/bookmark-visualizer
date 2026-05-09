@@ -38,6 +38,7 @@ export default defineConfig({
       input: {
         index: fileURLToPath(new URL("index.html", import.meta.url)),
         popup: fileURLToPath(new URL("popup.html", import.meta.url)),
+        save: fileURLToPath(new URL("save.html", import.meta.url)),
         newtab: fileURLToPath(new URL("newtab.html", import.meta.url)),
         "service-worker": fileURLToPath(new URL("src/service-worker.ts", import.meta.url))
       },

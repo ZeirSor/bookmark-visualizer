@@ -6,7 +6,7 @@
 | UI surface | `npm run typecheck`, `npm run build` |
 | Storage / metadata | `npm run test`, `npm run typecheck`, `npm run build` |
 | Chrome API / manifest | `npm run typecheck`, `npm run build`, affected verification script if present |
-| Popup entry | `npm run build`, `npm run verify:popup-entry` |
+| Save window entry | `npm run build`, `npm run verify:save-window-entry` |
 | Quick Save shortcut / injection | `npm run typecheck`, `npm run build`, shortcut manual QA |
 | New Tab redirect | `npm run typecheck`, `npm run build`, New Tab enable / disable manual QA |
 | Documentation-only | `npm run docs:check`, Markdown link / path check |

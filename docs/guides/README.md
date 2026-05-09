@@ -5,7 +5,7 @@
 ## Active Docs
 
 - [Testing and acceptance](testing-and-acceptance.md)：单元测试、组件测试、手动验收和质量门槛。
-- [Popup save entry health check](popup-save-entry-health-check.md)：popup 保存入口、manifest、构建产物和常见故障检查。
+- [Popup save entry health check](popup-save-entry-health-check.md)：保存小窗口入口、manifest、构建产物和常见故障检查。
 
 ## Maintenance
 

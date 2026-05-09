@@ -2,8 +2,8 @@
 
 ## 点击
 
-- 点击浏览器工具栏图标：打开 Bookmark Visualizer popup，并默认进入当前网页保存入口。
-- 点击浏览器新标签页按钮：默认保持浏览器原生 New Tab；当 popup 设置中开启“绑定新标签页”后，跳转到 Bookmark Visualizer New Tab Portal。
+- 点击浏览器工具栏图标：打开或聚焦 Bookmark Visualizer 独立保存小窗口，并默认进入当前网页保存入口。
+- 点击浏览器新标签页按钮：默认保持浏览器原生 New Tab；当设置中开启“绑定新标签页”后，跳转到 Bookmark Visualizer New Tab Portal。
 - 点击左侧文件夹：右侧展示该文件夹直接子书签。
 - 点击左侧文件夹行：同时选中文件夹并展开 / 折叠。
 - 点击右侧顶部路径导航中的任一文件夹节点：切换到对应文件夹并退出搜索状态；如果从当前路径点击上级，后续子级会以灰显尾项保留且仍可点击返回。
@@ -44,7 +44,7 @@
 - 点击固定快捷方式在当前标签页打开；按住 Ctrl / Command 点击时在新标签页打开。
 - 点击书签分组卡片切换下方精选书签；点击分组卡片右下角入口打开完整管理页并定位该文件夹。
 - 最近活动中的可打开项点击后打开对应 URL。
-- 快捷操作只包含打开管理页、新建书签、导入 HTML 和自定义布局；保存当前标签页仍属于 popup 保存入口。
+- 快捷操作只包含打开管理页、新建书签、导入 HTML 和自定义布局；保存当前标签页仍属于保存小窗口入口。
 - 自定义布局打开右侧 Drawer，调整默认搜索引擎、搜索类型、布局模式、每行快捷方式数量和显示开关。
 
 ## 拖拽书签
@@ -123,14 +123,16 @@
 
 ## 快捷保存
 
-- 当前主路径是在普通网页点击扩展工具栏图标，打开浏览器标准 Popup。
-- Popup 顶部包含“保存 / 管理 / 设置”三个 Tab，默认 Tab 由 `settings.popupDefaultOpenTab` 控制。
+- 当前主路径是在普通网页点击扩展工具栏图标或按 `Ctrl+Shift+S`，打开独立 `save.html` 保存小窗口。
+- 保存小窗口顶部包含“保存 / 管理 / 设置”三个 Tab，默认 Tab 由 `settings.popupDefaultOpenTab` 控制。
+- 保存小窗口通过 background 传入的 `sourceTabId` 读取原始网页，避免把 `save.html` 自己当作保存对象。
+- `chrome://` / `edge://` 等浏览器内部页面可保存为书签，但不执行页面 metadata 注入。
 - “保存”Tab 已实现标题、只读 URL、备注、预览图、保存位置选择、最近文件夹和新建文件夹。
 - “管理”Tab 提供打开完整管理页、最近保存、最近使用位置等入口。
 - “设置”Tab 已实现 New Tab 绑定、默认搜索引擎、搜索类型、布局模式、快捷键说明、默认保存位置、保存行为和界面偏好。
-- “设置”Tab 的“配置快捷键”打开 `chrome://extensions/shortcuts` 并关闭 Popup，不打开完整管理页。
+- “设置”Tab 的“配置快捷键”打开 `chrome://extensions/shortcuts` 并关闭当前保存窗口，不打开完整管理页。
 - `popupThemeMode` 当前只是已持久化的 Popup 主题偏好状态，尚未作为完整暗色主题作用到 Popup CSS。
-- 扩展命令 `Ctrl+Shift+S` / `Command+Shift+S` 保留为 Quick Save Shadow DOM 浮框入口。
+- 扩展命令 `Ctrl+Shift+S` / `Command+Shift+S` 打开或聚焦独立保存小窗口。
 
 ## 撤销
 

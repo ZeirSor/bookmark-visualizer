@@ -2,7 +2,7 @@
 
 ## 页面定位
 
-Quick Save 是通过扩展 command 注入当前网页的 Shadow DOM 浮框，用于低权限快速保存当前网页。它不是 Toolbar Popup，也不是管理页。
+Quick Save 是保留的 Shadow DOM 浮框能力，用于低权限快速保存当前网页。当前 `commands.open-quick-save` 默认打开独立 `save.html` 保存小窗口；该内容脚本浮框不是保存小窗口，也不是管理页。
 
 ## 入口链路
 
@@ -49,7 +49,7 @@ vite.config.ts
 
 | 项 | Popup SaveTab | Quick Save |
 |---|---|---|
-| 入口 | toolbar popup | command 注入网页 |
+| 入口 | 保存小窗口 / Popup fallback | 保留的 command-assisted 内容脚本注入 |
 | 容器 | extension popup window | Shadow DOM overlay |
 | CSS | `src/popup/styles.css` | `contentStyle.ts` 字符串 |
 | 保存位置 UI | 路径行 + 搜索 + 最近 + portal cascade | 搜索 + 最近 + 浏览文件夹 + cascade |

@@ -39,6 +39,18 @@ describe("metadataService", () => {
     });
   });
 
+  it("stores page kind and source URL", async () => {
+    const state = await saveBookmarkMetadata("100", {
+      pageKind: "browser-internal",
+      sourceUrl: "chrome://extensions/"
+    });
+
+    expect(state.bookmarkMetadata["100"]).toMatchObject({
+      pageKind: "browser-internal",
+      sourceUrl: "chrome://extensions/"
+    });
+  });
+
   it("updates notes when a note field is provided", async () => {
     await saveBookmarkNote("100", "Useful docs");
     const state = await saveBookmarkMetadata("100", {

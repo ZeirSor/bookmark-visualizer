@@ -9,14 +9,15 @@
 - [ADR 0004: 插件元数据保存在本地并支持导入导出](0004-store-extension-metadata-locally.md)
 - [ADR 0005: 前端使用 React + TypeScript + Vite](0005-use-react-typescript-vite.md)
 - [ADR 0006: 使用工具栏图标作为启动入口](0006-use-toolbar-action-as-launch-entry.md)
-- [ADR 0008: 使用工具栏 popup 承载当前网页保存](0008-use-toolbar-popup-for-current-page-save.md)
 - [ADR 0009: 使用可开关的新标签页重定向](0009-use-toggleable-new-tab-redirect.md)
 - [ADR 0010: 使用本地 favicon cache](0010-use-local-favicon-cache.md)
+- [ADR 0011: 使用独立保存小窗口作为主保存入口](0011-use-independent-save-window.md)
 
 ## 历史决策
 
 - [ADR 0002: 主界面使用新标签页](0002-use-new-tab-as-primary-surface.md)：已废弃，由 ADR 0006 取代；可选 New Tab Portal 的新决策见 ADR 0009。
 - [ADR 0007: 使用扩展命令和全局 listener 实现快捷保存](0007-use-command-shortcut-active-tab-quick-save.md)：已废弃，由 ADR 0008 取代。
+- [ADR 0008: 使用工具栏 popup 承载当前网页保存](0008-use-toolbar-popup-for-current-page-save.md)：已被 ADR 0011 取代。
 
 ## 使用规则
 

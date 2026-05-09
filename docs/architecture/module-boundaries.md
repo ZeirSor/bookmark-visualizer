@@ -142,14 +142,16 @@
 
 未来如果实现摘要抓取，必须新增明确的权限策略、提取链路和 UI 状态文档，不能把预留字段直接写成已上线能力。
 
-## popup
+## save-window / popup
 
-负责浏览器工具栏 popup 内的当前网页保存体验。
+负责独立保存小窗口和保留的 popup fallback 中的当前网页保存体验。
 
 职责：
 
-- 通过 `popup.html` 和 React 入口渲染“保存 / 管理 / 设置”三个 Tab。
-- 使用 `chrome.tabs.query` 获取当前标签页，并在普通网页中按需执行页面 metadata 提取。
+- 通过 `save.html` / `src/save-window/*` 打开独立保存小窗口，复用 `src/popup/PopupApp.tsx` 渲染“保存 / 管理 / 设置”三个 Tab。
+- 保留 `popup.html` 作为 fallback / dev entry，但 manifest 主入口不再使用 `action.default_popup`。
+- 优先使用 background 传入的 `sourceTabId` 获取原始标签页，并在普通网页中按需执行页面 metadata 提取。
+- 允许 `chrome://` / `edge://` 等浏览器内部页面保存为书签，但不对这些页面注入脚本。
 - 展示标题、只读 URL、备注、预览图和保存位置区域。
 - 支持右侧箭头触发的共享文件夹级联菜单、文件夹搜索、最近使用文件夹展开、当前层级行内新建文件夹和打开完整工作台入口。
 - 将保存和新建文件夹请求发给 service worker，复用 quick-save 的原生书签创建、metadata 写入和最近文件夹状态。
@@ -193,8 +195,8 @@
 - `theme`：管理页主题。
 - `cardSize`：管理页卡片尺寸。
 - `sidebarWidth`：管理页侧栏宽度。
-- Popup 保存行为：自动关闭、成功提示、记住保存位置、显示缩略图。
-- Popup 偏好：默认打开 Tab、Popup 主题模式、默认保存文件夹。
+- 保存窗口 / Popup 保存行为：自动关闭、成功提示、记住保存位置、显示缩略图。
+- 保存窗口 / Popup 偏好：默认打开 Tab、Popup 主题模式、默认保存文件夹。
 - New Tab 绑定开关、默认搜索引擎、默认搜索类型、布局模式、最近活动显示、存储信息显示、每行快捷方式数量。
 
 当前边界说明：

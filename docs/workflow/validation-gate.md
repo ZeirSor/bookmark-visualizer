@@ -14,7 +14,7 @@ Do not mark a task `[x]` until relevant validation passes or a documented except
 | UI surface behavior | `npm run typecheck`, `npm run build`, surface manual QA |
 | Storage / metadata | `npm run test`, `npm run typecheck`, `npm run build`, storage docs check |
 | Chrome API / manifest | `npm run typecheck`, `npm run build`, manifest / entry verification, affected manual QA |
-| Popup entry | `npm run build`, `npm run verify:popup-entry`, popup manual QA |
+| Save window entry | `npm run build`, `npm run verify:save-window-entry`, save-window manual QA |
 | Quick Save command / content script | `npm run typecheck`, `npm run build`, shortcut / injection manual QA |
 | New Tab redirect | `npm run typecheck`, `npm run build`, New Tab enable / disable manual QA |
 | Documentation-only | `npm run docs:check`, Markdown links, referenced paths, README links if touched |
@@ -30,9 +30,9 @@ Do not mark a task `[x]` until relevant validation passes or a documented except
 - Search bookmarks.
 - Check card actions affected by the change.
 
-### Toolbar Popup
+### Save Window / Popup Fallback
 
-- Open popup from toolbar action.
+- Open save window from toolbar action and extension command.
 - Confirm Save, Manage, and Settings tabs behave as expected.
 - Check current page title / URL detection if affected.
 - Check save location picker if affected.

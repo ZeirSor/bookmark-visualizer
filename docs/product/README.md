@@ -9,7 +9,7 @@
 - [UI design](ui-design.md)：界面布局和视觉体验原则。
 - [Interactions](interactions.md)：点击、搜索、拖拽、右键、快捷保存和撤销规则。
 - [Roadmap](roadmap.md)：已完成、MVP 收口、增强版和长期版计划。
-- [Popup save design](popup-save-design.md)：工具栏 popup 保存体验设计。
+- [Popup save design](popup-save-design.md)：独立保存小窗口体验设计。
 - [Quick-save dialog design](quick-save-dialog-design.md)：保留的 `Ctrl + Shift + S` content dialog 设计参考。
 - [Right-click move menu](right-click-move-menu.md)：右键移动菜单专项设计。
 

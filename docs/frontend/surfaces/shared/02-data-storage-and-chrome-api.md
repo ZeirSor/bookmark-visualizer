@@ -17,7 +17,7 @@
 | key | 所属 feature | 文件 | 内容 |
 |---|---|---|---|
 | `bookmarkVisualizerSettings` | settings | `src/features/settings/settingsService.ts` | 全局 UI 和行为设置 |
-| `bookmarkVisualizerMetadata` | metadata | `src/features/metadata/metadataService.ts` | 书签备注、预览图 URL、预留摘要字段 |
+| `bookmarkVisualizerMetadata` | metadata | `src/features/metadata/metadataService.ts` | 书签备注、预览图 URL、page kind、source URL、预留摘要字段 |
 | `bookmarkVisualizerRecentFolders` | recent-folders | `src/features/recent-folders/recentFolders.ts` | 最近保存 / 移动目标文件夹 |
 | `bookmarkVisualizerNewTabState` | newtab | `src/features/newtab/newTabState.ts` | pinned shortcuts、hidden urls、selected folders、featured bookmarks |
 | `bookmarkVisualizerNewTabActivity` | newtab | `src/features/newtab/activity.ts` | New Tab 最近活动 |
@@ -33,8 +33,8 @@
 | 分组 | 字段 |
 |---|---|
 | 管理页 | `showBookmarksInTree`、`theme`、`cardDensity`、`cardSize`、`sidebarWidth` |
-| Popup 保存行为 | `popupAutoCloseAfterSave`、`popupShowSuccessToast`、`popupRememberLastFolder`、`popupShowThumbnail` |
-| Popup 偏好 | `popupDefaultOpenTab`、`popupThemeMode`、`popupDefaultFolderId` |
+| 保存窗口 / Popup fallback 保存行为 | `popupAutoCloseAfterSave`、`popupShowSuccessToast`、`popupRememberLastFolder`、`popupShowThumbnail` |
+| 保存窗口 / Popup fallback 偏好 | `popupDefaultOpenTab`、`popupThemeMode`、`popupDefaultFolderId` |
 | New Tab | `newTabOverrideEnabled`、`newTabDefaultSearchEngineId`、`newTabDefaultSearchCategory`、`newTabLayoutMode`、`newTabShowRecentActivity`、`newTabShowStorageUsage`、`newTabShortcutsPerRow` |
 
 Normalize 规则在 `settingsService.ts`。当前 `cardDensity` 固定 normalize 为 `comfortable`，不是完整可选 UI。
@@ -49,7 +49,7 @@ Normalize 规则在 `settingsService.ts`。当前 `cardDensity` 固定 normalize
 | 书签移动 | Chrome bookmarks | `bookmarksAdapter.move(id, { parentId, index })` |
 | 删除 | Chrome bookmarks | `bookmarksAdapter.remove(id)` |
 | 备注 | extension storage | `useMetadata().updateNote()` → `saveBookmarkNote()` → `saveBookmarkMetadata()` |
-| 预览图 URL | extension storage | Popup / Quick Save 保存时传给 `saveBookmarkMetadata()` |
+| 预览图 URL / page kind / source URL | extension storage | 保存窗口 / Popup fallback / Quick Save 保存时传给 `saveBookmarkMetadata()` |
 | 最近文件夹 | extension storage | `src/features/recent-folders/recentFolders.ts` |
 
 维护重点：不要把备注写进原生 bookmark title；不要把原生 bookmark id 当作永远稳定 ID，删除恢复会生成新 ID。
@@ -66,7 +66,7 @@ Quick Save 消息类型来自 `src/features/quick-save/types.ts`：
 | `QUICK_SAVE_CREATE_BOOKMARK` | 创建书签并保存 metadata / 最近文件夹 |
 | `QUICK_SAVE_CREATE_FOLDER` | 创建文件夹并返回新 state |
 
-Toolbar Popup 当前通过 `src/features/popup/popupClient.ts` 发送相同 quick-save message，因此 Popup 保存和 Quick Save 保存共享 background 创建链路。
+保存窗口和 Popup fallback 当前通过 `src/features/popup/popupClient.ts` 发送相同 quick-save message，因此保存窗口、Popup fallback 和 Quick Save 保存共享 background 创建链路。
 
 ## Manifest 相关
 
@@ -80,7 +80,8 @@ Toolbar Popup 当前通过 `src/features/popup/popupClient.ts` 发送相同 quic
 
 入口：
 
-- `action.default_popup = popup.html`
+- `action` 不声明 `default_popup`，由 `src/background/saveWindow.ts` 注册 `chrome.action.onClicked`
+- `save.html` 为主保存小窗口入口，`popup.html` 为 fallback / dev entry
 - `background.service_worker = service-worker.js`
 - command：`open-quick-save`
 

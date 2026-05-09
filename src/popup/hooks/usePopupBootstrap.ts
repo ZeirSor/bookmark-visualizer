@@ -7,6 +7,7 @@ import {
   getCurrentTabDetails,
   loadQuickSaveInitialState,
   selectInitialPopupFolderId,
+  type SaveSourceParams,
   type PopupPageDetails
 } from "../../features/popup";
 import type { QuickSaveInitialState } from "../../features/quick-save";
@@ -19,7 +20,11 @@ import type { PopupStatusTone } from "../components/PopupFooter";
 
 export type PopupTab = "save" | "manage" | "settings";
 
-export function usePopupBootstrap() {
+export interface UsePopupBootstrapOptions {
+  sourceParams?: SaveSourceParams;
+}
+
+export function usePopupBootstrap(options: UsePopupBootstrapOptions = {}) {
   const [activeTab, setActiveTab] = useState<PopupTab>(defaultSettings.popupDefaultOpenTab);
   const [settings, setSettings] = useState<SettingsState>(defaultSettings);
   const [pageDetails, setPageDetails] = useState<PopupPageDetails>();
@@ -37,7 +42,7 @@ export function usePopupBootstrap() {
     async function load() {
       try {
         const [details, initialState, storedSettings] = await Promise.all([
-          getCurrentTabDetails(),
+          getCurrentTabDetails(options.sourceParams),
           loadQuickSaveInitialState(),
           loadSettings()
         ]);
@@ -70,7 +75,7 @@ export function usePopupBootstrap() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [options.sourceParams]);
 
   function applyInitialState(state: QuickSaveInitialState, storedSettings: SettingsState) {
     setTree(state.tree);

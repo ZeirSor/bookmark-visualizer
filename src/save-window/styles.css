@@ -1,0 +1,13 @@
+:root {
+  --popup-width: 960px;
+  --popup-height: 680px;
+}
+
+body {
+  background: var(--popup-page-bg);
+}
+
+.popup-shell {
+  border-radius: 0;
+  box-shadow: none;
+}

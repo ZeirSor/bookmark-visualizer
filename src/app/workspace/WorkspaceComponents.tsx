@@ -671,21 +671,21 @@ export function ShortcutSettingsDialog({ onClose }: { onClose(): void }) {
         </div>
         <div className="shortcut-settings-body">
           <p>
-            当前主入口是浏览器工具栏 popup：在普通网页点击 Bookmark Visualizer 图标后，可在“保存”
-            Tab 保存当前网页。
+            当前主入口是浏览器工具栏保存小窗口：在普通网页点击 Bookmark Visualizer 图标或按 Ctrl +
+            Shift + S 后，可在“保存”Tab 保存当前网页。
           </p>
           <p>
             Ctrl + S 快捷键路线已暂停，不再默认注入全局网页 listener，也不再请求 http/https
-            全局站点权限。Ctrl + Shift + S 仍保留为扩展命令入口，供后续诊断和低权限快捷保存使用。
+            全局站点权限。Ctrl + Shift + S 仍保留为扩展命令入口，并会打开同一个保存小窗口。
           </p>
           <div className="shortcut-site-access">
-            <span className="shortcut-site-label">Popup 保存</span>
+            <span className="shortcut-site-label">保存小窗口</span>
             {loading ? (
               <strong>正在读取...</strong>
             ) : (
               <>
                 <strong>已启用</strong>
-                <span>通过 manifest action.default_popup 打开，不依赖站点 content script。</span>
+                <span>通过 extension action / command 打开，不依赖站点 content script。</span>
               </>
             )}
           </div>
@@ -693,7 +693,7 @@ export function ShortcutSettingsDialog({ onClose }: { onClose(): void }) {
             <div className="shortcut-conflict-warning" role="status">
               Chrome 快捷键页里已有 Ctrl + S 绑定：
               {conflicts.map((conflict) => conflict.label).join("、")}。当前版本不依赖 Ctrl + S，
-              如测试 popup 保存可先清除该绑定，避免误判入口行为。
+              如测试保存小窗口可先清除该绑定，避免误判入口行为。
             </div>
           ) : null}
           {status ? <div className="shortcut-status">{status}</div> : null}

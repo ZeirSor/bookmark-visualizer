@@ -35,8 +35,8 @@
 
 | key | 文件 | 当前用途 | 维护说明 |
 |---|---|---|---|
-| `bookmarkVisualizerSettings` | `src/features/settings/settingsService.ts` | 管理页、Popup、New Tab 的设置 | 主设置 key |
-| `bookmarkVisualizerMetadata` | `src/features/metadata/metadataService.ts` | 书签备注、预览图 URL、预留摘要字段 | 只保存扩展元数据，不保存书签结构 |
+| `bookmarkVisualizerSettings` | `src/features/settings/settingsService.ts` | 管理页、保存窗口 / Popup fallback、New Tab 的设置 | 主设置 key |
+| `bookmarkVisualizerMetadata` | `src/features/metadata/metadataService.ts` | 书签备注、预览图 URL、page kind、source URL、预留摘要字段 | 只保存扩展元数据，不保存书签结构 |
 | `bookmarkVisualizerRecentFolders` | `src/features/recent-folders/recentFolders.ts` | 最近保存 / 移动目标文件夹 | 当前最近文件夹主 key |
 | `bookmarkVisualizerNewTabState` | `src/features/newtab/newTabState.ts` | 固定快捷方式、隐藏快捷方式、选中文件夹、精选书签、折叠 section | New Tab 个性化状态 |
 | `bookmarkVisualizerNewTabActivity` | `src/features/newtab/activity.ts` | New Tab 最近活动 | 最多保留 100 条 |
@@ -90,6 +90,8 @@ interface ExtensionMetadataState {
   bookmarkMetadata: Record<string, {
     note?: string;
     previewImageUrl?: string;
+    pageKind?: "web" | "browser-internal" | "extension-page" | "file" | "unsupported";
+    sourceUrl?: string;
     summary?: string;
     summarySource?: "manual" | "meta-description" | "ai";
     updatedAt?: number;
@@ -105,11 +107,11 @@ interface ExtensionMetadataState {
   → saveBookmarkNote()
   → saveBookmarkMetadata(bookmarkId, { note })
 
-Popup / Quick Save 保存
+保存窗口 / Popup fallback / Quick Save 保存
   → QUICK_SAVE_CREATE_BOOKMARK
   → background/quickSaveHandlers.ts
   → bookmarksAdapter.create()
-  → saveBookmarkMetadata(created.id, { note, previewImageUrl })
+  → saveBookmarkMetadata(created.id, { note, previewImageUrl, pageKind, sourceUrl })
 ```
 
 维护说明：当前代码中 `summary` / `summarySource` 是类型预留，不代表已经实现网页 description 抓取或 AI 摘要。文档描述时不要把它写成已上线能力。
@@ -125,7 +127,7 @@ src/features/recent-folders/recentFolders.ts
   → resolveRecentFolderOptions()
 ```
 
-它被 Popup 保存位置、Quick Save 保存位置，以及移动 / 保存相关场景复用。旧的 `bookmarkVisualizerQuickSaveUiState` 仅用于读取历史 recentFolderIds 并迁移。
+它被保存窗口 / Popup fallback 保存位置、Quick Save 保存位置，以及移动 / 保存相关场景复用。旧的 `bookmarkVisualizerQuickSaveUiState` 仅用于读取历史 recentFolderIds 并迁移。
 
 ## New Tab 状态
 
@@ -173,6 +175,6 @@ Primary key: <normalized site key>|<size>
 ## 隐私
 
 - 备注和预览图 URL 默认只保存在本地。
-- Popup 页面信息提取只读取当前标签页 URL、标题、候选预览图和 favicon，不持久化网页正文。
+- 保存窗口页面信息提取只读取 source tab URL、标题、候选预览图和 favicon，不持久化网页正文；浏览器内部页面不执行脚本注入。
 - Quick Save 不下载或转存网页图片，只保存候选图片 URL。
 - 当前未上传书签树和备注到远程服务。

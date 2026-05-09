@@ -6,7 +6,7 @@
 npm run typecheck
 npm test
 npm run build
-npm run verify:popup-entry
+npm run verify:save-window-entry
 ```
 
 若本地环境因 esbuild / sandbox 权限导致测试失败，应记录具体错误，不要把失败误写成通过。
@@ -115,13 +115,13 @@ npm run verify:popup-entry
 改动 `FolderCascadeMenu` 必须同时验收：
 
 1. 管理页右键移动。
-2. Popup 保存位置级联菜单。
+2. 保存窗口 / Popup fallback 保存位置级联菜单。
 3. Popup Settings 默认保存位置菜单。
 4. Quick Save 浏览文件夹。
 
 改动 `src/styles/tokens.css` 必须同时验收：
 
 1. 管理页 light / dark。
-2. Popup 保存 Tab。
+2. 保存窗口 / Popup fallback 保存 Tab。
 3. New Tab 首屏。
 4. Quick Save 不受影响，因为它使用 Shadow DOM 独立 CSS。

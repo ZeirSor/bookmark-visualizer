@@ -19,7 +19,7 @@
 - 当前已覆盖 New Tab 设置默认值 / normalize、New Tab state、搜索 URL 构建、混合搜索建议和运行时 New Tab 重定向。
 - 当前已覆盖快捷保存页面标题和图片提取优先级。
 - 当前已覆盖快捷保存最近使用文件夹状态和默认目标选择。
-- 当前新增 `npm run verify:quick-save-shortcut`，用于检查快捷保存 command、service worker 注入路径和 content script 打包产物。
+- 当前新增 `npm run verify:save-window-entry`，用于检查保存小窗口 command、service worker action click 路径和打包产物。`npm run verify:quick-save-shortcut` 保留为兼容 alias。
 - 摘要搜索、最近使用时间排序、更多过滤器、元数据导入导出和迁移仍需后续测试。
 
 ## 组件测试
@@ -44,7 +44,7 @@
 ## 手动验收
 
 - 在 Chrome / Edge 加载未打包扩展。
-- 点击浏览器工具栏图标后打开 Bookmark Visualizer popup。
+- 点击浏览器工具栏图标后打开 Bookmark Visualizer 保存小窗口。
 - 从 popup 顶部或“管理”Tab 打开完整工作台标签页。
 - “绑定新标签页”默认关闭时，打开普通浏览器新标签页保留浏览器默认页面。
 - popup 设置中开启“绑定新标签页”后，点击浏览器 `+` 跳转到 Bookmark Visualizer New Tab Portal。
@@ -79,7 +79,10 @@
 - 移动、重排、新建、编辑、删除后可以从 toast 或操作日志撤销。
 - 主题切换、卡片尺寸和侧栏宽度刷新后保持。
 - 顶部路径导航中任一节点可点击切换到对应文件夹。
-- 点击扩展工具栏图标后打开 `popup.html`，默认选中“保存”Tab。
+- 点击扩展工具栏图标后打开独立 `save.html` 保存小窗口，默认选中“保存”Tab。
+- 再次点击工具栏图标时聚焦同一个保存小窗口，并刷新 source tab 信息。
+- `Ctrl+Shift+S` / `Command+Shift+S` 与工具栏点击行为一致。
+- `chrome://extensions/` / `edge://settings/` 可保存为书签，但不应触发 metadata 脚本注入。
 - popup 自动填充 URL、标题和候选预览图片；受保护页面显示不可保存状态。
 - popup 可搜索文件夹、选择最近使用文件夹、填写备注、新建当前目标下的文件夹并保存。
 - popup 显示完整保存路径，保存按钮显示目标文件夹名称。

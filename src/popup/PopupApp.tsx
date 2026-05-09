@@ -20,11 +20,16 @@ import {
   deriveRecentSavedBookmarks
 } from "../features/popup";
 import { usePopupBootstrap } from "./hooks/usePopupBootstrap";
+import type { UsePopupBootstrapOptions } from "./hooks/usePopupBootstrap";
 import { usePopupSaveActions } from "./hooks/usePopupSaveActions";
 import { usePopupSaveState } from "./hooks/usePopupSaveState";
 
-export function PopupApp() {
-  const bootstrap = usePopupBootstrap();
+export function PopupApp({
+  bootstrapOptions
+}: {
+  bootstrapOptions?: UsePopupBootstrapOptions;
+} = {}) {
+  const bootstrap = usePopupBootstrap(bootstrapOptions);
   const saveState = usePopupSaveState();
 
   const folderOptions = useMemo(

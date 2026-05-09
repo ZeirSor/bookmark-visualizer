@@ -75,10 +75,12 @@ async function createQuickSaveBookmark(
     url: payload.url
   });
 
-  if (payload.note || payload.previewImageUrl) {
+  if (payload.note || payload.previewImageUrl || payload.pageKind || payload.sourceUrl) {
     await saveBookmarkMetadata(created.id, {
       note: payload.note,
-      previewImageUrl: payload.previewImageUrl
+      previewImageUrl: payload.previewImageUrl,
+      pageKind: payload.pageKind,
+      sourceUrl: payload.sourceUrl
     });
   }
 
@@ -122,6 +124,7 @@ function normalizeCreatePayload(payload: QuickSaveCreatePayload): QuickSaveCreat
   const title = payload.title.trim() || getTitleFromUrl(payload.url);
   const note = payload.note.trim();
   const previewImageUrl = payload.previewImageUrl?.trim();
+  const sourceUrl = payload.sourceUrl?.trim();
 
   try {
     const url = new URL(payload.url).href;
@@ -130,7 +133,9 @@ function normalizeCreatePayload(payload: QuickSaveCreatePayload): QuickSaveCreat
       title,
       url,
       note,
-      previewImageUrl
+      previewImageUrl,
+      pageKind: payload.pageKind,
+      sourceUrl: sourceUrl ? new URL(sourceUrl).href : url
     };
   } catch {
     throw new Error("URL 格式不正确。");

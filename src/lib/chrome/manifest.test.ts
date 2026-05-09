@@ -44,16 +44,17 @@ describe("extension manifest", () => {
     expect(existsSync(resolve(root, "newtab.html"))).toBe(true);
   });
 
-  it("configures a toolbar action popup and service worker", () => {
+  it("configures toolbar action click handling and service worker", () => {
     const manifest = readManifest();
 
     expect(manifest.action?.default_title).toBe("Open Bookmark Visualizer");
-    expect(manifest.action?.default_popup).toBe("popup.html");
+    expect(manifest.action?.default_popup).toBeUndefined();
     expect(manifest.background).toEqual({
       service_worker: "service-worker.js",
       type: "module"
     });
     expect(existsSync(resolve(root, "src/service-worker.ts"))).toBe(true);
+    expect(existsSync(resolve(root, "save.html"))).toBe(true);
     expect(existsSync(resolve(root, "popup.html"))).toBe(true);
   });
 
@@ -84,7 +85,7 @@ describe("extension manifest", () => {
         default: "Ctrl+Shift+S",
         mac: "Command+Shift+S"
       },
-      description: "Save the current page to Bookmark Visualizer"
+      description: "Open the Bookmark Visualizer save window"
     });
   });
 

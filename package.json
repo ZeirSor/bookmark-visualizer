@@ -10,7 +10,8 @@
     "test": "vitest run --dir src --exclude '**/node_modules/**' --exclude '**/.git/**'",
     "docs:check": "node scripts/check-doc-paths.mjs",
     "verify:quick-save-shortcut": "node scripts/verify-quick-save-shortcut.mjs",
-    "verify:popup-entry": "node scripts/verify-quick-save-shortcut.mjs"
+    "verify:popup-entry": "node scripts/verify-quick-save-shortcut.mjs",
+    "verify:save-window-entry": "node scripts/verify-save-window-entry.mjs"
   },
   "dependencies": {
     "react": "^19.0.0",

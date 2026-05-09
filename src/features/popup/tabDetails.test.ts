@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { isPopupSaveableUrl, normalizePopupPageDetails, normalizeTitle } from "./tabDetails";
+import {
+  classifySavePageKind,
+  isMetadataInjectableUrl,
+  isPopupSaveableUrl,
+  normalizePopupPageDetails,
+  normalizeTitle
+} from "./tabDetails";
 
 describe("popup tab details", () => {
   it("uses extracted page details before tab fallbacks", () => {
@@ -42,8 +48,10 @@ describe("popup tab details", () => {
     });
   });
 
-  it("marks protected browser pages as not saveable", () => {
-    expect(isPopupSaveableUrl("chrome://extensions/")).toBe(false);
+  it("allows protected browser pages as bookmarks without metadata injection", () => {
+    expect(classifySavePageKind("chrome://extensions/")).toBe("browser-internal");
+    expect(isPopupSaveableUrl("chrome://extensions/")).toBe(true);
+    expect(isMetadataInjectableUrl("chrome://extensions/")).toBe(false);
     expect(
       normalizePopupPageDetails({
         title: "Extensions",
@@ -51,8 +59,31 @@ describe("popup tab details", () => {
         favIconUrl: undefined
       })
     ).toMatchObject({
-      canSave: false,
-      error: "当前页面不支持保存。"
+      canSave: true,
+      pageKind: "browser-internal",
+      error: undefined
     });
+  });
+
+  it("classifies saveable and injectable URL types separately", () => {
+    expect(classifySavePageKind("https://example.com/")).toBe("web");
+    expect(isPopupSaveableUrl("https://example.com/")).toBe(true);
+    expect(isMetadataInjectableUrl("https://example.com/")).toBe(true);
+
+    expect(classifySavePageKind("edge://settings/")).toBe("browser-internal");
+    expect(isPopupSaveableUrl("edge://settings/")).toBe(true);
+    expect(isMetadataInjectableUrl("edge://settings/")).toBe(false);
+
+    expect(classifySavePageKind("chrome-extension://abc/options.html")).toBe("extension-page");
+    expect(isPopupSaveableUrl("chrome-extension://abc/options.html")).toBe(true);
+    expect(isMetadataInjectableUrl("chrome-extension://abc/options.html")).toBe(false);
+
+    expect(classifySavePageKind("file:///C:/Users/example/page.html")).toBe("file");
+    expect(isPopupSaveableUrl("file:///C:/Users/example/page.html")).toBe(true);
+    expect(isMetadataInjectableUrl("file:///C:/Users/example/page.html")).toBe(false);
+
+    expect(classifySavePageKind("not a url")).toBe("unsupported");
+    expect(isPopupSaveableUrl("not a url")).toBe(false);
+    expect(isMetadataInjectableUrl("not a url")).toBe(false);
   });
 });

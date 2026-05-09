@@ -1,4 +1,10 @@
 import type { QuickSavePageDetails } from "../quick-save";
+import {
+  classifySavePageKind,
+  isBookmarkSaveableUrl,
+  isMetadataInjectableUrl,
+  type SavePageKind
+} from "../../domain/page-kind";
 
 export interface PopupExtractedPageDetails {
   title?: string;
@@ -10,6 +16,8 @@ export interface PopupPageDetails extends QuickSavePageDetails {
   canSave: boolean;
   domain: string;
   faviconUrl?: string;
+  pageKind: SavePageKind;
+  sourceUrl: string;
   error?: string;
 }
 
@@ -18,6 +26,7 @@ export function normalizePopupPageDetails(
   extracted?: PopupExtractedPageDetails
 ): PopupPageDetails {
   const url = extracted?.url || tab?.url || "";
+  const pageKind = classifySavePageKind(url);
   const canSave = isPopupSaveableUrl(url);
   const domain = getHostname(url);
   const title = normalizeTitle(extracted?.title || tab?.title || "", url);
@@ -31,16 +40,14 @@ export function normalizePopupPageDetails(
     faviconUrl,
     canSave,
     domain,
+    pageKind,
+    sourceUrl: url,
     error: canSave ? undefined : "当前页面不支持保存。"
   };
 }
 
 export function isPopupSaveableUrl(url?: string): boolean {
-  if (!url) {
-    return false;
-  }
-
-  return url.startsWith("http://") || url.startsWith("https://");
+  return isBookmarkSaveableUrl(url);
 }
 
 export function normalizeTitle(title: string, url: string): string {
@@ -59,3 +66,6 @@ export function getHostname(url: string): string {
     return "";
   }
 }
+
+export { classifySavePageKind, isBookmarkSaveableUrl, isMetadataInjectableUrl };
+export type { SavePageKind };

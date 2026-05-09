@@ -1,5 +1,4 @@
-import { injectQuickSaveDialog, isQuickSaveInjectableUrl } from "../features/quick-save";
-import { openWorkspace } from "./openWorkspace";
+import { openSaveWindowForTab } from "./saveWindow";
 
 export function registerCommandHandlers(): void {
   chrome.commands.onCommand.addListener((command, tab) => {
@@ -11,16 +10,7 @@ export function registerCommandHandlers(): void {
 
 async function openQuickSaveOnCurrentTab(commandTab?: chrome.tabs.Tab): Promise<void> {
   const tab = commandTab?.id ? commandTab : await getCurrentTab();
-  if (!tab?.id || !isQuickSaveInjectableUrl(tab.url)) {
-    await openWorkspace({ quickSave: "unsupported" }, tab);
-    return;
-  }
-
-  try {
-    await injectQuickSaveDialog(tab.id);
-  } catch {
-    await openWorkspace({ quickSave: "unsupported" }, tab);
-  }
+  await openSaveWindowForTab(tab);
 }
 
 async function getCurrentTab(): Promise<chrome.tabs.Tab | undefined> {

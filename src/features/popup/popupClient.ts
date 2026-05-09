@@ -11,13 +11,14 @@ import {
 } from "../quick-save";
 import type { QuickSaveCreateFolderPayload } from "../quick-save/createFolder";
 import {
-  isPopupSaveableUrl,
+  isMetadataInjectableUrl,
   normalizePopupPageDetails,
   type PopupExtractedPageDetails,
   type PopupPageDetails
 } from "./tabDetails";
+import { resolveSaveSourceTab, type SaveSourceParams } from "./saveSource";
 
-export async function getCurrentTabDetails(): Promise<PopupPageDetails> {
+export async function getCurrentTabDetails(source?: SaveSourceParams): Promise<PopupPageDetails> {
   if (!canUseChromeTabs()) {
     return normalizePopupPageDetails({
       title: "Bookmark Visualizer",
@@ -26,10 +27,10 @@ export async function getCurrentTabDetails(): Promise<PopupPageDetails> {
     });
   }
 
-  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  const tab = (await resolveSaveSourceTab(source)) ?? (await getActiveFallbackTab());
   let extracted: PopupExtractedPageDetails | undefined;
 
-  if (tab?.id && isPopupSaveableUrl(tab.url) && chrome.scripting?.executeScript) {
+  if (tab?.id && isMetadataInjectableUrl(tab.url) && chrome.scripting?.executeScript) {
     try {
       const [result] = await chrome.scripting.executeScript({
         target: { tabId: tab.id },
@@ -113,6 +114,11 @@ async function sendQuickSaveRequest(message: QuickSaveRequest): Promise<QuickSav
 
 function canUseChromeTabs(): boolean {
   return typeof chrome !== "undefined" && Boolean(chrome.tabs?.query);
+}
+
+async function getActiveFallbackTab(): Promise<chrome.tabs.Tab | undefined> {
+  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  return tab;
 }
 
 function extractPopupPageDetailsFromPage(): PopupExtractedPageDetails {

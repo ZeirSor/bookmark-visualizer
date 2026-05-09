@@ -21,7 +21,7 @@ Sources:
 
 - 主要点击目标不小于 24x24 CSS px。
 - 常用 icon button 建议 34-40px。
-- New Tab 快捷方式、Popup 保存位置箭头、菜单行必须给足点击区域，而不是只让图标可点。
+- New Tab 快捷方式、保存窗口位置箭头、菜单行必须给足点击区域，而不是只让图标可点。
 
 ## Keyboard Rules
 

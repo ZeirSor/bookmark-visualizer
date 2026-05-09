@@ -13,7 +13,8 @@
 | 页面 / Surface | 入口 | 主 React 根组件 | 样式入口 | 页面定位 |
 |---|---|---|---|---|
 | 管理页 Workspace | `index.html` | `src/app/App.tsx` | `src/main.tsx` → `src/styles/tokens.css` + `src/app/styles.css` | 高密度书签管理工作台 |
-| Toolbar Popup | `popup.html` | `src/popup/PopupApp.tsx` | `src/popup/main.tsx` → `src/styles/tokens.css` + `src/popup/styles.css` | 保存当前网页 / 快速管理 / 常用设置 |
+| 保存小窗口 | `save.html` | `src/save-window/SaveWindowApp.tsx` → `src/popup/PopupApp.tsx` | `src/save-window/main.tsx` → `src/styles/tokens.css` + `src/popup/styles.css` + `src/save-window/styles.css` | 保存当前网页 / 快速管理 / 常用设置 |
+| Popup fallback | `popup.html` | `src/popup/PopupApp.tsx` | `src/popup/main.tsx` → `src/styles/tokens.css` + `src/popup/styles.css` | fallback / dev entry |
 | New Tab Portal | `newtab.html` | `src/newtab/NewTabApp.tsx` | `src/newtab/main.tsx` → `src/styles/tokens.css` + `src/newtab/styles.css` | 搜索优先的新标签页入口 |
 | Quick Save 内容脚本浮框 | esbuild IIFE → `dist/quick-save-content.js` | `src/features/quick-save/QuickSaveDialog.tsx` | `src/features/quick-save/contentStyle.ts` 注入 Shadow DOM | 低权限快捷保存浮框 |
 | Service Worker | `src/service-worker.ts` | `registerServiceWorker()` | 无 UI CSS | 快捷键、消息路由、New Tab runtime redirect |

@@ -52,7 +52,7 @@ Local metadata enhanced
 ```text
 ┌──────────────────────────────┐
 │ UI Entry Layer               │
-│ index.html / popup.html      │
+│ index.html / save.html / popup.html fallback │
 │ React App / Popup App        │
 └───────────────┬──────────────┘
                 ↓
@@ -174,7 +174,7 @@ popup 应被视为一个独立小应用，而不是简单入口文件。
 
 ### 4.3 `src/features/quick-save/content.tsx` 与 popup 存在能力重叠
 
-quick-save 曾经是快捷键保存路线的一部分，现在主路径已经转向 toolbar popup。
+quick-save 曾经是快捷键保存路线的一部分，现在主路径已经转向独立 `save.html` 保存小窗口。
 
 当前需要判断：
 

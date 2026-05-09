@@ -54,7 +54,7 @@ Use this skill before starting work when a task involves any of the following:
 
 - product behavior
 - Manager workspace
-- toolbar popup
+- save window / popup fallback
 - Quick Save
 - optional New Tab
 - shared UI components

@@ -52,10 +52,12 @@ This matrix routes context only. It does not replace `project-doc-maintenance`.
 
 Usually no README update unless the task changes major workspace capabilities, project structure, installation, or public feature descriptions.
 
-## Toolbar Popup
+## Save Window / Popup Fallback
 
 ### Code areas
 
+- `save.html`
+- `src/save-window/`
 - `popup.html`
 - `src/popup/`
 - `src/features/popup/`
@@ -81,7 +83,7 @@ Usually no README update unless the task changes major workspace capabilities, p
 
 ### README impact
 
-Update README files only when popup launch behavior, major save capability, or public project overview changes.
+Update README files only when save-window / popup launch behavior, major save capability, or public project overview changes.
 
 ## Popup Save Location Picker / Folder Cascade
 

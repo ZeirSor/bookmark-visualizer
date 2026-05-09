@@ -27,10 +27,12 @@ Use this map when running `project-doc-maintenance` to determine which PageDocs 
 - `docs/product/ui-design.md`
 - `docs/product/interactions.md`
 
-## Toolbar Popup
+## Save Window / Popup Fallback
 
 ### Code areas
 
+- `save.html`
+- `src/save-window/`
 - `popup.html`
 - `src/popup/`
 - `src/features/popup/`

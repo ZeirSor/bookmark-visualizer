@@ -1,5 +1,6 @@
 import type { BookmarkNode } from "../bookmarks";
 import type { QuickSaveCreateFolderPayload } from "./createFolder";
+import type { SavePageKind } from "../../domain/page-kind";
 
 export const QUICK_SAVE_GET_INITIAL_STATE = "bookmark-visualizer.quickSave.getInitialState";
 export const QUICK_SAVE_CREATE_BOOKMARK = "bookmark-visualizer.quickSave.createBookmark";
@@ -9,6 +10,8 @@ export interface QuickSavePageDetails {
   url: string;
   title: string;
   previewImageUrl?: string;
+  pageKind?: SavePageKind;
+  sourceUrl?: string;
 }
 
 export interface QuickSaveInitialState {
@@ -23,6 +26,8 @@ export interface QuickSaveCreatePayload {
   url: string;
   note: string;
   previewImageUrl?: string;
+  pageKind?: SavePageKind;
+  sourceUrl?: string;
 }
 
 export type QuickSaveRequest =

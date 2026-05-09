@@ -89,7 +89,9 @@ export function usePopupSaveActions({
         title,
         url: pageDetails.url,
         note,
-        previewImageUrl: pageDetails.previewImageUrl
+        previewImageUrl: pageDetails.previewImageUrl,
+        pageKind: pageDetails.pageKind,
+        sourceUrl: pageDetails.sourceUrl
       });
       setRecentFolderIds((current) => normalizeRecentFolderIds([selectedFolderId, ...current]));
       setPopupStatus(

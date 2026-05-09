@@ -2,19 +2,22 @@
 
 ## 总体架构
 
-Bookmark Visualizer 是 Manifest V3 浏览器扩展。工具栏图标触发标准 Popup，Popup 承载当前网页保存入口，并可打开完整管理页。React 应用负责渲染和交互，浏览器扩展 API 负责读取和修改书签。
+Bookmark Visualizer 是 Manifest V3 浏览器扩展。工具栏图标触发 background service worker，打开或聚焦独立 `save.html` 保存小窗口；保存窗口承载当前网页保存入口，并可打开完整管理页。React 应用负责渲染和交互，浏览器扩展 API 负责读取和修改书签。
 
 ```text
-Toolbar Action
-  → public/manifest.json: action.default_popup = popup.html
-  → Popup React UI
+Toolbar Action / Ctrl+Shift+S
+  → public/manifest.json action without default_popup
+  → chrome.action.onClicked / commands.open-quick-save
+  → src/background/saveWindow.ts
+  → save.html independent window
+  → Save Window React UI
   → src/features/popup/popupClient.ts
-  → chrome.tabs / chrome.scripting / runtime message
+  → sourceTabId / chrome.tabs / chrome.scripting / runtime message
   → service worker message router
   → quickSaveHandlers
   → chrome.bookmarks / chrome.storage
 
-Popup Manage Entry
+Save Window Manage Entry
   → openWorkspace("index.html")
   → Workspace React UI
   → feature services
@@ -28,10 +31,8 @@ Optional New Tab Portal
   → newtab.html
   → Search / Shortcuts / Bookmark Groups
 
-Quick Save Command
-  → commands.open-quick-save
-  → src/background/commandHandlers.ts
-  → injectQuickSaveDialog()
+Legacy Quick Save Content Dialog
+  → quick-save-content.js
   → quick-save content script Shadow DOM
   → runtime message
   → quickSaveHandlers
@@ -41,12 +42,12 @@ Quick Save Command
 
 当前 manifest 已落地：
 
-- `action.default_popup = popup.html`：工具栏 Popup 启动入口。
+- `action` 不声明 `default_popup`：工具栏点击由 `chrome.action.onClicked` 处理，打开独立 `save.html` 小窗口。
 - `background.service_worker = service-worker.js`：后台命令、消息路由和 New Tab 条件重定向。
-- `commands.open-quick-save`：默认 `Ctrl+Shift+S` / macOS `Command+Shift+S`，触发当前页快捷保存。
+- `commands.open-quick-save`：默认 `Ctrl+Shift+S` / macOS `Command+Shift+S`，打开或聚焦独立保存小窗口。
 - `permissions.bookmarks`：读取、创建、编辑、删除和移动书签。
 - `permissions.storage`：保存备注、预览图 URL、UI 状态、最近文件夹和设置。
-- `permissions.activeTab` / `permissions.scripting` / `permissions.tabs`：在用户主动打开 Popup 或触发扩展命令时读取当前标签页详情，必要时执行一次页面信息提取。
+- `permissions.activeTab` / `permissions.scripting` / `permissions.tabs`：在用户主动点击工具栏图标或触发扩展命令时读取 source tab 详情，普通网页必要时执行一次页面信息提取。
 - `permissions.favicon`：允许扩展页面通过官方 `_favicon` URL 读取浏览器已知的网站图标，用于本地 favicon cache；不引入默认第三方 favicon 服务。
 
 当前扩展不声明：
@@ -62,7 +63,8 @@ Quick Save Command
 | 页面 | HTML | React 入口 | 样式入口 |
 |---|---|---|---|
 | 管理页 | `index.html` | `src/main.tsx` → `src/app/App.tsx` | `src/styles/tokens.css` + `src/app/styles.css` |
-| Popup | `popup.html` | `src/popup/main.tsx` → `src/popup/PopupApp.tsx` | `src/styles/tokens.css` + `src/popup/styles.css` |
+| 独立保存窗口 | `save.html` | `src/save-window/main.tsx` → `src/save-window/SaveWindowApp.tsx` → `src/popup/PopupApp.tsx` | `src/styles/tokens.css` + `src/popup/styles.css` + `src/save-window/styles.css` |
+| Popup fallback | `popup.html` | `src/popup/main.tsx` → `src/popup/PopupApp.tsx` | `src/styles/tokens.css` + `src/popup/styles.css` |
 | New Tab | `newtab.html` | `src/newtab/main.tsx` → `src/newtab/NewTabApp.tsx` | `src/styles/tokens.css` + `src/newtab/styles.css` |
 | Quick Save | `quick-save-content.js` | `src/features/quick-save/content.tsx` → `QuickSaveDialog.tsx` | `src/features/quick-save/contentStyle.ts` |
 
@@ -88,9 +90,9 @@ UI entrypoints
 
 `src/features/favicon/*` 负责 favicon URL 归一化、`_favicon` URL 构建、IndexedDB cache 和 stale-while-refresh 策略。共享 UI 通过 `SiteFavicon` / `useSiteFavicon()` 消费，不在各个页面组件中拼接远程 favicon 服务 URL。
 
-## 当前 Popup 页面信息提取
+## 当前保存窗口页面信息提取
 
-Popup 在普通网页中通过用户手势带来的 `activeTab` 和 `chrome.scripting.executeScript` 提取：
+保存窗口通过 background 传入的 `sourceTabId` 定位原始网页。普通网页通过用户手势带来的 `activeTab` 和 `chrome.scripting.executeScript` 提取：
 
 - `og:title`
 - `twitter:title`
@@ -108,10 +110,12 @@ Popup 在普通网页中通过用户手势带来的 `activeTab` 和 `chrome.scri
 ```text
 src/features/popup/popupClient.ts
   → getCurrentTabDetails()
-  → chrome.tabs.query()
+  → resolveSaveSourceTab(sourceTabId)
   → chrome.scripting.executeScript(extractPopupPageDetailsFromPage)
   → normalizePopupPageDetails()
 ```
+
+`chrome://` / `edge://` 等浏览器内部页面可以保存为书签，但不会执行 `chrome.scripting.executeScript`。
 
 ## Background 链路
 
@@ -129,7 +133,8 @@ src/service-worker.ts
 | 文件 | 职责 |
 |---|---|
 | `src/background/serviceWorker.ts` | 聚合注册入口，不承载具体业务 |
-| `src/background/commandHandlers.ts` | 处理 `open-quick-save` 扩展命令，注入 Quick Save 或打开工作台 fallback |
+| `src/background/saveWindow.ts` | 打开 / 聚焦独立保存窗口，维护 source tab query 和窗口复用 |
+| `src/background/commandHandlers.ts` | 处理 `open-quick-save` 扩展命令，打开独立保存窗口 |
 | `src/background/messageRouter.ts` | 接收 runtime message，转发给 Quick Save handler |
 | `src/background/quickSaveHandlers.ts` | 创建书签、创建文件夹、读取初始保存状态 |
 | `src/background/openWorkspace.ts` | 打开 `index.html`，必要时附带 source tab 信息 |
@@ -137,7 +142,7 @@ src/service-worker.ts
 
 ## 保存链路
 
-Popup 与 Quick Save 都复用 Quick Save message 协议创建书签：
+保存窗口、Popup fallback 与 Quick Save 都复用 Quick Save message 协议创建书签：
 
 ```text
 SaveTab / QuickSaveDialog
@@ -150,7 +155,7 @@ SaveTab / QuickSaveDialog
   → saveQuickSaveRecentFolder(parentId)
 ```
 
-维护重点：如果未来拆分 Popup 专属保存 handler，应保证 `bookmarksAdapter.create()`、`saveBookmarkMetadata()`、`saveRecentFolder()` 的行为一致，避免 Popup 和 Quick Save 保存结果不一致。
+维护重点：如果未来拆分保存窗口专属 handler，应保证 `bookmarksAdapter.create()`、`saveBookmarkMetadata()`、`saveRecentFolder()` 的行为一致，避免保存窗口和 Quick Save 保存结果不一致。
 
 ## New Tab 条件重定向
 

@@ -137,4 +137,4 @@ index.html
 - 搜索态下禁止书签重排，因为 `displayedBookmarks` 来自全局搜索结果，不是当前文件夹真实顺序。
 - 批量模式下点击卡片应该切换选择，不能打开网页。
 - 修改 `BookmarkCard` 样式时必须同时检查正常态、hover、selected、highlight、inline edit、drag drop。
-- 修改 `FolderCascadeMenu` 时必须同步回归管理页右键移动、Popup 保存位置、Settings 默认保存位置、Quick Save 浏览文件夹。
+- 修改 `FolderCascadeMenu` 时必须同步回归管理页右键移动、保存窗口 / Popup fallback 保存位置、Settings 默认保存位置、Quick Save 浏览文件夹。
