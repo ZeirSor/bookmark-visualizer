@@ -86,6 +86,9 @@ index.html
 | 状态 | 文件 | 用途 |
 |---|---|---|
 | `query` | `App.tsx` | 顶部搜索输入；决定搜索模式和 `SearchFilterSummary` |
+| `sortMode` | `App.tsx` | 管理页排序状态：默认顺序、标题 A-Z、最新添加、最早添加 |
+| `workspaceFilters.hasNote` | `App.tsx` | 是否只显示有备注的书签 |
+| `searchScope` | `App.tsx` | 搜索范围：全部书签或当前文件夹子树 |
 | `tree` / `folders` / `selectedFolder` | `useBookmarks()` | Chrome bookmarks 树和当前文件夹 |
 | `settings.cardSize` | `useSettings()` | `data-card-size` 控制卡片尺寸 |
 | `settings.sidebarWidth` | `useSettings()` | CSS var `--sidebar-width` 控制左侧宽度 |
@@ -103,7 +106,7 @@ index.html
 - 左侧书签树浏览、展开、收起、选择。
 - 可选展示树内书签。
 - 侧边栏宽度拖拽调整，宽度持久化到 settings。
-- 顶部面包屑、搜索、卡片尺寸、操作日志、快捷键设置、主题切换。
+- 顶部面包屑、标题 / URL / 备注搜索、搜索范围切换、卡片尺寸、操作日志、快捷键设置、主题切换。
 - 当前文件夹统计、子文件夹条、新建书签。
 - 书签卡片打开、右键菜单、拖拽移动、同文件夹重排。
 - 行内编辑标题、URL、备注。
@@ -116,9 +119,10 @@ index.html
 
 | UI | 状态 |
 |---|---|
-| 命令栏排序 | disabled，占位 |
-| 命令栏筛选 | disabled，占位 |
-| 有备注 / 未读 / 收藏 chip | disabled，占位 |
+| 命令栏排序 | 已实现：默认顺序、标题 A-Z、最新添加、最早添加 |
+| 命令栏筛选 | 更多筛选下拉仍 disabled，占位 |
+| 有备注 chip | 已实现，可筛选当前列表中有备注的书签 |
+| 未读 / 收藏 chip | disabled，占位 |
 | 书签卡片星标 | disabled，占位 |
 | 批量移动 | disabled，占位 |
 | 添加标签 | disabled，占位 |

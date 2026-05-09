@@ -29,7 +29,7 @@
 | UI 元素 | selector | 代码文件 | 交互链路 | 维护说明 |
 |---|---|---|---|---|
 | 面包屑 | `.breadcrumb` / `.breadcrumb-separator` | `TopToolbar.tsx` + `BreadcrumbNav.tsx` | 点击 → `handleBreadcrumbSelectFolder()` → `selectFolder()` | 点击上级时保留 tail path，便于回到原路径 |
-| 搜索框 | `.search-bar input` | `TopToolbar.tsx` + `SearchBar.tsx` | 输入 → `setQuery()` → `searchBookmarks()` | 只搜标题 / URL；备注搜索未接入 |
+| 搜索框 | `.search-bar input` | `TopToolbar.tsx` + `SearchBar.tsx` | 输入 → `setQuery()` → `searchBookmarks()` | 搜索标题、URL 和现有备注；搜索范围可切换 |
 | 清除搜索按钮 | `.search-clear-button` | `SearchBar.tsx` | 点击 → `onClearSearch()` | 只有 value 非空时显示 |
 | 卡片尺寸控制 | `.card-size-control` | `WorkspaceComponents.tsx` | 修改 → `settings.cardSize` | 影响 `.app-shell[data-card-size]` 下的 grid/card 样式 |
 | 操作日志按钮 | `.log-button` | `TopToolbar.tsx` | 切换 `operationLogOpen` | 显示日志数量 badge |
@@ -50,18 +50,20 @@
 
 | UI 元素 | selector | 代码文件 | 交互 |
 |---|---|---|---|
-| 结果数量 | `.search-filter-summary strong` | `SearchFilterSummary.tsx` | 仅 query 非空显示 |
+| 结果数量 | `.search-filter-summary strong` | `SearchFilterSummary.tsx` | query 或筛选条件存在时显示 |
 | 搜索词 chip | `.filter-chip` | `SearchFilterSummary.tsx` | 内含清除按钮 |
-| 清除筛选按钮 | `.link-button` | `SearchFilterSummary.tsx` | `setQuery("")` |
+| 有备注 chip | `.filter-chip` | `SearchFilterSummary.tsx` | active 时显示，内含清除按钮 |
+| 搜索范围切换 | `.summary-scope-switch` | `SearchFilterSummary.tsx` | 搜索时切换全部书签 / 当前文件夹 |
+| 清除筛选按钮 | `.link-button` | `SearchFilterSummary.tsx` | 清空 query、备注筛选，并把搜索范围恢复为全部书签 |
 | 刷新按钮 | `.summary-icon-button` | `SearchFilterSummary.tsx` | `reload()` 重新读取 bookmarks tree |
 
 ## BookmarkCommandBar 元素
 
 | UI 元素 | selector | 代码文件 | 当前状态 |
 |---|---|---|---|
-| 排序按钮 | `.command-button` | `BookmarkCommandBar.tsx` | disabled，占位；搜索态 label 为“匹配度”，普通态为“默认顺序” |
-| 筛选按钮 | `.command-button` | `BookmarkCommandBar.tsx` | disabled，占位；label 固定“全部” |
-| 有备注 chip | `.command-chip` | `BookmarkCommandBar.tsx` | disabled，占位 |
+| 排序控件 | `.command-select-control` | `BookmarkCommandBar.tsx` | 选择默认顺序、标题 A-Z、最新添加、最早添加 |
+| 筛选按钮 | `.command-button` | `BookmarkCommandBar.tsx` | 更多筛选 disabled，占位；label 随当前筛选显示“全部”或“有备注” |
+| 有备注 chip | `.command-chip` / `.command-chip.is-active` | `BookmarkCommandBar.tsx` | 点击切换备注筛选 |
 | 未读 chip | `.command-chip` | `BookmarkCommandBar.tsx` | disabled，占位 |
 | 收藏 chip | `.command-chip` | `BookmarkCommandBar.tsx` | disabled，占位 |
 | 打开方式图标按钮 | `.command-icon-button` | `BookmarkCommandBar.tsx` | disabled，占位 |
@@ -85,7 +87,7 @@
 | 高亮态 | `.is-highlighted` / `.is-highlight-pulse` | `BookmarkCard.tsx` + `styles.css` | deep link 或树内点击后反馈 |
 | 批量选择态 | `.is-selectable` / `.is-selected` | `BookmarkCard.tsx` | 选择模式下点击卡片切换选中 |
 | 选择 checkbox | `.bookmark-selection-check` | `BookmarkCard.tsx` | 只在 `selectable` 时显示 |
-| favicon | `.favicon img` | `BookmarkCard.tsx` | 使用 Google favicon 服务 URL；失败时浏览器处理 |
+| favicon | `.favicon.site-favicon` | `BookmarkCard.tsx` + `SiteFavicon.tsx` | 使用统一 favicon cache；失败时显示本地字母 fallback，不再直接拼接 Google s2 URL |
 | 打开按钮 | `.open-link-button` | `BookmarkCard.tsx` | 停止冒泡，单独打开书签 |
 | 更多按钮 | `.more-card-button` | `BookmarkCard.tsx` | 打开书签右键菜单 |
 | 标题按钮 | `.inline-edit-title` | `BookmarkCard.tsx` | 普通模式点击进入标题行内编辑 |

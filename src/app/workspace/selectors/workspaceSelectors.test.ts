@@ -1,6 +1,13 @@
 import { describe, expect, it } from "vitest";
 import type { BookmarkNode } from "../../../features/bookmarks";
-import { getDirectFolders, getFolderDisplayLabel, getFolderStats } from "./workspaceSelectors";
+import type { ExtensionMetadataState } from "../../../features/metadata";
+import {
+  filterWorkspaceBookmarkItems,
+  getDirectFolders,
+  getFolderDisplayLabel,
+  getFolderStats,
+  sortWorkspaceBookmarkItems
+} from "./workspaceSelectors";
 
 describe("workspace selectors", () => {
   it("returns empty stats for a missing folder", () => {
@@ -73,4 +80,69 @@ describe("workspace selectors", () => {
 
     expect(getFolderStats(folder).updatedAt).toBe(300);
   });
+
+  it("keeps default bookmark item sorting in input order", () => {
+    const items = [
+      { bookmark: bookmark("1", "B docs", 200) },
+      { bookmark: bookmark("2", "A docs", 100) }
+    ];
+
+    expect(sortWorkspaceBookmarkItems(items, "default")).toBe(items);
+  });
+
+  it("sorts bookmark items by title and date", () => {
+    const items = [
+      { bookmark: bookmark("1", "B docs", 200) },
+      { bookmark: bookmark("2", "A docs", 100) },
+      { bookmark: bookmark("3", "C docs", 300) }
+    ];
+
+    expect(sortWorkspaceBookmarkItems(items, "title-asc").map((item) => item.bookmark.id)).toEqual([
+      "2",
+      "1",
+      "3"
+    ]);
+    expect(sortWorkspaceBookmarkItems(items, "date-newest").map((item) => item.bookmark.id)).toEqual([
+      "3",
+      "1",
+      "2"
+    ]);
+    expect(sortWorkspaceBookmarkItems(items, "date-oldest").map((item) => item.bookmark.id)).toEqual([
+      "2",
+      "1",
+      "3"
+    ]);
+  });
+
+  it("filters bookmark items to entries with notes", () => {
+    const metadata: ExtensionMetadataState = {
+      metadataVersion: 1,
+      bookmarkMetadata: {
+        "1": { note: "Keep this" },
+        "2": { note: "   " }
+      }
+    };
+    const items = [
+      { bookmark: bookmark("1", "With note", 200) },
+      { bookmark: bookmark("2", "Blank note", 100) },
+      { bookmark: bookmark("3", "No note", 300) }
+    ];
+
+    expect(
+      filterWorkspaceBookmarkItems(items, metadata, { hasNote: true }).map((item) => item.bookmark.id)
+    ).toEqual(["1"]);
+    expect(filterWorkspaceBookmarkItems(items, metadata, { hasNote: false })).toBe(items);
+  });
 });
+
+function bookmark(id: string, title: string, dateAdded: number): BookmarkNode {
+  return {
+    id,
+    parentId: "10",
+    index: Number(id),
+    title,
+    syncing: false,
+    dateAdded,
+    url: `https://example.com/${id}`
+  };
+}

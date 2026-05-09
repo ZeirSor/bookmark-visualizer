@@ -695,6 +695,28 @@ svg {
   border-radius: 12px;
 }
 
+.site-favicon img {
+  display: block;
+  object-fit: contain;
+}
+
+.site-favicon-fallback {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  place-items: center;
+  font-weight: 850;
+}
+
+.nt-shortcut-icon-wrap .site-favicon-fallback {
+  width: 38px;
+  height: 38px;
+  color: #ffffff;
+  font-size: 13px;
+  background: var(--site-favicon-fallback-bg, var(--nt-accent));
+  border-radius: 12px;
+}
+
 .nt-shortcut-icon-wrap img {
   width: 38px;
   height: 38px;
@@ -873,6 +895,17 @@ svg {
   font-size: 12px;
   font-weight: 850;
   background: var(--nt-blue-soft);
+}
+
+.nt-row-favicon img {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+}
+
+.nt-row-favicon .site-favicon-fallback {
+  color: inherit;
+  font-size: 12px;
 }
 
 .nt-preview-grid {

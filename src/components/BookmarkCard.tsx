@@ -10,6 +10,7 @@ import {
 import type { BookmarkNode } from "../features/bookmarks";
 import { ExternalLinkIcon, StarIcon } from "./icons/AppIcons";
 import { MoreIcon } from "./icons/ManagerIcons";
+import { SiteFavicon } from "./SiteFavicon";
 
 interface BookmarkCardProps {
   bookmark: BookmarkNode;
@@ -149,9 +150,7 @@ export function BookmarkCard({
             <span aria-hidden="true" />
           </button>
         ) : null}
-        <span className="favicon" aria-hidden="true">
-          <img src={getFaviconUrl(url)} alt="" loading="lazy" />
-        </span>
+        <SiteFavicon url={url} title={bookmark.title} size={32} className="favicon" />
         <span className="bookmark-card-actions">
           <button
             className="open-link-button"
@@ -359,15 +358,6 @@ function InlineInput({
 function getHostname(url: string): string {
   try {
     return new URL(url).hostname.replace(/^www\./, "");
-  } catch {
-    return "";
-  }
-}
-
-function getFaviconUrl(url: string): string {
-  try {
-    const parsed = new URL(url);
-    return `https://www.google.com/s2/favicons?domain=${parsed.hostname}&sz=64`;
   } catch {
     return "";
   }

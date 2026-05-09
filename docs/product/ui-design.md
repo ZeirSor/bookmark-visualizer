@@ -69,10 +69,10 @@ src/app/App.tsx
 
 | 区域 | 代码 | 说明 |
 |---|---|---|
-| 顶部搜索 | `TopToolbar.tsx` + `SearchBar.tsx` | 全局搜索标题 / URL；不要再新增第二个重复搜索框 |
+| 顶部搜索 | `TopToolbar.tsx` + `SearchBar.tsx` | 全局搜索标题 / URL / 备注；不要再新增第二个重复搜索框 |
 | 文件夹头部 | `FolderHeader.tsx` | 展示当前路径、文件夹摘要、新建入口 |
-| 搜索摘要 | `SearchFilterSummary.tsx` | 搜索状态下展示关键词与结果上下文 |
-| 命令栏 | `BookmarkCommandBar.tsx` | 批量选择、排序、筛选等入口；未实现能力必须保持 disabled |
+| 搜索摘要 | `SearchFilterSummary.tsx` | 展示关键词、备注筛选、结果数量和搜索范围 |
+| 命令栏 | `BookmarkCommandBar.tsx` | 批量选择、排序、有备注筛选等入口；未实现能力必须保持 disabled |
 | 子文件夹条 | `FolderStrip.tsx` | 展示当前文件夹下的子文件夹 quick access |
 | 卡片内容 | `WorkspaceContent.tsx` | 展示书签卡片、空状态、搜索结果 |
 

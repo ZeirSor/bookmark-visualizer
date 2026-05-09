@@ -58,16 +58,36 @@
 职责：
 
 - 建立内存索引。
-- 当前匹配标题和 URL。
-- 后续匹配备注和摘要。
+- 当前匹配标题、URL 和调用方传入的备注 metadata。
+- 后续匹配摘要。
 - 计算匹配度。
-- 当前按匹配度和添加时间排序。
-- 后续根据最近使用时间排序并应用过滤器。
+- 默认按匹配度和添加时间排序。
+- 管理页可在 workspace selector 层应用备注筛选和显式排序。
+- 后续根据最近使用时间排序并扩展过滤器。
 
 不负责：
 
 - 持久化搜索索引。
 - 修改书签或元数据。
+
+## favicon
+
+负责网站图标的本地 UI cache 和统一解析。
+
+职责：
+
+- 归一化 `http(s)` 页面 URL，生成 site key 和 cache key。
+- 通过 Manifest V3 `favicon` permission 支持的 `_favicon` URL 获取浏览器已知的网站图标。
+- 将成功图标以 data URL 写入 IndexedDB：`bookmarkVisualizerFaviconCache` / `favicons`。
+- 管理 7 天成功 TTL、1 小时失败重试 TTL、最多 500 条记录和 stale-while-refresh。
+- 为 New Tab 和管理页共享 `SiteFavicon` 组件提供统一数据来源。
+
+不负责：
+
+- 改变书签树或 metadata。
+- 将 favicon cache 写入 `chrome.storage.local` 的设置 / New Tab 状态 key。
+- 默认访问 Google、DuckDuckGo 等第三方 favicon 服务。
+- 抓取网页 HTML 或请求全局 host permission 来解析 `<link rel="icon">`。
 
 ## drag-drop
 

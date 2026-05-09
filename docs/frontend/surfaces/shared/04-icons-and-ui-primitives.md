@@ -31,6 +31,18 @@ Shared primitives should live in `src/components/` or another clearly shared UI 
 - Keep destructive actions visually distinct and confirm where needed.
 - Do not introduce direct `chrome.*` calls inside pure UI primitives.
 
+## SiteFavicon
+
+`src/components/SiteFavicon.tsx` is the shared website icon primitive for surfaces that render bookmark URLs.
+
+Rules:
+
+- Pass the bookmark/page URL and title; pass a letter or shortcut icon fallback when the caller already has one.
+- The component is decorative (`aria-hidden`) because nearby link/card text already exposes the site title.
+- Favicon lookup and IndexedDB cache policy must stay in `src/features/favicon/*`.
+- UI surfaces must keep the image and fallback in the same fixed-size box to prevent layout shift.
+- Do not add direct Google s2, DuckDuckGo, or other third-party favicon URL construction in individual components.
+
 ## Cross-Surface Checks
 
 When changing a primitive, check affected surfaces:

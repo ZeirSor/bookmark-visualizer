@@ -22,6 +22,27 @@ describe("searchBookmarks", () => {
     expect(result.folderPath).toBe("Root / Bookmarks Bar / Design References");
   });
 
+  it("finds bookmarks by metadata note when metadata is provided", () => {
+    const results = searchBookmarks(mockBookmarkTree, "release checklist", {
+      metadata: {
+        bookmarkMetadata: {
+          "121": {
+            note: "release checklist for saved assistant sessions"
+          }
+        }
+      }
+    });
+
+    expect(results).toHaveLength(1);
+    expect(results[0].bookmark.title).toBe("ChatGPT");
+  });
+
+  it("limits results to the scoped folder subtree", () => {
+    const results = searchBookmarks(mockBookmarkTree, "vite", { scopeRootId: "10" });
+
+    expect(results.map((result) => result.bookmark.id)).toEqual(["106"]);
+  });
+
   it("returns no results for empty queries", () => {
     expect(searchBookmarks(mockBookmarkTree, " ")).toEqual([]);
   });

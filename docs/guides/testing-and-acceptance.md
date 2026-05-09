@@ -14,13 +14,13 @@
 - 当前已覆盖拖拽书签同父级重排的合法性、卡片 / 树行插入位置判断、index 修正和本地树无刷新更新。
 - 当前已覆盖新建书签到文件夹末尾、文件夹搜索过滤和左侧树书签拖拽源快照。
 - 当前已覆盖文件夹拖拽移动的合法性、非法目标阻止和同级 index 修正。
-- 当前已覆盖 metadata note、快捷保存预览图片 URL 保存 / 读取和 settings 默认值 / 持久化。
+- 当前已覆盖 metadata note、备注搜索、快捷保存预览图片 URL 保存 / 读取和 settings 默认值 / 持久化。
 - 当前已覆盖 manifest 的工具栏 action、快捷保存 command、service worker、图标路径、权限边界和不使用静态 New Tab override。
 - 当前已覆盖 New Tab 设置默认值 / normalize、New Tab state、搜索 URL 构建、混合搜索建议和运行时 New Tab 重定向。
 - 当前已覆盖快捷保存页面标题和图片提取优先级。
 - 当前已覆盖快捷保存最近使用文件夹状态和默认目标选择。
 - 当前新增 `npm run verify:quick-save-shortcut`，用于检查快捷保存 command、service worker 注入路径和 content script 打包产物。
-- 搜索备注 / 摘要、最近使用时间排序、过滤器、元数据导入导出和迁移仍需后续测试。
+- 摘要搜索、最近使用时间排序、更多过滤器、元数据导入导出和迁移仍需后续测试。
 
 ## 组件测试
 

@@ -32,10 +32,13 @@ import { useWorkspaceDragDrop } from "./workspace/hooks/useWorkspaceDragDrop";
 import { useWorkspaceDeepLink } from "./workspace/hooks/useWorkspaceDeepLink";
 import {
   formatFolderUpdatedLabel,
+  filterWorkspaceBookmarkItems,
   getDirectFolders,
   getFolderDisplayLabel,
   getFolderStats,
-  getSelectedBookmarksForAction
+  getSelectedBookmarksForAction,
+  hasActiveWorkspaceFilters,
+  sortWorkspaceBookmarkItems
 } from "./workspace/selectors/workspaceSelectors";
 import type {
   BookmarkContextMenuState,
@@ -43,7 +46,10 @@ import type {
   FolderPickerDialogState,
   NewBookmarkDraftState,
   NewFolderDialogState,
-  ToastState
+  ToastState,
+  WorkspaceFilters,
+  WorkspaceSearchScope,
+  WorkspaceSortMode
 } from "./workspace/types";
 import {
   getBookmarkDropPositionFromEvent,
@@ -87,6 +93,9 @@ import { useSettings } from "../features/settings";
 
 export function App() {
   const [query, setQuery] = useState("");
+  const [sortMode, setSortMode] = useState<WorkspaceSortMode>("default");
+  const [workspaceFilters, setWorkspaceFilters] = useState<WorkspaceFilters>({ hasNote: false });
+  const [searchScope, setSearchScope] = useState<WorkspaceSearchScope>("all");
   const [highlightedBookmarkId, setHighlightedBookmarkId] = useState<string>();
   const [highlightPulseId, setHighlightPulseId] = useState<string>();
   const [contextMenu, setContextMenu] = useState<BookmarkContextMenuState>();
@@ -204,8 +213,16 @@ export function App() {
     shortcutDialogOpen
   ]);
 
-  const searchResults = useMemo(() => searchBookmarks(tree, query), [query, tree]);
+  const searchResults = useMemo(
+    () =>
+      searchBookmarks(tree, query, {
+        metadata,
+        scopeRootId: searchScope === "current-folder" ? selectedFolderId : undefined
+      }),
+    [metadata, query, searchScope, selectedFolderId, tree]
+  );
   const isSearching = query.trim().length > 0;
+  const hasActiveFilters = hasActiveWorkspaceFilters(workspaceFilters);
   const childFolders = useMemo(() => getDirectFolders(selectedFolder), [selectedFolder]);
   const folderStats = useMemo(() => getFolderStats(selectedFolder), [selectedFolder]);
   const folderTitle = getFolderDisplayLabel(selectedFolder);
@@ -222,12 +239,19 @@ export function App() {
   const canCreateBookmarkHere = !isSearching && canCreateBookmarkInFolder(selectedFolder);
   const canCreateFolderHere = Boolean(selectedFolder && canCreateBookmarkInFolder(selectedFolder));
 
-  const displayedBookmarks = isSearching
-    ? searchResults.map((result) => ({
-        bookmark: result.bookmark,
-        folderPath: result.folderPath
-      }))
-    : selectedBookmarks.map((bookmark) => ({ bookmark, folderPath: undefined }));
+  const displayedBookmarks = useMemo(() => {
+    const sourceItems: Array<{ bookmark: BookmarkNode; folderPath?: string }> = isSearching
+      ? searchResults.map((result) => ({
+          bookmark: result.bookmark,
+          folderPath: result.folderPath
+        }))
+      : selectedBookmarks.map((bookmark) => ({ bookmark, folderPath: undefined }));
+
+    return sortWorkspaceBookmarkItems(
+      filterWorkspaceBookmarkItems(sourceItems, metadata, workspaceFilters),
+      sortMode
+    );
+  }, [isSearching, metadata, searchResults, selectedBookmarks, sortMode, workspaceFilters]);
   const selectedBookmarksForAction = useMemo(
     () => getSelectedBookmarksForAction(selection.selectedIds, tree),
     [selection.selectedIds, tree]
@@ -266,6 +290,12 @@ export function App() {
 
     return () => window.clearTimeout(timeout);
   }, [highlightPulseId]);
+
+  function clearWorkspaceFilters() {
+    setQuery("");
+    setWorkspaceFilters({ hasNote: false });
+    setSearchScope("all");
+  }
 
   return (
     <main
@@ -380,7 +410,7 @@ export function App() {
               folderCount={folderStats.folderCount}
               updatedLabel={folderUpdatedLabel}
               isSearching={isSearching}
-              resultCount={searchResults.length}
+              resultCount={displayedBookmarks.length}
               canCreateBookmark={canCreateBookmarkHere && Boolean(selectedFolder)}
               onCreateBookmark={() => {
                 if (selectedFolder) {
@@ -393,14 +423,27 @@ export function App() {
             />
             <SearchFilterSummary
               query={query}
-              resultCount={searchResults.length}
+              filters={workspaceFilters}
+              resultCount={displayedBookmarks.length}
+              searchScope={searchScope}
               onClearQuery={() => setQuery("")}
+              onClearFilters={clearWorkspaceFilters}
+              onClearHasNoteFilter={() =>
+                setWorkspaceFilters((current) => ({ ...current, hasNote: false }))
+              }
               onRefresh={() => void reload()}
+              onSearchScopeChange={setSearchScope}
             />
             <BookmarkCommandBar
-              sortLabel={isSearching ? "匹配度" : "默认顺序"}
-              filterLabel="全部"
+              defaultSortLabel={isSearching ? "匹配度" : "默认顺序"}
+              filterLabel={workspaceFilters.hasNote ? "有备注" : "全部"}
+              filters={workspaceFilters}
+              sortMode={sortMode}
               selectionMode={selection.selectionMode}
+              onSortModeChange={setSortMode}
+              onToggleHasNoteFilter={() =>
+                setWorkspaceFilters((current) => ({ ...current, hasNote: !current.hasNote }))
+              }
               onEnterSelectionMode={selection.enter}
             />
             {!isSearching ? (
@@ -422,6 +465,7 @@ export function App() {
               handleSaveUrl={handleSaveUrl}
               highlightedBookmarkId={highlightedBookmarkId}
               highlightPulseId={highlightPulseId}
+              hasActiveFilters={hasActiveFilters}
               inlineEditRequest={inlineEditRequest}
               isSearching={isSearching}
               loading={loading}
@@ -429,9 +473,8 @@ export function App() {
               newBookmarkDraft={newBookmarkDraft}
               openBookmark={openBookmark}
               openNewBookmarkDraftAtEnd={openNewBookmarkDraftAtEnd}
-              onClearSearch={() => setQuery("")}
+              onClearSearch={clearWorkspaceFilters}
               onToggleBookmarkSelected={(bookmark) => selection.toggle(bookmark.id)}
-              searchResults={searchResults}
               selectedBookmarkIds={selection.selectedIds}
               selectedBookmarks={selectedBookmarks}
               selectedFolder={selectedFolder}

@@ -11,6 +11,7 @@ import {
   StarIcon,
   UploadIcon
 } from "../../components/icons/AppIcons";
+import { SiteFavicon } from "../../components/SiteFavicon";
 import type { CSSProperties } from "react";
 import type {
   NewTabActivityItem,
@@ -53,7 +54,13 @@ export function PinnedShortcutGrid({
               className="nt-shortcut-main"
               onClick={(event) => onOpen(shortcut, event.ctrlKey || event.metaKey)}
             >
-              <ShortcutIcon shortcut={shortcut} />
+              <SiteFavicon
+                url={shortcut.url}
+                title={shortcut.title}
+                size={32}
+                className="nt-shortcut-icon-wrap"
+                fallback={shortcut.icon}
+              />
               <span>{shortcut.title}</span>
             </button>
             <button
@@ -150,7 +157,7 @@ export function FeaturedBookmarkRow({
               type="button"
               onClick={(event) => onOpen(bookmark, event.ctrlKey || event.metaKey)}
             >
-              <span className="nt-row-favicon">{getHostnameInitial(bookmark.url)}</span>
+              <SiteFavicon url={bookmark.url} title={bookmark.title} size={32} className="nt-row-favicon" />
               <span>
                 <strong>{bookmark.title}</strong>
                 <small>{getHostname(bookmark.url) || bookmark.folderPath}</small>
@@ -196,7 +203,7 @@ export function FolderPreviewPanel({
           {bookmarks.slice(0, 4).map((bookmark) => (
             <article key={bookmark.id} className="nt-preview-card">
               <button type="button" onClick={(event) => onOpen(bookmark, event.ctrlKey || event.metaKey)}>
-                <span className="nt-row-favicon">{getHostnameInitial(bookmark.url)}</span>
+                <SiteFavicon url={bookmark.url} title={bookmark.title} size={32} className="nt-row-favicon" />
                 <span>
                   <strong>{bookmark.title}</strong>
                   <small>{getHostname(bookmark.url)}</small>
@@ -243,7 +250,13 @@ export function RecentActivityPanel({
               disabled={!activity.url}
               onClick={(event) => onOpen(activity, event.ctrlKey || event.metaKey)}
             >
-              <span className="nt-row-favicon">{activity.url ? getHostnameInitial(activity.url) : <RecentIcon />}</span>
+              {activity.url ? (
+                <SiteFavicon url={activity.url} title={activity.title} size={32} className="nt-row-favicon" />
+              ) : (
+                <span className="nt-row-favicon">
+                  <RecentIcon />
+                </span>
+              )}
               <span>
                 <strong>{activity.title}</strong>
                 <small>{activity.url ? getHostname(activity.url) : formatActivity(activity)}</small>
@@ -311,24 +324,6 @@ export function StorageUsageMiniCard() {
   );
 }
 
-function ShortcutIcon({ shortcut }: { shortcut: NewTabShortcutViewModel }) {
-  if (shortcut.icon.kind === "image") {
-    return (
-      <span className="nt-shortcut-icon-wrap">
-        <img src={shortcut.icon.value} alt="" />
-      </span>
-    );
-  }
-
-  return (
-    <span className="nt-shortcut-icon-wrap">
-      <span className="nt-shortcut-icon" style={{ background: shortcut.icon.background }}>
-        {shortcut.icon.value}
-      </span>
-    </span>
-  );
-}
-
 function formatActivity(activity: NewTabActivityItem): string {
   const labels: Record<NewTabActivityItem["type"], string> = {
     visited: "已访问",
@@ -347,10 +342,6 @@ function getHostname(url: string): string {
   } catch {
     return "";
   }
-}
-
-function getHostnameInitial(url: string): string {
-  return (getHostname(url)[0] ?? "?").toLocaleUpperCase();
 }
 
 function formatRelativeTime(timestamp: number): string {

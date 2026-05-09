@@ -47,6 +47,7 @@ Quick Save Command
 - `permissions.bookmarks`：读取、创建、编辑、删除和移动书签。
 - `permissions.storage`：保存备注、预览图 URL、UI 状态、最近文件夹和设置。
 - `permissions.activeTab` / `permissions.scripting` / `permissions.tabs`：在用户主动打开 Popup 或触发扩展命令时读取当前标签页详情，必要时执行一次页面信息提取。
+- `permissions.favicon`：允许扩展页面通过官方 `_favicon` URL 读取浏览器已知的网站图标，用于本地 favicon cache；不引入默认第三方 favicon 服务。
 
 当前扩展不声明：
 
@@ -78,12 +79,14 @@ UI entrypoints
 |---|---|---|
 | UI entrypoints | `src/app`、`src/popup`、`src/newtab`、`src/features/quick-save/QuickSaveDialog.tsx` | 页面布局、局部状态和用户事件绑定 |
 | Shared components | `src/components` | 书签卡片、文件夹树、级联菜单、搜索框、图标 |
-| Feature services | `src/features/*` | 书签树、搜索、拖拽、settings、metadata、newtab、popup、quick-save 等业务能力 |
+| Feature services | `src/features/*` | 书签树、搜索、拖拽、settings、metadata、newtab、favicon、popup、quick-save 等业务能力 |
 | Chrome adapters | `src/lib/chrome/*` | `chrome.bookmarks`、`chrome.storage`、runtime、permissions 等封装 |
 | Background | `src/background/*` + `src/features/newtab/newTabRedirect.ts` | service worker 注册、命令处理、消息路由、New Tab redirect |
 | Domain | `src/domain/*` | 后续稳定领域模型与纯规则，目前部分模块仍是基础模型与类型 |
 
 页面层不得直接散落调用 `chrome.*` API。例外应收敛到明确 helper，例如 `src/features/newtab/navigation.ts` 负责打开 URL / 管理页。
+
+`src/features/favicon/*` 负责 favicon URL 归一化、`_favicon` URL 构建、IndexedDB cache 和 stale-while-refresh 策略。共享 UI 通过 `SiteFavicon` / `useSiteFavicon()` 消费，不在各个页面组件中拼接远程 favicon 服务 URL。
 
 ## 当前 Popup 页面信息提取
 

@@ -49,13 +49,13 @@
 ## `BookmarkCommandBar`
 
 - 文件：`src/app/workspace/components/BookmarkCommandBar.tsx`
-- 作用：承接未来排序、筛选、结构化管理功能。
-- 当前真实操作：进入批量操作模式。
-- 当前 disabled：排序、筛选、有备注、未读、收藏、打开方式设置。
+- 作用：承接排序、筛选、批量和后续结构化管理功能。
+- 当前真实操作：排序、`有备注` 筛选、进入批量操作模式。
+- 当前 disabled：更多筛选、未读、收藏、打开方式设置。
 
 维护建议：
 
-新增真实排序 / 筛选时，不要把状态塞进组件内部；应在 `App.tsx` 或 `workspaceSelectors.ts` 增加统一筛选状态与 selector。
+新增更多排序 / 筛选时，不要把状态塞进组件内部；应在 `App.tsx` 或 `workspaceSelectors.ts` 继续维护统一筛选状态与 selector。
 
 ## `FolderStrip`
 

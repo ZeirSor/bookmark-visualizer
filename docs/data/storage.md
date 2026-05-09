@@ -141,6 +141,24 @@ src/features/recent-folders/recentFolders.ts
 
 `bookmarkVisualizerNewTabUsageStats` 保存 URL 打开次数和最近打开时间，用于推导常用快捷入口。
 
+## Favicon 本地缓存
+
+真实 favicon 属于 UI 辅助缓存，不属于书签结构，也不写入 `chrome.storage.local` 的主设置或 New Tab 状态 key。
+
+```text
+IndexedDB database: bookmarkVisualizerFaviconCache
+Object store: favicons
+Primary key: <normalized site key>|<size>
+```
+
+维护规则：
+
+- 缓存记录由 `src/features/favicon/*` 统一读写，当前用于 New Tab 和管理页书签卡片。
+- `siteKey` 只接受 `http(s)` 页面 URL，并按协议 + 去除 `www.` 的 hostname + port 分组。
+- 成功缓存默认 7 天过期；失败记录默认 1 小时后可重试；最多保留 500 条，按失败记录和最久未访问记录优先清理。
+- 缓存 miss 时通过 Manifest V3 `favicon` permission 支持的 `_favicon` 扩展 URL 获取图标，并转为 data URL 存入 IndexedDB。
+- 删除或清空 favicon cache 不得影响 `chrome.bookmarks`、metadata、settings、New Tab state 或 recent activity。
+
 ## 操作日志
 
 当前管理页操作日志保存在页面运行时内存中，用于本次会话撤回移动、编辑、删除等操作。它不是持久化审计日志，刷新扩展页面后会清空。

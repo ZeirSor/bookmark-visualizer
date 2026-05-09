@@ -1733,6 +1733,7 @@ button svg {
 }
 
 .command-button,
+.command-select-control,
 .command-chip {
   display: inline-flex;
   align-items: center;
@@ -1749,6 +1750,25 @@ button svg {
   cursor: pointer;
 }
 
+.command-select-control {
+  position: relative;
+}
+
+.command-select-control select {
+  min-width: 120px;
+  color: inherit;
+  font: inherit;
+  background: transparent;
+  border: 0;
+  outline: 0;
+  appearance: none;
+  cursor: pointer;
+}
+
+.command-select-control svg:last-child {
+  pointer-events: none;
+}
+
 .command-chip {
   min-height: var(--control-height-sm);
   padding: 0 var(--space-3);
@@ -1757,6 +1777,8 @@ button svg {
 
 .command-button:hover,
 .command-button:focus-visible,
+.command-select-control:hover,
+.command-select-control:focus-within,
 .command-chip:hover,
 .command-chip:focus-visible {
   color: var(--accent);
@@ -1766,6 +1788,12 @@ button svg {
 }
 
 .command-button.is-active {
+  color: var(--accent);
+  background: var(--color-accent-soft);
+  border-color: var(--border-accent);
+}
+
+.command-chip.is-active {
   color: var(--accent);
   background: var(--color-accent-soft);
   border-color: var(--border-accent);
@@ -1823,6 +1851,40 @@ button svg {
 .filter-chip button:focus-visible {
   background: var(--color-accent-softer);
   outline: 0;
+}
+
+.summary-scope-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px;
+  background: var(--surface-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+}
+
+.summary-scope-switch button {
+  min-height: 24px;
+  padding: 0 var(--space-2);
+  color: var(--text-secondary);
+  font-size: var(--font-size-12);
+  font-weight: var(--font-weight-bold);
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-xs);
+  cursor: pointer;
+}
+
+.summary-scope-switch button:hover,
+.summary-scope-switch button:focus-visible {
+  color: var(--accent);
+  background: var(--color-accent-softer);
+  outline: 0;
+}
+
+.summary-scope-switch button.is-active {
+  color: var(--accent);
+  background: var(--color-accent-soft);
 }
 
 .link-button {
@@ -2593,6 +2655,19 @@ button svg {
 .favicon img {
   width: calc(var(--card-icon-size, 36px) * 0.62);
   height: calc(var(--card-icon-size, 36px) * 0.62);
+  object-fit: contain;
+}
+
+.favicon .site-favicon-fallback {
+  display: grid;
+  width: calc(var(--card-icon-size, 36px) * 0.62);
+  height: calc(var(--card-icon-size, 36px) * 0.62);
+  place-items: center;
+  color: #ffffff;
+  font-size: calc(var(--card-icon-size, 36px) * 0.28);
+  font-weight: var(--font-weight-black);
+  background: var(--site-favicon-fallback-bg, var(--accent));
+  border-radius: 8px;
 }
 
 .card-content {

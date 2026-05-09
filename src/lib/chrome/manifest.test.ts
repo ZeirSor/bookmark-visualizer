@@ -65,8 +65,10 @@ describe("extension manifest", () => {
       "storage",
       "activeTab",
       "scripting",
-      "tabs"
+      "tabs",
+      "favicon"
     ]);
+    expect(manifest.permissions).toContain("favicon");
     expect(manifest.permissions).toContain("tabs");
     expect(manifest.optional_host_permissions).toBeUndefined();
     expect(manifest.host_permissions).toBeUndefined();

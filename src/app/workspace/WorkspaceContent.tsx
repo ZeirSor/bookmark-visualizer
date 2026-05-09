@@ -25,6 +25,7 @@ export function WorkspaceContent({
   handleSaveUrl,
   highlightedBookmarkId,
   highlightPulseId,
+  hasActiveFilters,
   inlineEditRequest,
   isSearching,
   loading,
@@ -34,7 +35,6 @@ export function WorkspaceContent({
   openNewBookmarkDraftAtEnd,
   onClearSearch,
   onToggleBookmarkSelected,
-  searchResults,
   selectedBookmarkIds,
   selectedBookmarks,
   selectedFolder,
@@ -58,6 +58,7 @@ export function WorkspaceContent({
   handleSaveUrl(bookmark: BookmarkNode, url: string): Promise<void>;
   highlightedBookmarkId?: string;
   highlightPulseId?: string;
+  hasActiveFilters: boolean;
   inlineEditRequest?: { bookmarkId: string; requestId: number };
   isSearching: boolean;
   loading: boolean;
@@ -67,7 +68,6 @@ export function WorkspaceContent({
   openNewBookmarkDraftAtEnd(folder: BookmarkNode): void;
   onClearSearch(): void;
   onToggleBookmarkSelected(bookmark: BookmarkNode): void;
-  searchResults: unknown[];
   selectedBookmarkIds: Set<string>;
   selectedBookmarks: BookmarkNode[];
   selectedFolder?: BookmarkNode;
@@ -85,17 +85,27 @@ export function WorkspaceContent({
   }
 
   if (isSearching) {
-    if (searchResults.length === 0) {
+    if (displayedBookmarks.length === 0) {
       return (
         <EmptyState
           title="没有找到匹配书签"
-          body="试试换一个标题、域名或 URL 片段。"
+          body="试试换一个标题、域名、URL 或备注片段。"
           action={{ label: "清除搜索", onClick: onClearSearch }}
         />
       );
     }
 
     return renderCards(displayedBookmarks);
+  }
+
+  if (hasActiveFilters && displayedBookmarks.length === 0) {
+    return (
+      <EmptyState
+        title="没有符合筛选的书签"
+        body="清除筛选后可查看当前文件夹的全部书签。"
+        action={{ label: "清除筛选", onClick: onClearSearch }}
+      />
+    );
   }
 
   if (

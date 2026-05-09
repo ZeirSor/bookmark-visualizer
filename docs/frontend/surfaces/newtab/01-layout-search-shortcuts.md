@@ -67,7 +67,7 @@ SearchPanel query state
 | grid | `.nt-shortcut-grid` | CSS var `--nt-shortcut-cols` 控制列数 |
 | tile | `.nt-shortcut-tile` | 快捷方式卡片 |
 | 主按钮 | `.nt-shortcut-main` | 点击打开 URL；Ctrl/Cmd 点击新标签 |
-| icon wrap | `.nt-shortcut-icon-wrap` | 图标容器 |
+| icon wrap | `.nt-shortcut-icon-wrap` + `.site-favicon` | `SiteFavicon` 图标容器，真实 favicon 失败时显示 shortcut fallback |
 | dismiss | `.nt-tile-dismiss` | 隐藏 / 移除 shortcut |
 | 添加网站 tile | `.nt-add-shortcut` | 打开添加对话框 |
 
@@ -106,9 +106,16 @@ state.pinnedShortcuts
 | preview grid | `.nt-preview-grid` | 最多 4 个书签预览 |
 | preview card | `.nt-preview-card` | 点击打开书签 |
 
+## Favicon 行为
+
+- 快速访问、精选书签、文件夹预览和有 URL 的最近活动都通过 `src/components/SiteFavicon.tsx` 渲染。
+- favicon 解析与缓存由 `src/features/favicon/*` 负责，优先读取 IndexedDB cache，再通过官方 `_favicon` URL 刷新。
+- 加载、失败、离线或非 `http(s)` URL 时保留字母 / 品牌 fallback，占位尺寸不变化，避免首屏布局跳动。
+- “添加网站” tile 和没有 URL 的 recent activity 仍使用本地图标。
+
 ## FeaturedBookmarkRow
 
-- selector：`.nt-panel.nt-featured-panel`、`.nt-featured-row`、`.nt-row-favicon`。
+- selector：`.nt-panel.nt-featured-panel`、`.nt-featured-row`、`.nt-row-favicon`、`.site-favicon`。
 - 数据：active folder 的直接书签，最多 8 个。
 - 点击记录 activity 并打开 URL。
 

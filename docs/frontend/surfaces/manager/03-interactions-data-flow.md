@@ -23,14 +23,29 @@
 ```text
 SearchBar input
   → setQuery(query)
-  → useMemo(searchBookmarks(tree, query))
+  → useMemo(searchBookmarks(tree, query, { metadata, scopeRootId }))
   → isSearching = query.trim().length > 0
-  → displayedBookmarks = searchResults.map({ bookmark, folderPath })
-  → SearchFilterSummary 显示结果数量
-  → BookmarkCommandBar sortLabel = "匹配度"
+  → searchResults = title / URL / note matches
+  → sourceItems = searchResults.map({ bookmark, folderPath })
+  → filterWorkspaceBookmarkItems(sourceItems, metadata, workspaceFilters)
+  → sortWorkspaceBookmarkItems(filteredItems, sortMode)
+  → SearchFilterSummary 显示结果数量、关键词、备注筛选和搜索范围
 ```
 
-维护说明：当前 `searchBookmarks()` 只搜索标题和 URL。若要支持备注搜索，需要把 `metadata.bookmarkMetadata` 传入搜索 feature，并调整结果 score 与测试。
+维护说明：`searchBookmarks()` 保持兼容旧调用；管理页会传入 `metadata.bookmarkMetadata` 支持备注搜索，并在 `searchScope === "current-folder"` 时传入当前文件夹 id 限定子树。默认排序在搜索态仍保留匹配度优先，显式选择排序后才覆盖结果顺序。
+
+## 排序 / 筛选链路
+
+```text
+BookmarkCommandBar sort select / 有备注 chip
+  → setSortMode() / setWorkspaceFilters()
+  → displayedBookmarks useMemo
+  → filterWorkspaceBookmarkItems()
+  → sortWorkspaceBookmarkItems()
+  → WorkspaceContent
+```
+
+维护说明：默认顺序不重排当前文件夹书签，避免破坏浏览器原生顺序和拖拽重排预期。当前真实筛选只有 `hasNote`；未读、收藏和更多筛选仍是占位。
 
 ## 选择文件夹链路
 

@@ -33,6 +33,7 @@ npm run verify:popup-entry
 - Esc 取消行内编辑。
 - 备注保存后显示“有备注” chip。
 - 星标按钮保持 disabled。
+- 书签卡片使用本地 favicon cache；默认不再请求 `https://www.google.com/s2/favicons`。
 
 ### 拖拽 / 菜单
 
@@ -89,6 +90,8 @@ npm run verify:popup-entry
 - 输入关键词显示本地书签、文件夹、网络搜索建议。
 - 切换搜索引擎和分类后搜索 URL 正确。
 - 添加网站后 shortcut 出现。
+- 快速访问、精选书签、文件夹预览和有 URL 的最近活动优先显示真实 favicon。
+- 刷新 New Tab 后，已缓存 favicon 能先于远程刷新显示；失败或离线时字母 fallback 不引发布局跳动。
 - 隐藏 shortcut 后不再出现。
 - 点击 shortcut / featured 记录最近活动。
 - standard / sidebar / tabs 三种布局可切换。

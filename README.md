@@ -30,9 +30,11 @@ Bookmark Visualizer is a Manifest V3 browser extension for people with large boo
 - an optional New Tab surface that can be enabled in settings for a search-first bookmark dashboard;
 - a Quick Save overlay for low-friction page saving through extension command / background-assisted flow.
 
-The extension uses `chrome.bookmarks` as the source of truth. Moves, edits, deletes, folder changes, and bookmark creation operate on the browser's native bookmark tree instead of a private bookmark copy. Extension-only data such as notes, summaries, recent folders, New Tab state, settings, and UI state belong in `chrome.storage.local`.
+The extension uses `chrome.bookmarks` as the source of truth. Moves, edits, deletes, folder changes, and bookmark creation operate on the browser's native bookmark tree instead of a private bookmark copy. Extension-only data such as notes, summaries, recent folders, New Tab state, settings, and UI state belong in `chrome.storage.local`; website favicon images are cached separately in local IndexedDB as UI-only data.
 
 The toolbar action opens `popup.html`. The full manager workspace opens from `index.html`. By default, Bookmark Visualizer keeps the browser's native new tab page. Users can enable the optional New Tab override in settings; when enabled, new browser tabs redirect to `newtab.html`.
+
+The manifest includes the MV3 `favicon` permission so extension pages can read browser-known site icons through Chrome / Edge's official `_favicon` URL and cache them locally. The extension does not add default third-party favicon service requests.
 
 ## Features
 
@@ -52,6 +54,7 @@ The toolbar action opens `popup.html`. The full manager workspace opens from `in
 - Search folders, choose a save location, create a folder, add a note, and save from the popup Save tab.
 - Open the full workspace from the popup when deeper bookmark management is needed.
 - Optionally replace the browser New Tab page with a search-first bookmark dashboard.
+- Use locally cached website favicons in the New Tab dashboard and manager cards, with local letter fallback when unavailable.
 - Configure New Tab search engine, search category, layout mode, shortcuts per row, recent activity, and storage usage visibility.
 
 ## Preview
@@ -146,7 +149,7 @@ src/
   background/          MV3 service worker, commands, popup routing, quick-save, and new-tab redirect handling
   components/          Shared UI components used across surfaces
   domain/              Bookmark, folder, activity, and table-view domain models
-  features/            Feature modules: bookmarks, popup, quick-save, newtab, settings, metadata, search
+  features/            Feature modules: bookmarks, popup, quick-save, newtab, favicon, settings, metadata, search
   lib/chrome/          Chrome API adapters and mockable browser integration layer
   newtab/              Optional New Tab surface entry and app wiring
   popup/               Toolbar popup surface entry and app wiring

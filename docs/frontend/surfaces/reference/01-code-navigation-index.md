@@ -127,6 +127,7 @@
 | 文件 | 说明 |
 |---|---|
 | `src/components/BookmarkCard.tsx` | 管理页书签卡片 |
+| `src/components/SiteFavicon.tsx` | 共享网站 favicon primitive，消费 favicon feature cache |
 | `src/components/FolderTree.tsx` | 管理页左侧树 |
 | `src/components/FolderCascadeMenu.tsx` | 共享级联菜单 |
 | `src/components/folder-tree/*` | FolderTree 内部节点、书签行、重命名、drop helper、auto-scroll |
@@ -143,6 +144,7 @@
 | `src/features/settings/settingsService.ts` | settings 读写和 normalize |
 | `src/features/metadata/metadataService.ts` | 备注 / 元数据存储 |
 | `src/features/metadata/useMetadata.ts` | 管理页备注 hook |
+| `src/features/favicon/*` | favicon URL 归一化、IndexedDB cache、`_favicon` resolver 和 React hook |
 | `src/features/recent-folders/recentFolders.ts` | 最近文件夹共享存储 |
 | `src/features/import-export/*` | 导入导出基础能力；当前部分 UI 仍为 disabled 占位 |
 | `src/lib/chrome/*` | Chrome API adapter |

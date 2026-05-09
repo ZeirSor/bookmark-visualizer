@@ -42,3 +42,11 @@ export interface FolderPickerDialogState {
   query: string;
   selectedFolderId?: string;
 }
+
+export type WorkspaceSortMode = "default" | "title-asc" | "date-newest" | "date-oldest";
+
+export interface WorkspaceFilters {
+  hasNote: boolean;
+}
+
+export type WorkspaceSearchScope = "all" | "current-folder";

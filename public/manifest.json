@@ -32,5 +32,5 @@
       "description": "Save the current page to Bookmark Visualizer"
     }
   },
-  "permissions": ["bookmarks", "storage", "activeTab", "scripting", "tabs"]
+  "permissions": ["bookmarks", "storage", "activeTab", "scripting", "tabs", "favicon"]
 }

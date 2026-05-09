@@ -11,6 +11,7 @@
 - [ADR 0006: 使用工具栏图标作为启动入口](0006-use-toolbar-action-as-launch-entry.md)
 - [ADR 0008: 使用工具栏 popup 承载当前网页保存](0008-use-toolbar-popup-for-current-page-save.md)
 - [ADR 0009: 使用可开关的新标签页重定向](0009-use-toggleable-new-tab-redirect.md)
+- [ADR 0010: 使用本地 favicon cache](0010-use-local-favicon-cache.md)
 
 ## 历史决策
 
