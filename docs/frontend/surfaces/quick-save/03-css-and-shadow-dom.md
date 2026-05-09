@@ -1,10 +1,10 @@
-# Quick Save CSS And Shadow DOM
+# Save Overlay CSS And Shadow DOM
 
-Quick Save renders inside a Shadow DOM boundary to reduce style conflicts with arbitrary webpages.
+Save Overlay renders inside a Shadow DOM boundary to reduce style conflicts with arbitrary webpages. Legacy Quick Save keeps its older `contentStyle.ts` string stylesheet, while the current Save Overlay injects project tokens, popup/save fallback CSS, and overlay-specific overrides into the Shadow DOM.
 
 ## Styling Boundary
 
-Quick Save styles should be injected into the overlay boundary rather than relying on the host page.
+Save Overlay styles should be injected into the overlay boundary rather than relying on the host page.
 
 Expected properties:
 
@@ -20,7 +20,8 @@ Update this document when:
 - `contentStyle.ts` or equivalent injected CSS changes;
 - Shadow DOM structure changes;
 - overlay positioning, z-index, drag behavior, or scroll handling changes;
-- folder cascade menu behavior changes inside Quick Save;
+- inline folder picker behavior changes inside Save Overlay;
+- legacy folder cascade menu behavior changes inside Quick Save;
 - the overlay starts sharing more styles with popup or manager surfaces.
 
 ## Layout Guidelines

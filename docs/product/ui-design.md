@@ -7,10 +7,11 @@
 | Surface | 入口 | 样式入口 | 设计定位 |
 |---|---|---|---|
 | 管理页 Manager | `index.html` → `src/app/App.tsx` | `src/app/styles.css` | 三栏书签工作台 |
-| 保存小窗口 | `save.html` → `src/save-window/SaveWindowApp.tsx` → `src/popup/PopupApp.tsx` | `src/popup/styles.css` + `src/save-window/styles.css` | 当前网页保存 + 管理 / 设置入口 |
-| Popup fallback | `popup.html` → `src/popup/PopupApp.tsx` | `src/popup/styles.css` | fallback / dev entry |
+| Toolbar Popup | `popup.html` → `src/popup/PopupApp.tsx` | `src/popup/styles.css` | 当前页保存 + 管理 / 设置入口 |
+| Legacy Save Overlay | `save-overlay-content.js` → `src/features/save-overlay/SaveOverlayApp.tsx` | Shadow DOM 注入 tokens / popup / save-window CSS + overlay overrides | 保留的内容脚本保存体验，等待 cleanup |
+| Legacy 保存页 | `save.html` → `src/save-window/SaveWindowApp.tsx` → `src/popup/PopupApp.tsx` | `src/popup/styles.css` + `src/save-window/styles.css` | 保留的保存页入口，等待 cleanup |
 | New Tab Portal | `newtab.html` → `src/newtab/NewTabApp.tsx` | `src/newtab/styles.css` | 搜索优先的新标签页 |
-| Quick Save Dialog | `quick-save-content.js` → `QuickSaveDialog.tsx` | `src/features/quick-save/contentStyle.ts` | Shadow DOM 快捷保存浮框 |
+| Legacy Quick Save Dialog | `quick-save-content.js` → `QuickSaveDialog.tsx` | `src/features/quick-save/contentStyle.ts` | 保留的 Shadow DOM 快捷保存浮框 |
 
 所有页面都应先使用 `src/styles/tokens.css` 中的 `--bv-*` 基础 token，再映射到页面级 alias：`--app-*`、`--popup-*`、`--nt-*`。
 
@@ -117,45 +118,40 @@ src/components/BookmarkCard.tsx
 - 更多按钮 / 右键菜单提供编辑、新建到前后、移动、删除。
 - 搜索结果状态不允许当前文件夹内重排。
 
-## 保存小窗口
+## Toolbar Popup 与 legacy 保存入口
 
-当前 `save.html` 独立小窗口是工具栏图标和 `Ctrl+Shift+S` 的默认 UI，不是简单跳板。设计上沿用 Popup 的轻量表单系统，但窗口尺寸更稳定，保存能力完整。
+当前主保存体验是 Toolbar Popup：工具栏图标和 `Ctrl+Shift+S` 打开 `popup.html`，在标准扩展 popup 中渲染“保存 / 管理 / 设置”三 Tab。`save.html` 和 Save Overlay 仅作为 legacy 代码保留，等待后续 cleanup。
 
 ```text
-save.html
-  → src/save-window/main.tsx
-  → src/save-window/SaveWindowApp.tsx
+Toolbar action / Ctrl+Shift+S
+  → action.default_popup = popup.html
+  → src/popup/main.tsx
   → src/popup/PopupApp.tsx
   → SaveTab / ManageTab / SettingsTab
-  → src/popup/styles.css + src/save-window/styles.css
 ```
 
-保存 Tab 采用两列结构：
+Save Overlay 采用居中的无系统标题栏浮层：
 
 ```text
-┌─────────────────────────────┬────────────────────────────────┐
-│ PagePreviewCard             │ Title input                    │
-│ preview / domain / state    │ readonly URL + copy            │
-│                             │ note textarea                  │
-│                             │ SaveLocationPicker             │
-│                             │ footer buttons                 │
-└─────────────────────────────┴────────────────────────────────┘
+Backdrop
+└─ Overlay shell
+   ├─ Header + close
+   ├─ Tabs: Save / Manage / Settings
+   ├─ Scrollable content
+   └─ Save footer when Save tab is active
 ```
 
 必须细化维护的 UI 元素：
 
 | 元素 | 代码 | 样式 / selector 方向 | 说明 |
 |---|---|---|---|
-| Tab 按钮 | `TabButton.tsx` | `.popup-tab-button` 等 | 保存 / 管理 / 设置切换 |
-| 页面预览卡 | `PagePreviewCard.tsx` | preview card selector | 显示候选图、域名、保存状态 |
-| 标题输入框 | `SaveTab.tsx` | form input selector | 可编辑，保存时写入原生书签 title |
-| URL 输入框 | `SaveTab.tsx` | readonly input | 只读展示，复制操作独立处理 |
-| 备注文本域 | `SaveTab.tsx` | textarea | 保存到 `bookmarkVisualizerMetadata` |
-| 保存位置路径行 | `LocationPathRow.tsx` | path row selector | 路径文本只读，箭头按钮打开级联菜单 |
-| 位置搜索 | `FolderSearchRow.tsx` / `FolderSearchResults.tsx` | search row / results | 原位搜索文件夹，不应弹出额外 modal |
-| 最近位置 chips | `RecentFolderChips.tsx` | chips selector | 默认展示 3 个，可展开更多 |
-| 新建文件夹 | `InlineCreateFolderRow.tsx` | inline create row | 在当前层级或选中路径内创建 |
-| 保存按钮 | `PopupFooter.tsx` | primary button | loading / disabled / success 状态 |
+| Overlay host | `src/features/save-overlay/content.tsx` | `#bookmark-visualizer-save-overlay` | 防止重复堆叠，负责 Shadow DOM 和 unmount |
+| Shell / tabs / footer | `SaveOverlayShell.tsx`、`SaveOverlayFooter.tsx` | `.save-overlay-shell`、`.save-overlay-content` | dialog、tabs、footer 和关闭行为 |
+| 保存 Tab | `SaveOverlayTab.tsx` | `.save-overlay-save-tab` | 标题、只读 URL、备注、预览、保存位置 |
+| 内联文件夹树 | `InlineFolderPicker.tsx`、`FolderTree.tsx`、`FolderTreeItem.tsx` | `.inline-folder-picker` | 展开树、搜索、最近位置、新建文件夹，不使用横向 floating cascade |
+| 设置 Tab | `SettingsOverlayTab.tsx` | `.settings-tab` 复用 + overlay overrides | Switch、CustomSelect、默认保存位置内联选择 |
+| 管理 Tab | `ManageOverlayTab.tsx` | `.manage-tab` 复用 + overlay overrides | 打开完整管理页、最近保存、最近位置 |
+| fallback 保存页 | `src/save-window/SaveWindowApp.tsx` → `PopupApp` | `.save-window-shell` | 受限页面和注入失败路径，仍可保存 URL |
 
 ## New Tab Portal
 
@@ -207,8 +203,8 @@ QuickSaveDialog.save()
   → saveQuickSaveRecentFolder(parentId)
 ```
 
-维护重点：`FolderCascadeMenu` 被管理页、保存窗口 / Popup fallback、Settings、Quick Save 多处复用；修改 class、hover buffer、portal 定位或滚动逻辑时，必须同时验证相关入口。
+维护重点：`FolderCascadeMenu` 仍被管理页右键移动、legacy 保存入口和 Legacy Quick Save 复用；当前 Popup / Save Overlay 主保存位置使用共享内联树。修改 class、hover buffer、portal 定位或滚动逻辑时，必须同时验证相关入口。
 
 ## 视觉方向
 
-当前视觉锚点是干净、明亮、轻量阴影、较大圆角和清晰网格。管理页偏效率工作台，保存窗口偏小型表单，New Tab 偏搜索首页，Quick Save 偏隔离浮框。不要把 New Tab 的背景光斑、大面积 hero 风格直接迁移到管理页或保存窗口。
+当前视觉锚点是干净、明亮、轻量阴影、较大圆角和清晰网格。管理页偏效率工作台，Save Overlay 偏当前页轻量表单，保存 fallback 偏扩展页表单，New Tab 偏搜索首页，Legacy Quick Save 偏隔离浮框。不要把 New Tab 的背景光斑、大面积 hero 风格直接迁移到管理页或保存体验。

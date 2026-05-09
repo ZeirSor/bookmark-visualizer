@@ -1,15 +1,15 @@
-# 保存窗口 / Popup fallback 保存位置组件链路
+# Toolbar Popup 保存位置组件链路
 
 ## 组件拆分
 
 ```text
 <SaveLocationPicker>
   <LocationPathRow />          // 当前路径 + arrow button
-  <LocationCascadeOverlay />   // arrow 打开的全局级联菜单
-  <FolderSearchRow />          // 原位搜索 + 新建按钮
-  <FolderSearchResults />      // 搜索结果
-  <InlineCreateFolderRow />    // 原位新建文件夹
-  <RecentFolderChips />        // 最近使用位置
+  <InlineFolderPicker />       // arrow 打开的内联树形选择器
+    <FolderSearchInput />      // 搜索
+    <FolderTree />             // 树形选择 + 键盘导航
+    <InlineCreateFolderRow />  // 新建文件夹
+    <RecentFolderChips />      // 最近使用位置
 ```
 
 ## 主要代码文件
@@ -18,13 +18,12 @@
 |---|---|
 | `src/popup/components/SaveLocationPicker.tsx` | 组合保存位置所有状态与互斥逻辑 |
 | `src/popup/components/save-location/LocationPathRow.tsx` | 路径展示和箭头按钮 |
-| `src/popup/components/save-location/LocationCascadeOverlay.tsx` | portal 级联菜单定位和关闭 |
-| `src/popup/components/save-location/FolderSearchRow.tsx` | 原位搜索框和新建开关 |
-| `src/popup/components/save-location/FolderSearchResults.tsx` | 搜索结果列表 |
+| `src/components/folder-picker/InlineFolderPicker.tsx` | 内联 picker、搜索、最近位置、新建入口和键盘导航 |
+| `src/components/folder-picker/FolderTree.tsx` | 可见树节点构建和树渲染 |
+| `src/components/folder-picker/FolderTreeItem.tsx` | 单个文件夹行、展开按钮、当前项标记 |
+| `src/components/folder-picker/FolderSearchInput.tsx` | 搜索输入和清空按钮 |
 | `src/popup/components/save-location/InlineCreateFolderRow.tsx` | 新建文件夹输入和 loading |
 | `src/popup/components/save-location/RecentFolderChips.tsx` | 最近位置 chip 和展开 |
-| `src/components/FolderCascadeMenu.tsx` | 共享级联菜单 |
-| `src/features/context-menu/popupCascadePlacement.ts` | Popup 级联根菜单定位 |
 | `src/features/bookmarks/bookmarkTree.ts` | 路径、高亮、文件夹过滤 |
 
 ## LocationPathRow
@@ -40,59 +39,40 @@
 交互规则：
 
 - 路径文本不触发菜单。
-- 箭头按钮 `aria-haspopup="menu"`、`aria-expanded` 跟随 `locationMenuOpen`。
+- 箭头按钮 `aria-haspopup`、`aria-expanded` 跟随 `locationMenuOpen`。
 - `disabled = loading || !selectedFolderId`。
 
-## LocationCascadeOverlay
+## InlineFolderPicker
 
 运行链路：
 
 ```text
 点击 location-arrow-button
   → SaveLocationPicker.openLocationMenu()
-  → 清空 query / createOpen / createParentFolderId
+  → 关闭 createOpen / 清空 createParentFolderId
   → locationMenuOpen = true
-  → LocationCascadeOverlay 渲染
-  → getPopupCascadeRootPlacement(anchorRect, viewport, options)
-  → createPortal(..., document.body)
-  → FolderCascadeMenu(nodes=tree, autoExpandInitialPath=true)
+  → InlineFolderPicker 渲染在 location panel 内
+  → buildVisibleFolderEntries(tree, expandedIds)
+  → FolderTree / search result list
 ```
 
 关键设计：
 
-- 使用 `document.body` portal，避免被 Popup shell 裁剪。
-- `POPUP_CASCADE_MENU_WIDTH = 236`，`POPUP_CASCADE_MENU_HEIGHT = 330`。
-- 点击外部、Escape、pointer leave 延迟关闭。
-- `initialActivePathIds = buildFolderCascadeInitialPathIds(tree, selectedFolderId)`，自动展开当前路径。
-- `highlightedFolderIds = buildFolderPathHighlightIds(tree, selectedFolderId)`，当前路径高亮。
+- 不使用横向 floating cascade，避免被 toolbar popup 边界裁剪。
+- 初次打开时展开当前选中路径。
+- Arrow Up / Down 在可选项之间移动；Arrow Right 展开当前文件夹；Arrow Left 折叠或移动到父级；Enter 选择；Escape 清空搜索或关闭 picker。
 - 只允许选择 `canCreateBookmarkInFolder(folder)` 的目标。
-- `save.html` 入口通过 `src/save-window/styles.css` 提供更宽的菜单行、浅紫 current/path 高亮和保存窗口级 popover 阴影；不要把这些视觉要求写入 `FolderCascadeMenu` 业务逻辑。
-
-## FolderSearchRow
-
-| UI 元素 | selector | 行为 |
-|---|---|---|
-| 根行 | `.folder-search-row` | 搜索框 + 新建按钮横排 |
-| 搜索框 | `.folder-search input` | focus 时关闭 cascade 和 create |
-| 搜索图标 | `.folder-search svg` | 装饰 |
-| 清除按钮 | `.folder-search-clear` | query 非空时显示，点击清空 |
-| 新建按钮 | `.location-create-button` / `.is-active` | 开关 `createOpen`，同时清空 query 和关闭 cascade |
+- 搜索输入使用 `.folder-search-input`，左右 padding 为图标和清空按钮预留空间，避免 placeholder 与图标重叠。
+- `src/features/save-overlay/components/InlineFolderPicker.tsx` 通过 re-export 复用 shared picker，避免维护两套实现。
 
 互斥规则：
 
 ```text
-打开 cascade → 清空搜索，关闭新建
-输入搜索 → 关闭 cascade，关闭新建
-打开新建 → 清空搜索，关闭 cascade
-选择搜索结果 → 清空搜索，关闭新建，关闭 cascade
+打开 picker → 关闭新建
+输入搜索 → 关闭新建
+打开新建 → 清空搜索
+选择搜索结果 → 清空搜索，关闭新建，关闭 picker
 ```
-
-## FolderSearchResults
-
-- selector：`.folder-results`、`.folder-result-main`、`.result-badge`。
-- 数据：`PopupApp` 派生的 `searchResults`，由 `filterFolderOptions()` + `rankFolderOption()` 排序后 `.slice(0, 4)`。
-- “最佳匹配”条件：第一项且 rank <= 2。
-- 选中项追加 `.is-selected`。
 
 ## InlineCreateFolderRow
 
@@ -129,12 +109,12 @@
 
 ## 回归清单
 
-- 点击路径文字不会打开级联菜单；点击箭头才打开。
-- 打开级联菜单后，搜索框和新建行关闭。
-- 级联菜单不被 Popup 边界裁剪。
-- Hover 到二级 / 三级文件夹不会丢失菜单。
+- 点击路径文字不会打开 picker；点击箭头才打开。
+- Picker 内联显示，不被 Popup 边界裁剪。
+- 800×600 popup 中 picker 内部滚动可访问深层文件夹。
 - 不可保存文件夹显示 disabled label，不可被选择。
-- 搜索输入后级联菜单关闭，结果在原位出现。
-- 搜索 Esc 清空 query，不关闭整个 Popup。
+- 搜索输入后结果在 picker 内出现。
+- 搜索 Esc 清空 query，再按 Escape 关闭 picker。
+- Arrow / Enter 键可在树和搜索结果中选择文件夹。
 - 新建文件夹时按钮显示 spinner，输入和取消按钮 disabled。
 - 最近位置展开后图标和文字间距稳定，不出现错位。

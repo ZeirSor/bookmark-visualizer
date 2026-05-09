@@ -19,8 +19,9 @@ Popup 固定尺寸来自 token：
 
 | token | 值 | 用途 |
 |---|---|---|
-| `--popup-width` | `780px` | Popup 宽度 |
+| `--popup-width` | `800px` | Popup 宽度 |
 | `--popup-height` | `600px` | Popup 高度 |
+| `--popup-outer-padding` | `8px` | 透明外框和内部圆角留白 |
 | `--popup-control-height` | `40px` | 输入框 / 控件高度 |
 | `--popup-row-height` | `34px` | 紧凑列表行高 |
 | `--popup-tab-height` | `42px` | 顶部 Tab 高度 |
@@ -68,18 +69,16 @@ Popup 固定尺寸来自 token：
 | selector | 用途 |
 |---|---|
 | `.location-panel` | 保存位置 section |
-| `.location-picker-shell` | 路径行和 cascade anchor |
+| `.location-picker-shell` | 路径行和内联 picker 容器 |
 | `.location-path-row` | 当前路径行 |
 | `.location-path-row.is-disabled` | loading / 无目标时弱化 |
 | `.path-display` | 路径文本省略 |
 | `.current-badge` | 当前路径标签 |
-| `.location-arrow-button` / `.is-open` | 打开 cascade 的箭头按钮 |
-| `.location-cascade-overlay` | body portal 根 |
-| `.folder-search-row` | 搜索 + 新建按钮行 |
-| `.folder-search` | 搜索框 shell |
-| `.folder-search-clear` | 清除按钮 |
-| `.folder-results` | 搜索结果 |
-| `.result-badge` | 最佳匹配 |
+| `.location-arrow-button` / `.is-open` | 打开内联 picker 的箭头按钮 |
+| `.inline-folder-picker` | 内联 folder picker 根 |
+| `.folder-search-input` | 搜索框 shell |
+| `.picker-create-toggle` | 新建文件夹开关 |
+| `.folder-tree` / `.folder-tree-item` | 内联树 |
 | `.create-folder-row` | 原位新建文件夹 |
 | `.button-spinner` | 新建 loading |
 | `.recent-row` | 最近位置区域 |
@@ -98,12 +97,12 @@ Popup 固定尺寸来自 token：
 
 ## 菜单层级
 
-Popup 的保存位置级联菜单使用 `document.body` portal。维护时注意：
+Popup 的主保存位置选择器使用内联树。维护时注意：
 
-- `.popup-shell` 仍然 `overflow: hidden`，所以菜单不能作为 shell 内普通子元素展开。
-- `.location-cascade-overlay` 必须 `position: fixed`。
-- 子级 cascade 继续由 `FolderCascadeMenu` 管理。
-- 滚轮事件应停在菜单内，避免 Popup 内容跟着滚。
+- `.popup-shell` 仍然 `overflow: hidden`，所以 picker 自身需要内部滚动。
+- `.inline-folder-picker-body` 负责深层文件夹滚动。
+- 不要把 Save Tab 或 Settings 默认保存位置重新接回横向 floating cascade。
+- legacy `.location-cascade-overlay` 只服务旧代码路径。
 
 ## 视觉规则
 
@@ -117,12 +116,12 @@ Popup 的保存位置级联菜单使用 `document.body` portal。维护时注意
 
 ## 回归清单
 
-- 780×600 下所有 Tab 不出现双重横向滚动。
+- 800×600 下所有 Tab 不出现双重横向滚动。
 - 960×680 保存窗口下 Save / Manage / Settings 三个 Tab 层级一致。
 - 840×600 保存窗口下 Save Tab 隐藏 preview，Settings 行改为单列。
 - SaveTab footer 固定，内容滚动时保存按钮仍可见。
-- 保存位置 cascade 不被裁剪。
+- 保存位置内联 picker 不被裁剪，内部滚动可访问深层文件夹。
 - Settings 主表单不出现原生 select 外观。
 - 搜索结果过长时单行省略，不撑破布局。
 - 最近 chips 展开时正常换行，图标和文字间距一致。
-- Settings 默认保存位置菜单 hover 不闪烁。
+- Settings 默认保存位置内联 picker 打开、搜索和选择稳定。

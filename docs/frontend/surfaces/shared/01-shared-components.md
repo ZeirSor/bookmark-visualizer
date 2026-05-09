@@ -58,7 +58,7 @@
 
 | 相似能力 | 当前位置 | 不抽象原因 |
 |---|---|---|
-| 保存窗口 / Popup fallback 保存位置 vs Quick Save 保存位置 | `src/popup/components/SaveLocationPicker.tsx`、`QuickSaveDialog.tsx` | 容器、尺寸、交互密度不同 |
+| Popup 保存位置 vs Quick Save 保存位置 | `src/popup/components/SaveLocationPicker.tsx`、`QuickSaveDialog.tsx` | 容器、尺寸、交互密度不同 |
 | New Tab side panel vs Manager RightRail | `NewTabSections.tsx`、`RightRail.tsx` | 页面定位不同：New Tab 轻入口，Manager 工作台 |
 | 搜索框 | `SearchBar.tsx`、`SearchPanel.tsx`、Popup folder search | 搜索语义不同：全局书签 / 混合 web / 文件夹 |
 

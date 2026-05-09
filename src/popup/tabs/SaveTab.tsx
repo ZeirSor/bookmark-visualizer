@@ -15,10 +15,8 @@ export function SaveTab({
   note,
   pageDetails,
   previewFailed,
-  query,
   recentFolders,
   save,
-  searchResults,
   selectedFolderId,
   selectedPath,
   selectedTitle,
@@ -27,7 +25,6 @@ export function SaveTab({
   setFolderName,
   setNote,
   setPreviewFailed,
-  setQuery,
   setSelectedFolderId,
   setTitle,
   title,
@@ -44,10 +41,8 @@ export function SaveTab({
   note: string;
   pageDetails?: PopupPageDetails;
   previewFailed: boolean;
-  query: string;
   recentFolders: FolderOption[];
   save(event?: FormEvent<HTMLFormElement>): Promise<void>;
-  searchResults: FolderOption[];
   selectedFolderId: string;
   selectedPath: string;
   selectedTitle: string;
@@ -56,7 +51,6 @@ export function SaveTab({
   setFolderName(value: string): void;
   setNote(value: string): void;
   setPreviewFailed(value: boolean): void;
-  setQuery(value: string): void;
   setSelectedFolderId(value: string): void;
   setTitle(value: string): void;
   title: string;
@@ -126,16 +120,13 @@ export function SaveTab({
             creatingFolder={creatingFolder}
             folderName={folderName}
             loading={loading}
-            query={query}
             recentFolders={recentFolders}
-            searchResults={searchResults}
             selectedFolderId={selectedFolderId}
             selectedPath={selectedPath}
             selectedTitle={selectedTitle}
             setCreateParentFolderId={setCreateParentFolderId}
             setCreateOpen={setCreateOpen}
             setFolderName={setFolderName}
-            setQuery={setQuery}
             setSelectedFolderId={setSelectedFolderId}
             tree={tree}
           />

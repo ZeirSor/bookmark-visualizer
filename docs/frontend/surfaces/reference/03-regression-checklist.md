@@ -6,7 +6,7 @@
 npm run typecheck
 npm test
 npm run build
-npm run verify:save-window-entry
+npm run verify:popup-entry
 ```
 
 若本地环境因 esbuild / sandbox 权限导致测试失败，应记录具体错误，不要把失败误写成通过。
@@ -63,16 +63,16 @@ npm run verify:save-window-entry
 
 ## Popup 回归
 
-- Popup 大小为 780×600，无横向滚动。
+- Popup 大小为 800×600，无横向滚动。
 - 默认 Tab 根据 `popupDefaultOpenTab` 显示。
 - 保存 Tab 能读取当前页面标题 / URL。
 - 标题可编辑，URL readonly 可选中。
 - 备注可输入。
 - 预览图关闭设置生效。
 - 保存位置路径行 loading / disabled 状态正确。
-- 点击路径文本不打开菜单，点击箭头打开菜单。
-- 级联菜单不被 popup 裁剪。
-- 搜索文件夹原位显示，最多 4 条。
+- 点击路径文本不打开 picker，点击箭头打开内联 picker。
+- 内联 picker 不被 popup 裁剪。
+- 搜索文件夹在 picker 内显示，最多 8 条。
 - 新建文件夹显示 spinner，创建成功后选中新文件夹。
 - 最近位置默认 3 个，可展开到 7 个。
 - 保存成功后按设置自动关闭。
@@ -115,13 +115,13 @@ npm run verify:save-window-entry
 改动 `FolderCascadeMenu` 必须同时验收：
 
 1. 管理页右键移动。
-2. 保存窗口 / Popup fallback 保存位置级联菜单。
-3. Popup Settings 默认保存位置菜单。
+2. Popup 保存位置内联 picker。
+3. Popup Settings 默认保存位置内联 picker。
 4. Quick Save 浏览文件夹。
 
 改动 `src/styles/tokens.css` 必须同时验收：
 
 1. 管理页 light / dark。
-2. 保存窗口 / Popup fallback 保存 Tab。
+2. Popup 保存 Tab。
 3. New Tab 首屏。
 4. Quick Save 不受影响，因为它使用 Shadow DOM 独立 CSS。

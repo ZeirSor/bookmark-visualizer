@@ -52,16 +52,16 @@
 | 备注 textarea | `SaveTab.tsx` | `.note-field textarea` |
 | 保存位置路径 | `LocationPathRow.tsx` | `.location-path-row` |
 | 保存位置箭头 | `LocationPathRow.tsx` | `.location-arrow-button` |
-| 文件夹搜索 | `FolderSearchRow.tsx` | `.folder-search input` |
-| 文件夹搜索清除 | `FolderSearchRow.tsx` | `.folder-search-clear` |
-| 新建文件夹开关 | `FolderSearchRow.tsx` | `.location-create-button` |
+| 文件夹搜索 | `FolderSearchInput.tsx` | `.folder-search-input input` |
+| 文件夹搜索清除 | `FolderSearchInput.tsx` | `.folder-search-input button` |
+| 新建文件夹开关 | `InlineFolderPicker.tsx` | `.picker-create-toggle` |
 | 新建文件夹输入 | `InlineCreateFolderRow.tsx` | `.create-folder-row input` |
 | 新建确认 | `InlineCreateFolderRow.tsx` | `.create-action` |
 | 最近位置 | `RecentFolderChips.tsx` | `.recent-chips button` |
 | 保存按钮 | `PopupFooter.tsx` | `.primary-action` |
 | 取消按钮 | `PopupFooter.tsx` | `.secondary-action` |
-| Settings switch | `SettingsTab.tsx` | `.switch-row input` |
-| Settings select | `SettingsTab.tsx` | `.select-row select` |
+| Settings switch | `SettingsRows.tsx` | `.switch-control` |
+| Settings select | `SettingsRows.tsx` | `.custom-select` |
 | 配置快捷键 | `SettingsTab.tsx` | `.text-action` |
 | 默认位置更改 | `SettingsTab.tsx` | `.secondary-action.small` |
 

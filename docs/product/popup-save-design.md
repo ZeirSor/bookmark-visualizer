@@ -4,7 +4,7 @@
 
 本文档用于说明浏览器扩展点击图标或触发保存命令后打开的轻量保存小窗口设计方案，方便开发人员据此实现功能。
 
-当前实施阶段主入口是独立 `save.html` extension page 小窗口；`popup.html` 仍作为 fallback / dev entry 参与构建，但不再由 `action.default_popup` 触发。文档中涉及 `Ctrl + S` 的快捷键说明作为后续方向保留，本阶段不默认注入全局网页 listener，也不以 `Ctrl + S` 作为验收入口。
+当前实施阶段主入口已经恢复为 `action.default_popup = "popup.html"` 的 toolbar popup；本文保留早期小窗口设计背景，涉及独立 `save.html` 或 `Ctrl + S` 的内容只作为历史方案参考，不是当前实现事实。
 
 该浮窗定位为：
 

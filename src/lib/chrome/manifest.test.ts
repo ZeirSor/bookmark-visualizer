@@ -44,11 +44,11 @@ describe("extension manifest", () => {
     expect(existsSync(resolve(root, "newtab.html"))).toBe(true);
   });
 
-  it("configures toolbar action click handling and service worker", () => {
+  it("configures toolbar popup action and service worker", () => {
     const manifest = readManifest();
 
     expect(manifest.action?.default_title).toBe("Open Bookmark Visualizer");
-    expect(manifest.action?.default_popup).toBeUndefined();
+    expect(manifest.action?.default_popup).toBe("popup.html");
     expect(manifest.background).toEqual({
       service_worker: "service-worker.js",
       type: "module"
@@ -76,16 +76,15 @@ describe("extension manifest", () => {
     expect(manifest.content_scripts).toBeUndefined();
   });
 
-  it("declares the quick-save keyboard command", () => {
+  it("declares the action popup keyboard command", () => {
     const manifest = readManifest();
 
-    expect(Object.keys(manifest.commands ?? {})).toEqual(["open-quick-save"]);
-    expect(manifest.commands?.["open-quick-save"]).toEqual({
+    expect(Object.keys(manifest.commands ?? {})).toEqual(["_execute_action"]);
+    expect(manifest.commands?._execute_action).toEqual({
       suggested_key: {
         default: "Ctrl+Shift+S",
         mac: "Command+Shift+S"
-      },
-      description: "Open the Bookmark Visualizer save window"
+      }
     });
   });
 

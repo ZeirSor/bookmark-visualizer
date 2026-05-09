@@ -5,11 +5,11 @@ describe("command handlers", () => {
     vi.resetModules();
   });
 
-  it("routes open-quick-save to the independent save window", async () => {
-    const openSaveWindowForTab = vi.fn();
+  it("routes open-quick-save to the save experience", async () => {
+    const openSaveExperience = vi.fn();
     const listeners: Array<(command: string, tab?: chrome.tabs.Tab) => void> = [];
 
-    vi.doMock("./saveWindow", () => ({ openSaveWindowForTab }));
+    vi.doMock("./saveExperienceHandlers", () => ({ openSaveExperience }));
     vi.stubGlobal("chrome", {
       commands: {
         onCommand: {
@@ -22,7 +22,7 @@ describe("command handlers", () => {
     registerCommandHandlers();
     listeners[0]?.("open-quick-save", { id: 12, url: "https://example.com/" } as chrome.tabs.Tab);
 
-    expect(openSaveWindowForTab).toHaveBeenCalledWith(
+    expect(openSaveExperience).toHaveBeenCalledWith(
       expect.objectContaining({ id: 12, url: "https://example.com/" })
     );
   });

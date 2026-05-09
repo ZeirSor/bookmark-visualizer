@@ -1,10 +1,14 @@
+import { loadSettings } from "../features/settings";
+
 const SAVE_WINDOW_PATH = "save.html";
 const SAVE_WINDOW_WIDTH = 960;
 const SAVE_WINDOW_HEIGHT = 680;
+const SAVE_WINDOW_BLUR_CLOSE_DELAY_MS = 450;
 
 let saveWindowId: number | undefined;
 let saveWindowTabId: number | undefined;
 let registered = false;
+let blurCloseTimer: ReturnType<typeof setTimeout> | undefined;
 
 export async function openSaveWindowForTab(sourceTab?: chrome.tabs.Tab): Promise<void> {
   const tab = sourceTab?.id || sourceTab?.url ? sourceTab : await getCurrentTab();
@@ -19,11 +23,13 @@ export async function openSaveWindowForTab(sourceTab?: chrome.tabs.Tab): Promise
     return;
   }
 
+  const position = await getCenteredSaveWindowPosition();
   const created = await chrome.windows.create({
     url,
     type: "popup",
     width: SAVE_WINDOW_WIDTH,
     height: SAVE_WINDOW_HEIGHT,
+    ...position,
     focused: true
   });
 
@@ -45,7 +51,12 @@ export function registerSaveWindowAction(): void {
     if (windowId === saveWindowId) {
       saveWindowId = undefined;
       saveWindowTabId = undefined;
+      clearBlurCloseTimer();
     }
+  });
+
+  chrome.windows.onFocusChanged.addListener((focusedWindowId) => {
+    void handleSaveWindowFocusChange(focusedWindowId);
   });
 }
 
@@ -90,10 +101,75 @@ async function focusSaveWindow(windowId?: number): Promise<void> {
   }
 
   try {
+    clearBlurCloseTimer();
     await chrome.windows.update(windowId, { focused: true });
   } catch {
     saveWindowId = undefined;
     saveWindowTabId = undefined;
+  }
+}
+
+async function handleSaveWindowFocusChange(focusedWindowId: number): Promise<void> {
+  if (!saveWindowId || focusedWindowId === saveWindowId) {
+    clearBlurCloseTimer();
+    return;
+  }
+
+  const settings = await loadSettings();
+  if (!settings.autoCloseSaveWindowOnBlur) {
+    clearBlurCloseTimer();
+    return;
+  }
+
+  clearBlurCloseTimer();
+  blurCloseTimer = setTimeout(() => {
+    void closeTrackedSaveWindow();
+  }, SAVE_WINDOW_BLUR_CLOSE_DELAY_MS);
+}
+
+async function closeTrackedSaveWindow(): Promise<void> {
+  if (!saveWindowId) {
+    return;
+  }
+
+  const windowId = saveWindowId;
+  try {
+    await chrome.windows.remove(windowId);
+    if (windowId === saveWindowId) {
+      saveWindowId = undefined;
+      saveWindowTabId = undefined;
+    }
+  } catch {
+    if (windowId === saveWindowId) {
+      saveWindowId = undefined;
+      saveWindowTabId = undefined;
+    }
+  }
+}
+
+function clearBlurCloseTimer(): void {
+  if (!blurCloseTimer) {
+    return;
+  }
+
+  clearTimeout(blurCloseTimer);
+  blurCloseTimer = undefined;
+}
+
+async function getCenteredSaveWindowPosition(): Promise<{ left: number; top: number }> {
+  try {
+    const baseWindow = await chrome.windows.getLastFocused();
+    const baseLeft = baseWindow.left ?? 0;
+    const baseTop = baseWindow.top ?? 0;
+    const baseWidth = baseWindow.width ?? 1280;
+    const baseHeight = baseWindow.height ?? 800;
+
+    return {
+      left: Math.max(0, Math.round(baseLeft + (baseWidth - SAVE_WINDOW_WIDTH) / 2)),
+      top: Math.max(0, Math.round(baseTop + (baseHeight - SAVE_WINDOW_HEIGHT) / 2))
+    };
+  } catch {
+    return { left: 0, top: 0 };
   }
 }
 

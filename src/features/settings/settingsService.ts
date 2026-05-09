@@ -27,6 +27,8 @@ export function normalizeSettings(settings?: Partial<SettingsState>): SettingsSt
     sidebarWidth: normalizeSidebarWidth(settings?.sidebarWidth),
     popupAutoCloseAfterSave:
       settings?.popupAutoCloseAfterSave ?? defaultSettings.popupAutoCloseAfterSave,
+    autoCloseSaveWindowOnBlur:
+      settings?.autoCloseSaveWindowOnBlur ?? defaultSettings.autoCloseSaveWindowOnBlur,
     popupShowSuccessToast:
       settings?.popupShowSuccessToast ?? defaultSettings.popupShowSuccessToast,
     popupRememberLastFolder:

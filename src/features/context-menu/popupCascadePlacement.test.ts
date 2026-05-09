@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { isCompactLocationPickerViewport } from "../../popup/components/save-location/locationPickerViewport";
 import { getPopupCascadeRootPlacement } from "./popupCascadePlacement";
 
 describe("popup cascade placement", () => {
@@ -31,5 +32,11 @@ describe("popup cascade placement", () => {
 
     expect(placement.x).toBe(12);
     expect(placement.y).toBe(134);
+  });
+
+  it("switches the save location picker to dialog mode in constrained viewports", () => {
+    expect(isCompactLocationPickerViewport({ width: 960, height: 680 })).toBe(false);
+    expect(isCompactLocationPickerViewport({ width: 840, height: 680 })).toBe(true);
+    expect(isCompactLocationPickerViewport({ width: 960, height: 560 })).toBe(true);
   });
 });

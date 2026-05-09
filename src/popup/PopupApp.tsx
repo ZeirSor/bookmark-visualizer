@@ -1,11 +1,9 @@
 import { useEffect, useMemo } from "react";
 import {
   canCreateBookmarkInFolder,
-  filterFolderOptions,
   findNodeById,
   flattenFolders,
   getDisplayTitle,
-  rankFolderOption,
   type FolderOption
 } from "../features/bookmarks";
 import { ExternalLinkIcon, FolderIcon, SaveIcon, SettingsIcon } from "./components/PopupIcons";
@@ -59,23 +57,6 @@ export function PopupApp({
     : undefined;
   const defaultFolderPath = defaultFolderOption?.path ?? selectedPath;
   const defaultCompactPath = compactFolderPath(defaultFolderPath);
-  const searchResults = useMemo(() => {
-    const normalized = saveState.query.trim();
-    return normalized
-      ? filterFolderOptions(folderOptions, normalized)
-          .sort((left, right) => {
-            const rankDiff =
-              rankFolderOption(left, normalized) - rankFolderOption(right, normalized);
-
-            if (rankDiff !== 0) {
-              return rankDiff;
-            }
-
-            return left.path.localeCompare(right.path, "zh-CN");
-          })
-          .slice(0, 4)
-      : [];
-  }, [folderOptions, saveState.query]);
   const recentFolders = useMemo(
     () =>
       bootstrap.recentFolderIds
@@ -163,10 +144,8 @@ export function PopupApp({
             note={saveState.note}
             pageDetails={bootstrap.pageDetails}
             previewFailed={saveState.previewFailed}
-            query={saveState.query}
             recentFolders={recentFolders}
             save={actions.save}
-            searchResults={searchResults}
             selectedFolderId={bootstrap.selectedFolderId}
             selectedPath={selectedPath}
             selectedTitle={selectedTitle}
@@ -175,7 +154,6 @@ export function PopupApp({
             setFolderName={saveState.setFolderName}
             setNote={saveState.setNote}
             setPreviewFailed={saveState.setPreviewFailed}
-            setQuery={saveState.setQuery}
             setSelectedFolderId={bootstrap.setSelectedFolderId}
             setTitle={bootstrap.setTitle}
             title={bootstrap.title}

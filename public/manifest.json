@@ -11,6 +11,7 @@
   },
   "action": {
     "default_title": "Open Bookmark Visualizer",
+    "default_popup": "popup.html",
     "default_icon": {
       "16": "icons/icon-16.png",
       "32": "icons/icon-32.png",
@@ -23,12 +24,11 @@
     "type": "module"
   },
   "commands": {
-    "open-quick-save": {
+    "_execute_action": {
       "suggested_key": {
         "default": "Ctrl+Shift+S",
         "mac": "Command+Shift+S"
-      },
-      "description": "Open the Bookmark Visualizer save window"
+      }
     }
   },
   "permissions": ["bookmarks", "storage", "activeTab", "scripting", "tabs", "favicon"]

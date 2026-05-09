@@ -1,10 +1,10 @@
 # Quick Save Injection And Background Flow
 
-This document describes the Quick Save overlay runtime chain.
+This document describes the current Save Overlay runtime chain plus the preserved legacy Quick Save message flow.
 
 ## Scope
 
-Quick Save is a content-script / background-assisted save flow. It should remain lightweight and avoid broad host permissions unless a future accepted decision changes that boundary.
+Save Overlay is a content-script / background-assisted save flow. It should remain lightweight and avoid broad host permissions unless a future accepted decision changes that boundary. Legacy Quick Save still uses the same background message handler for bookmark creation and folder creation.
 
 ## High-Level Flow
 
@@ -12,8 +12,9 @@ Quick Save is a content-script / background-assisted save flow. It should remain
 extension command / toolbar-triggered message
 → background service worker
 → active tab lookup
-→ content script injection or message
-→ Quick Save Shadow DOM overlay
+→ URL classification
+→ content script injection or fallback tab
+→ Save Overlay Shadow DOM overlay / `save.html` fallback
 → folder selection and note input
 → save request
 → chrome.bookmarks create / chrome.storage.local metadata update
@@ -22,6 +23,7 @@ extension command / toolbar-triggered message
 ## Key Areas To Check
 
 - `src/background/`
+- `src/features/save-overlay/`
 - `src/features/quick-save/`
 - `src/lib/chrome/`
 - `public/manifest.json`
@@ -38,7 +40,7 @@ Update this doc when:
 - content script injection changes;
 - runtime message shape changes;
 - save request ownership changes;
-- Quick Save starts using new storage keys;
+- Save Overlay or Quick Save starts using new storage keys;
 - permissions or host access assumptions change.
 
 ## Validation
@@ -52,7 +54,8 @@ npm run build
 
 Manual QA should confirm:
 
-- shortcut / command triggers the overlay;
+- shortcut / command triggers the overlay on normal webpages;
+- restricted pages open `save.html` fallback and can still save;
 - overlay can close and reopen;
 - folder picker works;
 - save request creates a native bookmark;

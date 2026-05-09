@@ -5,8 +5,9 @@
 | 使用场景 | 调用文件 | 用途 |
 |---|---|---|
 | 管理页右键移动 | `src/app/workspace/WorkspaceComponents.tsx` + `FolderMoveSubmenuContent.tsx` | 将书签移动到目标文件夹 |
-| 保存窗口 / Popup fallback 保存位置 | `src/popup/components/save-location/LocationCascadeOverlay.tsx` | 选择保存文件夹 |
-| Popup 设置默认保存位置 | `src/popup/tabs/settings/DefaultFolderMenu.tsx` | 修改 `popupDefaultFolderId` |
+| Legacy 保存位置 | `src/popup/components/save-location/LocationCascadeOverlay.tsx` | 保留的旧级联保存位置 |
+| Popup / Save Overlay 保存位置 | `src/components/folder-picker/InlineFolderPicker.tsx` | 当前主保存路径；不使用横向 floating cascade |
+| Popup 设置默认保存位置 | `src/popup/tabs/settings/DefaultFolderMenu.tsx` | 使用内联 picker 修改 `popupDefaultFolderId` |
 | Quick Save 浏览文件夹 | `src/features/quick-save/QuickSaveDialog.tsx` | 浏览 / 选择保存位置 |
 
 ## 主要文件
@@ -70,6 +71,8 @@
 4. 子级菜单使用 floating layer，避免被父容器裁剪。
 5. 右侧空间不足时，定位逻辑应允许向左展开。
 6. 滚轮优先滚动菜单自身。
+7. Toolbar Popup 保存位置和 Settings 默认保存位置使用共享内联 picker，不应重新接回横向 floating cascade。
+8. Legacy cascade 路径只在旧入口清理前保留。
 
 ## 修改风险
 
@@ -90,18 +93,18 @@
 - hover 多级菜单不会被主页面裁剪。
 - 不可移动到自身非法目标。
 
-### 保存窗口 / Popup fallback 保存位置
+### Popup 保存位置
 
-- 箭头打开级联菜单。
+- 箭头打开内联 picker。
 - 当前路径自动展开并高亮。
 - 选择目标后路径行更新。
 - 新建文件夹入口能打开原位创建行。
 
 ### Settings 默认保存位置
 
-- 点击 / focus “更改”打开菜单。
+- 点击“更改”打开内联 picker。
 - 选择后 settings 保存并关闭菜单。
-- hover 离开延迟关闭不闪。
+- 搜索、键盘导航和最近位置选择稳定。
 
 ### Quick Save
 

@@ -4,6 +4,7 @@ import {
   useMemo,
   useRef,
   useState,
+  type KeyboardEvent as ReactKeyboardEvent,
   type ReactNode
 } from "react";
 import { CheckIcon, ChevronRightIcon } from "../../components/PopupIcons";
@@ -77,16 +78,30 @@ export function Switch({
   onChange(value: boolean): void;
 }) {
   return (
-    <label className="switch-control">
+    <button
+      type="button"
+      className="switch-control"
+      role="switch"
+      aria-checked={checked}
+      disabled={disabled}
+      onClick={() => onChange(!checked)}
+      onKeyDown={handleSwitchKeyDown}
+    >
       <span className="sr-only">{label}</span>
-      <input
-        type="checkbox"
-        checked={checked}
-        disabled={disabled}
-        onChange={(event) => onChange(event.target.checked)}
-      />
-    </label>
+      <span className="switch-track" aria-hidden="true">
+        <span className="switch-thumb" />
+      </span>
+    </button>
   );
+
+  function handleSwitchKeyDown(event: ReactKeyboardEvent<HTMLButtonElement>) {
+    if (event.key !== "Enter" && event.key !== " ") {
+      return;
+    }
+
+    event.preventDefault();
+    onChange(!checked);
+  }
 }
 
 export function SwitchRow({

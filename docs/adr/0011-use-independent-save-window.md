@@ -2,7 +2,9 @@
 
 ## 状态
 
-已接受
+已被 ADR 0012 取代；当前又由 ADR 0013 取代
+
+2026-05-09 起，普通 `http` / `https` 页面主保存入口先改为内容脚本 Save Overlay，随后恢复为 `action.default_popup = "popup.html"` 的工具栏 popup。`save.html` 和 Save Overlay 相关代码仅作为 legacy / 后续清理对象保留。
 
 ## 背景
 

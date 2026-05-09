@@ -6,6 +6,7 @@ export function LocationPathRow({
   fullPathTitle,
   loading,
   locationMenuOpen,
+  pickerMode,
   onToggleMenu
 }: {
   displayPath: string;
@@ -13,6 +14,7 @@ export function LocationPathRow({
   fullPathTitle?: string;
   loading: boolean;
   locationMenuOpen: boolean;
+  pickerMode: "dialog" | "menu";
   onToggleMenu(): void;
 }) {
   const visiblePath = loading ? "正在读取保存位置" : displayPath;
@@ -33,7 +35,7 @@ export function LocationPathRow({
         className={`location-arrow-button ${locationMenuOpen ? "is-open" : ""}`}
         aria-controls="save-location-picker"
         aria-expanded={locationMenuOpen}
-        aria-haspopup="menu"
+        aria-haspopup={pickerMode}
         aria-label="选择保存位置"
         title="选择保存位置"
         disabled={disabled}

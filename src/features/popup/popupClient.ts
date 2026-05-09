@@ -89,7 +89,9 @@ export async function openWorkspace(path = "index.html"): Promise<void> {
     return;
   }
 
-  window.open(path, "_blank", "noopener,noreferrer");
+  const targetUrl =
+    typeof chrome !== "undefined" && chrome.runtime?.getURL ? chrome.runtime.getURL(path) : path;
+  window.open(targetUrl, "_blank", "noopener,noreferrer");
 }
 
 export async function openExtensionShortcutSettings(): Promise<void> {

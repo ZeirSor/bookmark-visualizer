@@ -15,6 +15,7 @@ describe("settingsService", () => {
       cardSize: "medium",
       sidebarWidth: 280,
       popupAutoCloseAfterSave: true,
+      autoCloseSaveWindowOnBlur: false,
       popupShowSuccessToast: true,
       popupRememberLastFolder: true,
       popupShowThumbnail: true,
@@ -39,6 +40,7 @@ describe("settingsService", () => {
       cardSize: "extra-large",
       sidebarWidth: 340,
       popupAutoCloseAfterSave: false,
+      autoCloseSaveWindowOnBlur: true,
       popupShowSuccessToast: false,
       popupRememberLastFolder: false,
       popupShowThumbnail: false,
@@ -61,6 +63,7 @@ describe("settingsService", () => {
       cardSize: "extra-large",
       sidebarWidth: 340,
       popupAutoCloseAfterSave: false,
+      autoCloseSaveWindowOnBlur: true,
       popupShowSuccessToast: false,
       popupRememberLastFolder: false,
       popupShowThumbnail: false,
@@ -85,6 +88,7 @@ describe("settingsService", () => {
       cardSize: "medium",
       sidebarWidth: 280,
       popupAutoCloseAfterSave: true,
+      autoCloseSaveWindowOnBlur: false,
       popupShowSuccessToast: true,
       popupRememberLastFolder: true,
       popupShowThumbnail: true,
@@ -101,6 +105,7 @@ describe("settingsService", () => {
     });
 
     await expect(loadSettings()).resolves.toMatchObject({
+      autoCloseSaveWindowOnBlur: false,
       newTabOverrideEnabled: false,
       newTabDefaultSearchEngineId: "google",
       newTabDefaultSearchCategory: "web",

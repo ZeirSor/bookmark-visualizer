@@ -1,8 +1,16 @@
 import { handleQuickSaveMessage } from "./quickSaveHandlers";
+import {
+  handleSaveExperienceMessage,
+  isSaveExperienceRequest
+} from "./saveExperienceHandlers";
 
 export function registerMessageRouter(): void {
   chrome.runtime.onMessage.addListener((message: unknown, _sender, sendResponse) => {
-    void handleQuickSaveMessage(message)
+    const handler = isSaveExperienceRequest(message)
+      ? handleSaveExperienceMessage(message)
+      : handleQuickSaveMessage(message);
+
+    void handler
       .then(sendResponse)
       .catch((cause) => {
         sendResponse({ ok: false, error: getErrorMessage(cause, "快捷保存失败。") });

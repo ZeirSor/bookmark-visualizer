@@ -1,4 +1,4 @@
-import { openSaveWindowForTab } from "./saveWindow";
+import { openSaveExperience } from "./saveExperienceHandlers";
 
 export function registerCommandHandlers(): void {
   chrome.commands.onCommand.addListener((command, tab) => {
@@ -10,7 +10,7 @@ export function registerCommandHandlers(): void {
 
 async function openQuickSaveOnCurrentTab(commandTab?: chrome.tabs.Tab): Promise<void> {
   const tab = commandTab?.id ? commandTab : await getCurrentTab();
-  await openSaveWindowForTab(tab);
+  await openSaveExperience(tab);
 }
 
 async function getCurrentTab(): Promise<chrome.tabs.Tab | undefined> {

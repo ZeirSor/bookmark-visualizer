@@ -5,8 +5,8 @@
 | 文件 | 说明 |
 |---|---|
 | `index.html` | 完整管理页 HTML entry |
-| `save.html` | Independent save-window HTML entry；由 background action click / command 打开 |
-| `popup.html` | Toolbar popup fallback HTML entry；不再由 `action.default_popup` 指向 |
+| `popup.html` | Toolbar popup HTML entry；由 `action.default_popup` 指向 |
+| `save.html` | Legacy save-window HTML entry；当前不由 toolbar 主路径打开 |
 | `newtab.html` | New Tab Portal HTML entry；通过 runtime redirect 条件打开 |
 | `public/manifest.json` | MV3 manifest、popup、service worker、commands、permissions |
 | `vite.config.ts` | 多入口构建 + Quick Save content script esbuild bundle |
@@ -45,8 +45,8 @@
 
 | 文件 | 说明 |
 |---|---|
-| `src/save-window/SaveWindowApp.tsx` | 独立保存窗口入口，解析 source tab query 并复用 PopupApp |
-| `src/popup/PopupApp.tsx` | 保存窗口 / Popup fallback 主控：tab、settings、initial state、保存状态 |
+| `src/save-window/SaveWindowApp.tsx` | Legacy 保存页入口，解析 source tab query 并复用 PopupApp |
+| `src/popup/PopupApp.tsx` | Toolbar Popup 主控：tab、settings、initial state、保存状态 |
 | `src/popup/hooks/usePopupBootstrap.ts` | 初始加载、settings、source tab 当前页、书签树和 footer 状态 |
 | `src/popup/hooks/usePopupSaveState.ts` | 保存表单瞬时状态 |
 | `src/popup/hooks/usePopupSaveActions.ts` | 保存、新建文件夹、settings 写入 |
@@ -55,20 +55,21 @@
 | `src/popup/tabs/ManageTab.tsx` | 管理 Tab |
 | `src/popup/tabs/SettingsTab.tsx` | 设置 Tab |
 | `src/popup/tabs/settings/SettingsRows.tsx` | Settings switch/select 行 |
-| `src/popup/tabs/settings/DefaultFolderMenu.tsx` | 默认保存位置级联菜单 |
+| `src/popup/tabs/settings/DefaultFolderMenu.tsx` | 默认保存位置内联 picker |
 | `src/popup/components/PagePreviewCard.tsx` | 页面预览卡 |
 | `src/popup/components/PopupFooter.tsx` | 保存 footer |
 | `src/popup/components/SaveLocationPicker.tsx` | 保存位置组合控件 |
 | `src/popup/components/TabButton.tsx` | Popup Tab button |
 | `src/popup/components/PopupIcons.tsx` | Popup 图标 |
-| `src/popup/components/save-location/FolderSearchRow.tsx` | 文件夹搜索行 |
-| `src/popup/components/save-location/FolderSearchResults.tsx` | 文件夹搜索结果 |
+| `src/components/folder-picker/InlineFolderPicker.tsx` | 共享内联保存位置 picker |
+| `src/components/folder-picker/FolderSearchInput.tsx` | 共享文件夹搜索输入 |
+| `src/components/folder-picker/FolderTree.tsx` | 共享文件夹树 |
 | `src/popup/components/save-location/InlineCreateFolderRow.tsx` | 原位新建文件夹 |
-| `src/popup/components/save-location/LocationCascadeOverlay.tsx` | 保存位置级联菜单 overlay |
+| `src/popup/components/save-location/LocationCascadeOverlay.tsx` | Legacy 保存位置级联菜单 overlay |
 | `src/popup/components/save-location/LocationPathRow.tsx` | 当前保存位置路径行 |
 | `src/popup/components/save-location/RecentFolderChips.tsx` | 最近位置 chips |
-| `src/features/popup/popupClient.ts` | 保存窗口 / Popup fallback 与 tabs / scripting / runtime message 的交互 helper |
-| `src/features/popup/saveSource.ts` | 保存窗口 source tab query 解析与 source tab 解析 |
+| `src/features/popup/popupClient.ts` | Popup 与 tabs / scripting / runtime message 的交互 helper |
+| `src/features/popup/saveSource.ts` | 当前 tab / legacy source tab query 解析 |
 | `src/features/popup/tabDetails.ts` | 当前页详情 normalize、page kind 和 URL 可保存 / 可注入判断 |
 | `src/features/popup/popupViewModels.ts` | Popup view model 推导 |
 
@@ -120,11 +121,11 @@
 | 文件 | 说明 |
 |---|---|
 | `src/service-worker.ts` | 构建入口，只导入并执行 `registerServiceWorker()` |
-| `src/background/serviceWorker.ts` | 聚合注册：save window action、commands、message router、New Tab redirect |
-| `src/background/saveWindow.ts` | 打开 / 聚焦独立保存窗口并刷新 source tab 参数 |
-| `src/background/commandHandlers.ts` | 处理 `open-quick-save` 命令，打开独立保存窗口 |
+| `src/background/serviceWorker.ts` | 聚合注册：message router、New Tab redirect |
+| `src/background/saveWindow.ts` | Legacy 独立保存窗口 helper |
+| `src/background/commandHandlers.ts` | Legacy `open-quick-save` command helper；当前不由 service worker 注册 |
 | `src/background/messageRouter.ts` | runtime message 总路由 |
-| `src/background/quickSaveHandlers.ts` | Quick Save / 保存窗口 / Popup fallback 保存请求处理，创建书签 / 文件夹 / metadata / recent folder |
+| `src/background/quickSaveHandlers.ts` | Popup / Quick Save / legacy 保存请求处理，创建书签 / 文件夹 / metadata / recent folder |
 | `src/background/openWorkspace.ts` | 打开完整管理页并携带 fallback 参数 |
 
 ## Shared / features

@@ -19,6 +19,7 @@
   --danger: var(--popup-danger);
   --popup-w: var(--popup-width);
   --popup-h: var(--popup-height);
+  --popup-pad: var(--popup-outer-padding);
   --radius-shell: var(--popup-radius-shell);
   --radius-panel: var(--popup-radius-lg);
   --radius-control: var(--popup-radius-md);
@@ -46,8 +47,7 @@
 }
 
 html,
-body,
-#root {
+body {
   width: var(--popup-w);
   height: var(--popup-h);
   margin: 0;
@@ -56,7 +56,15 @@ body,
 }
 
 body {
+  padding: var(--popup-pad);
   font-size: 15px;
+}
+
+#root {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: transparent;
 }
 
 button,
@@ -122,8 +130,8 @@ svg {
 .popup-shell {
   display: grid;
   grid-template-rows: auto auto minmax(0, 1fr) auto;
-  width: var(--popup-w);
-  height: var(--popup-h);
+  width: 100%;
+  height: 100%;
   overflow: hidden;
   border: 1px solid var(--border);
   border-radius: var(--radius-shell);
@@ -737,6 +745,308 @@ select:focus {
   overscroll-behavior: contain;
   transform-origin: top right;
   animation: popup-menu-in 140ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.location-picker-dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  background: rgb(15 23 42 / 0.22);
+}
+
+.location-picker-dialog {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  width: min(760px, 100%);
+  max-height: min(520px, calc(100vh - 36px));
+  min-height: min(420px, calc(100vh - 36px));
+  overflow: hidden;
+  border: 1px solid rgb(226 232 240 / 0.92);
+  border-radius: var(--radius-panel);
+  background: rgb(255 255 255 / 0.98);
+  box-shadow: var(--shadow-popover);
+}
+
+.location-picker-dialog:focus {
+  outline: none;
+}
+
+.location-picker-dialog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 56px;
+  padding: 0 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.location-picker-dialog-header strong {
+  color: var(--text);
+  font-size: 15px;
+  font-weight: var(--weight-strong);
+}
+
+.location-picker-dialog-body {
+  min-height: 0;
+  overflow: auto;
+  padding: 10px;
+  overscroll-behavior: contain;
+}
+
+.location-picker-dialog .move-menu-list {
+  gap: 3px;
+}
+
+.location-picker-dialog .move-folder-button {
+  min-height: 40px;
+}
+
+.inline-folder-picker {
+  display: grid;
+  gap: 11px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-panel);
+  background: rgb(255 255 255 / 0.98);
+  box-shadow: var(--shadow-card);
+}
+
+.location-picker-shell > .inline-folder-picker {
+  margin-top: 10px;
+}
+
+.inline-folder-picker-header,
+.inline-folder-picker-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.inline-folder-picker-header strong {
+  color: var(--text);
+  font-size: 14px;
+}
+
+.inline-folder-picker-toolbar {
+  align-items: stretch;
+}
+
+.folder-search-input {
+  position: relative;
+  display: block;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.folder-search-input > svg {
+  position: absolute;
+  top: 50%;
+  left: 13px;
+  width: 18px;
+  height: 18px;
+  color: var(--muted);
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.folder-search-input input {
+  width: 100%;
+  height: 40px;
+  padding: 0 42px;
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-control);
+  background: var(--surface);
+}
+
+.folder-search-input input::placeholder {
+  color: var(--placeholder);
+}
+
+.folder-search-input input:focus {
+  border-color: var(--accent);
+  outline: none;
+  box-shadow: 0 0 0 3px rgb(79 70 229 / 0.13);
+}
+
+.folder-search-input button {
+  position: absolute;
+  top: 50%;
+  right: 7px;
+  display: inline-grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  color: var(--muted);
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  transform: translateY(-50%);
+}
+
+.folder-search-input button:hover,
+.folder-search-input button:focus-visible {
+  color: var(--accent);
+  background: var(--accent-soft);
+  outline: none;
+}
+
+.folder-search-input button svg {
+  width: 16px;
+  height: 16px;
+}
+
+.picker-create-toggle {
+  min-height: 40px;
+  padding: 0 12px;
+  color: var(--accent);
+  border: 1px solid rgb(79 70 229 / 0.24);
+  border-radius: var(--radius-control);
+  background: var(--accent-softer);
+  font-size: 13px;
+  font-weight: var(--weight-strong);
+  white-space: nowrap;
+}
+
+.picker-create-toggle:hover,
+.picker-create-toggle:focus-visible,
+.picker-create-toggle.is-active {
+  border-color: rgb(79 70 229 / 0.38);
+  background: var(--accent-soft);
+  outline: none;
+}
+
+.inline-folder-picker-body {
+  max-height: min(270px, 36vh);
+  overflow: auto;
+  padding-right: 2px;
+  overscroll-behavior: contain;
+}
+
+.folder-tree {
+  display: grid;
+  gap: 4px;
+}
+
+.folder-tree-item {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr);
+  align-items: center;
+  min-height: 38px;
+  border-radius: 10px;
+}
+
+.folder-tree-item.is-active,
+.folder-tree-item:hover {
+  background: var(--accent-softer);
+}
+
+.folder-tree-item.is-selected {
+  background: var(--accent-soft);
+}
+
+.folder-tree-disclosure {
+  display: inline-grid;
+  width: 24px;
+  height: 32px;
+  place-items: center;
+  color: var(--muted);
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+}
+
+.folder-tree-disclosure svg {
+  width: 16px;
+  height: 16px;
+  transition: transform 120ms ease;
+}
+
+.folder-tree-item[aria-expanded="true"] .folder-tree-disclosure svg {
+  transform: rotate(90deg);
+}
+
+.folder-tree-label {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  min-height: 38px;
+  padding: 5px 8px 5px 4px;
+  color: var(--text);
+  text-align: left;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+}
+
+.folder-tree-label:disabled {
+  cursor: not-allowed;
+  opacity: 0.52;
+}
+
+.folder-tree-label:focus-visible,
+.folder-tree-disclosure:focus-visible {
+  outline: 2px solid rgb(79 70 229 / 0.38);
+  outline-offset: 1px;
+}
+
+.folder-tree-copy {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.folder-tree-copy strong,
+.folder-tree-copy small {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.folder-tree-copy strong {
+  color: var(--text);
+  font-size: 13.5px;
+  line-height: 1.2;
+}
+
+.folder-tree-copy small {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: var(--weight-medium);
+}
+
+.folder-tree-current {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: var(--weight-strong);
+}
+
+.folder-tree-current svg {
+  width: 14px;
+  height: 14px;
+}
+
+.inline-picker-empty {
+  margin: 0;
+  padding: 14px;
+  color: var(--muted);
+  font-size: 13px;
+  text-align: center;
+}
+
+.search-results-tree .folder-tree-item {
+  padding-left: 0 !important;
 }
 
 .settings-cascade-menu {
@@ -1841,21 +2151,27 @@ kbd.is-muted {
   min-width: 0;
 }
 
-.switch-control input {
+.switch-control {
+  display: inline-grid;
+  place-items: center;
+  width: 46px;
+  height: 30px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+}
+
+.switch-track {
   position: relative;
   width: 38px;
   height: 22px;
-  padding: 0;
-  appearance: none;
-  cursor: pointer;
-  border: 0;
   border-radius: 999px;
   background: #cbd5e1;
   transition: background-color 140ms ease;
 }
 
-.switch-control input::after {
-  content: "";
+.switch-thumb {
   position: absolute;
   top: 3px;
   left: 3px;
@@ -1867,19 +2183,20 @@ kbd.is-muted {
   transition: transform 140ms ease;
 }
 
-.switch-control input:checked {
+.switch-control[aria-checked="true"] .switch-track {
   background: var(--accent);
 }
 
-.switch-control input:checked::after {
+.switch-control[aria-checked="true"] .switch-thumb {
   transform: translateX(16px);
 }
 
-.switch-control input:focus-visible {
+.switch-control:focus-visible {
+  outline: none;
   box-shadow: 0 0 0 3px rgb(79 70 229 / 0.13);
 }
 
-.switch-control input:disabled {
+.switch-control:disabled {
   cursor: not-allowed;
   opacity: 0.55;
 }

@@ -33,8 +33,8 @@
 | 分组 | 字段 |
 |---|---|
 | 管理页 | `showBookmarksInTree`、`theme`、`cardDensity`、`cardSize`、`sidebarWidth` |
-| 保存窗口 / Popup fallback 保存行为 | `popupAutoCloseAfterSave`、`popupShowSuccessToast`、`popupRememberLastFolder`、`popupShowThumbnail` |
-| 保存窗口 / Popup fallback 偏好 | `popupDefaultOpenTab`、`popupThemeMode`、`popupDefaultFolderId` |
+| Toolbar Popup / legacy 保存行为 | `popupAutoCloseAfterSave`、`autoCloseSaveWindowOnBlur`、`popupShowSuccessToast`、`popupRememberLastFolder`、`popupShowThumbnail` |
+| Toolbar Popup / legacy 偏好 | `popupDefaultOpenTab`、`popupThemeMode`、`popupDefaultFolderId` |
 | New Tab | `newTabOverrideEnabled`、`newTabDefaultSearchEngineId`、`newTabDefaultSearchCategory`、`newTabLayoutMode`、`newTabShowRecentActivity`、`newTabShowStorageUsage`、`newTabShortcutsPerRow` |
 
 Normalize 规则在 `settingsService.ts`。当前 `cardDensity` 固定 normalize 为 `comfortable`，不是完整可选 UI。
@@ -49,7 +49,7 @@ Normalize 规则在 `settingsService.ts`。当前 `cardDensity` 固定 normalize
 | 书签移动 | Chrome bookmarks | `bookmarksAdapter.move(id, { parentId, index })` |
 | 删除 | Chrome bookmarks | `bookmarksAdapter.remove(id)` |
 | 备注 | extension storage | `useMetadata().updateNote()` → `saveBookmarkNote()` → `saveBookmarkMetadata()` |
-| 预览图 URL / page kind / source URL | extension storage | 保存窗口 / Popup fallback / Quick Save 保存时传给 `saveBookmarkMetadata()` |
+| 预览图 URL / page kind / source URL | extension storage | Popup / legacy 保存页 / Quick Save 保存时传给 `saveBookmarkMetadata()` |
 | 最近文件夹 | extension storage | `src/features/recent-folders/recentFolders.ts` |
 
 维护重点：不要把备注写进原生 bookmark title；不要把原生 bookmark id 当作永远稳定 ID，删除恢复会生成新 ID。
@@ -66,7 +66,7 @@ Quick Save 消息类型来自 `src/features/quick-save/types.ts`：
 | `QUICK_SAVE_CREATE_BOOKMARK` | 创建书签并保存 metadata / 最近文件夹 |
 | `QUICK_SAVE_CREATE_FOLDER` | 创建文件夹并返回新 state |
 
-保存窗口和 Popup fallback 当前通过 `src/features/popup/popupClient.ts` 发送相同 quick-save message，因此保存窗口、Popup fallback 和 Quick Save 保存共享 background 创建链路。
+Toolbar Popup、legacy Save Overlay、legacy 保存页和 Legacy Quick Save 当前发送相同 quick-save message，因此这些保存入口共享 background 创建链路。
 
 ## Manifest 相关
 
@@ -80,10 +80,9 @@ Quick Save 消息类型来自 `src/features/quick-save/types.ts`：
 
 入口：
 
-- `action` 不声明 `default_popup`，由 `src/background/saveWindow.ts` 注册 `chrome.action.onClicked`
-- `save.html` 为主保存小窗口入口，`popup.html` 为 fallback / dev entry
+- `action.default_popup = "popup.html"`，工具栏点击打开 toolbar popup
+- `_execute_action` 打开同一个 action popup
 - `background.service_worker = service-worker.js`
-- command：`open-quick-save`
 
 维护规则：
 

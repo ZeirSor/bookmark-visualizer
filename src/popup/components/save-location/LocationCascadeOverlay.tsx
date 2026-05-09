@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { FolderCascadeMenu } from "../../../components/FolderCascadeMenu";
 import {
@@ -10,6 +10,7 @@ import {
   getPopupCascadeRootPlacement,
   type PopupCascadeAnchorRect
 } from "../../../features/context-menu/popupCascadePlacement";
+import { isCompactLocationPickerViewport } from "./locationPickerViewport";
 
 const POPUP_CASCADE_MENU_WIDTH = 236;
 const POPUP_CASCADE_MENU_HEIGHT = 330;
@@ -40,6 +41,12 @@ export function LocationCascadeOverlay({
   const overlayRef = useRef<HTMLDivElement>(null);
   const [anchorRect, setAnchorRect] = useState<PopupCascadeAnchorRect>();
   const [viewport, setViewport] = useState(() => getViewport());
+  const [dialogElement, setDialogElement] = useState<HTMLDivElement | null>(null);
+  const useDialog = isCompactLocationPickerViewport(viewport);
+  const setOverlayElement = useCallback((element: HTMLDivElement | null) => {
+    overlayRef.current = element;
+    setDialogElement((current) => (current === element ? current : element));
+  }, []);
 
   useLayoutEffect(() => {
     updatePlacement();
@@ -51,6 +58,12 @@ export function LocationCascadeOverlay({
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, [anchorElement]);
+
+  useEffect(() => {
+    if (useDialog) {
+      overlayRef.current?.focus();
+    }
+  }, [useDialog]);
 
   useEffect(() => {
     function handlePointerDown(event: PointerEvent) {
@@ -110,6 +123,57 @@ export function LocationCascadeOverlay({
 
   if (!placement || typeof document === "undefined") {
     return null;
+  }
+
+  if (useDialog) {
+    return createPortal(
+      <div
+        className="location-picker-dialog-backdrop"
+        data-popup-cascade-layer="true"
+        onPointerDown={(event) => {
+          if (event.target === event.currentTarget) {
+            onRequestClose();
+          }
+        }}
+      >
+        <div
+          ref={setOverlayElement}
+          className="location-picker-dialog"
+          role="dialog"
+          aria-modal="true"
+          aria-label="选择保存位置"
+          tabIndex={-1}
+          onWheel={(event) => event.stopPropagation()}
+        >
+          <div className="location-picker-dialog-header">
+            <strong>选择保存位置</strong>
+            <button type="button" className="text-action" onClick={onRequestClose}>
+              关闭
+            </button>
+          </div>
+          <div className="location-picker-dialog-body">
+            <FolderCascadeMenu
+              nodes={tree}
+              selectedFolderId={selectedFolderId}
+              currentFolderId={currentFolderId}
+              highlightedFolderIds={highlightedFolderIds}
+              initialActivePathIds={initialActivePathIds}
+              autoExpandInitialPath
+              disabledLabel="不可保存"
+              density="compact"
+              menuWidth={POPUP_CASCADE_MENU_WIDTH}
+              canSelect={canCreateBookmarkInFolder}
+              onSelect={onSelect}
+              onCreateFolder={onCreateFolder}
+              onCascadeEnter={onCascadeEnter}
+              onCascadeLeave={onCascadeLeave}
+              portalContainer={dialogElement ?? document.body}
+            />
+          </div>
+        </div>
+      </div>,
+      document.body
+    );
   }
 
   return createPortal(

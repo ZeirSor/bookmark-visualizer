@@ -76,6 +76,8 @@ SettingsTab 是 Popup 的常用配置入口，包含：
 }
 ```
 
+当前主入口快捷键实际由 Manifest V3 特殊命令 `_execute_action` 打开 action popup；上方 legacy command 如存在，不应保留 suggested key。
+
 ## 默认保存位置
 
 ### UI 元素
@@ -85,9 +87,8 @@ SettingsTab 是 Popup 的常用配置入口，包含：
 | 行根 | `.default-folder-row` | 展示当前默认路径 |
 | 文件夹图标 | `.location-folder-icon` | 共享图标视觉 |
 | 路径文本 | `.default-folder-row span[title]` | hover title 展示完整路径 |
-| 更改按钮 | `.secondary-action.small` | 打开 cascade menu |
-| 菜单 host | `.settings-cascade-host` | hover keep open |
-| 菜单层 | `.settings-cascade-menu` | 内部渲染 `FolderCascadeMenu` |
+| 更改按钮 | `.secondary-action.small` | 打开内联 folder picker |
+| 内联 picker | `.inline-folder-picker` | 内部渲染共享 `InlineFolderPicker` |
 | 最近位置 chips | `.settings-mini-chips` | 点击直接设为默认保存位置 |
 
 ### 数据链路
@@ -124,10 +125,10 @@ SettingsTab 更改默认位置
 
 | 组件 | 文件 | 说明 |
 |---|---|---|
-| `SwitchRow` | `src/popup/tabs/settings/SettingsRows.tsx` | label + checkbox；写入布尔 settings |
+| `SwitchRow` | `src/popup/tabs/settings/SettingsRows.tsx` | label + `role="switch"` 控件；写入布尔 settings |
 | `SettingsSection` | `src/popup/tabs/settings/SettingsRows.tsx` | 设置卡片 section 结构 |
 | `SettingRow` | `src/popup/tabs/settings/SettingsRows.tsx` | label / helper text / control 行结构 |
 | `Keycap` | `src/popup/tabs/settings/SettingsRows.tsx` | 快捷键 pill |
-| `Switch` | `src/popup/tabs/settings/SettingsRows.tsx` | 设置开关控件 |
+| `Switch` | `src/popup/tabs/settings/SettingsRows.tsx` | 胶囊 track + thumb；支持鼠标、Space、Enter 和 focus-visible |
 | `SelectRow` / `CustomSelect` | `src/popup/tabs/settings/SettingsRows.tsx` | 非原生下拉外观；支持 click、Esc、外部点击、ArrowUp / ArrowDown、Enter / Space |
-| `DefaultFolderMenu` | `src/popup/tabs/settings/DefaultFolderMenu.tsx` | 默认保存位置级联菜单、最近位置 chips、hover 延迟关闭 |
+| `DefaultFolderMenu` | `src/popup/tabs/settings/DefaultFolderMenu.tsx` | 默认保存位置内联 picker、最近位置 chips |

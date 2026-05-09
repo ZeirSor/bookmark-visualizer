@@ -8,9 +8,10 @@
 - Test affected card / folder actions.
 - Check search if affected.
 
-## Save Window / Popup Fallback
+## Save Overlay / Popup Fallback
 
-- Open save window from toolbar action and extension command.
+- Open Save Overlay from toolbar action and extension command on a normal web page.
+- Open `save.html` fallback from a restricted page such as `chrome://extensions/`.
 - Confirm tabs render.
 - Confirm Save tab current-page fields if affected.
 - Confirm save location picker and recent folders if affected.
