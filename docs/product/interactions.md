@@ -2,7 +2,7 @@
 
 ## 点击
 
-- 点击浏览器工具栏图标：普通网页注入 Bookmark Visualizer Save Overlay，并默认进入当前网页保存入口；受限页面或注入失败时打开 `save.html` fallback 标签页。
+- 点击浏览器工具栏图标：打开 Bookmark Visualizer toolbar popup，并默认进入当前网页保存入口。
 - 点击浏览器新标签页按钮：默认保持浏览器原生 New Tab；当设置中开启“绑定新标签页”后，跳转到 Bookmark Visualizer New Tab Portal。
 - 点击左侧文件夹：右侧展示该文件夹直接子书签。
 - 点击左侧文件夹行：同时选中文件夹并展开 / 折叠。
@@ -127,7 +127,7 @@
 - Save Overlay 顶部包含“保存 / 管理 / 设置”三个 Tab，默认 Tab 由 `settings.popupDefaultOpenTab` 控制。
 - 同一网页内重复触发不会堆叠多个 overlay；内容脚本会先移除旧 host 再重新渲染。
 - 保存成功后可按 `settings.popupAutoCloseAfterSave` 自动关闭 overlay；取消、点击遮罩、按 Esc、打开完整管理页和配置快捷键会关闭当前 overlay。
-- `chrome://` / `edge://` / 扩展页 / `file://` 等页面不执行 content script 注入，改为打开普通扩展标签页形式的 `save.html` fallback，并通过 source query 保存 URL。
+- `chrome://` / `edge://` / 扩展页 / `file://` 等页面不执行页面 metadata 注入，但仍可在 toolbar popup 中保存 URL 引用。
 - “保存”Tab 已实现标题、只读 URL、备注、预览图、保存位置选择、最近文件夹和新建文件夹。
 - Save Overlay 保存位置使用内联展开文件夹树；搜索模式替换树主体，Esc 先清空搜索或关闭选择器，最近位置和新建文件夹保留在同一区域。
 - “管理”Tab 提供打开完整管理页、最近保存、最近使用位置等入口。

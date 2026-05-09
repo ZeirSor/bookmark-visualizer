@@ -22,14 +22,10 @@ import type { UsePopupBootstrapOptions } from "./hooks/usePopupBootstrap";
 import { usePopupSaveActions } from "./hooks/usePopupSaveActions";
 import { usePopupSaveState } from "./hooks/usePopupSaveState";
 
-export type PopupSurfaceVariant = "popup" | "save-window";
-
 export function PopupApp({
-  bootstrapOptions,
-  variant = "popup"
+  bootstrapOptions
 }: {
   bootstrapOptions?: UsePopupBootstrapOptions;
-  variant?: PopupSurfaceVariant;
 } = {}) {
   const bootstrap = usePopupBootstrap(bootstrapOptions);
   const saveState = usePopupSaveState();
@@ -98,10 +94,8 @@ export function PopupApp({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  const rootClassName = variant === "save-window" ? "popup-shell save-window-shell" : "popup-shell";
-
   return (
-    <main className={rootClassName} data-surface={variant}>
+    <main className="popup-shell">
       <header className="popup-header">
         <img src="/icons/icon-128.png" alt="" className="app-logo" />
         <div className="brand-block">

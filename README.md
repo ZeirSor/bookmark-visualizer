@@ -26,13 +26,13 @@
 Bookmark Visualizer is a Manifest V3 browser extension for people with large bookmark collections. It provides three extension pages plus a toolbar popup save flow:
 
 - a toolbar popup for saving the current page without leaving the browser chrome;
-- a legacy `save.html` extension tab and Save Overlay code path kept for a later cleanup run;
+- an optional page-level `Ctrl+S` / `Command+S` bridge that opens the same popup after user-granted optional host access;
 - a full bookmark manager workspace for browsing, searching, editing, moving, and reviewing bookmarks;
 - an optional New Tab surface that can be enabled in settings for a search-first bookmark dashboard;
 
 The extension uses `chrome.bookmarks` as the source of truth. Moves, edits, deletes, folder changes, and bookmark creation operate on the browser's native bookmark tree instead of a private bookmark copy. Extension-only data such as notes, summaries, recent folders, New Tab state, settings, and UI state belong in `chrome.storage.local`; website favicon images are cached separately in local IndexedDB as UI-only data.
 
-The toolbar action and `Ctrl+Shift+S` open `popup.html`, with Save, Manage, and Settings tabs in the same compact surface. Restricted pages such as `chrome://extensions/`, extension pages, and file URLs can still be saved as URL references from the popup without metadata injection. The full manager workspace opens from `index.html`. By default, Bookmark Visualizer keeps the browser's native new tab page. Users can enable the optional New Tab override in settings; when enabled, new browser tabs redirect to `newtab.html`.
+The toolbar action and `Ctrl+Shift+S` open `popup.html`, with Save, Manage, and Settings tabs in the same compact surface. Restricted pages such as `chrome://extensions/`, extension pages, and file URLs can still be saved as URL references from the popup without metadata injection. Page-level `Ctrl+S` is off by default; enabling it requests optional `http://*/*` and `https://*/*` host access and registers a tiny listener that only opens the popup. The full manager workspace opens from `index.html`. By default, Bookmark Visualizer keeps the browser's native new tab page. Users can enable the optional New Tab override in settings; when enabled, new browser tabs redirect to `newtab.html`.
 
 The manifest includes the MV3 `favicon` permission so extension pages can read browser-known site icons through Chrome / Edge's official `_favicon` URL and cache them locally. The extension does not add default third-party favicon service requests.
 
@@ -51,6 +51,7 @@ The manifest includes the MV3 `favicon` permission so extension pages can read b
 - Undo supported bookmark moves, edits, note changes, and deletions from toast/session history.
 - Adjust theme, card size, sidebar width, and tree bookmark visibility.
 - Use the toolbar action or `Ctrl+Shift+S` to open the popup and save the current webpage as a native browser bookmark.
+- Optionally enable page-level `Ctrl+S` / `Command+S` to open the same popup on ordinary webpages without rendering an overlay.
 - Search folders, choose an inline save location, create a folder, add a note, and save from the popup Save tab.
 - Open the full workspace from the popup when deeper bookmark management is needed.
 - Optionally replace the browser New Tab page with a search-first bookmark dashboard.
@@ -146,14 +147,13 @@ Use a test browser profile when trying destructive bookmark actions such as move
 src/
   app/                 Full manager workspace app shell, workspace state, and global app wiring
   app/workspace/       Manager workspace layout and page-level components
-  background/          MV3 service worker, quick-save messages, legacy save helpers, and new-tab redirect handling
+  background/          MV3 service worker, quick-save messages, page shortcut bridge, and new-tab redirect handling
   components/          Shared UI components used across surfaces
   domain/              Bookmark, folder, activity, and table-view domain models
-  features/            Feature modules: bookmarks, legacy save-overlay, popup, quick-save, newtab, favicon, settings, metadata, search
+  features/            Feature modules: bookmarks, page-shortcut, popup, quick-save, newtab, favicon, settings, metadata, search
   lib/chrome/          Chrome API adapters and mockable browser integration layer
   newtab/              Optional New Tab surface entry and app wiring
   popup/               Toolbar Save / Manage / Settings popup UI
-  save-window/         legacy save.html page entry and app wiring
   styles/              Shared design tokens and surface-level styles
 
 public/
@@ -173,7 +173,6 @@ docs/
 
 index.html             Full manager workspace entry
 popup.html             Toolbar popup entry
-save.html              Legacy save page entry
 newtab.html            Optional New Tab entry
 ```
 
@@ -201,7 +200,7 @@ newtab.html            Optional New Tab entry
 - Compact list view plus lightweight sort and filter controls.
 - Metadata import/export.
 - Stronger New Tab customization and shortcut management.
-- On-demand summary fetching remains planned; the current popup path does not request global `http://*/*` or `https://*/*` host access.
+- On-demand summary fetching remains planned; optional `http://*/*` / `https://*/*` host access is currently used only for the user-enabled page Ctrl+S bridge.
 - Component-level UI tests.
 - First public release packaging and maintained screenshots.
 

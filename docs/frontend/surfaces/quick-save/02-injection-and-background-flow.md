@@ -1,4 +1,4 @@
-# Quick Save Injection And Background Flow
+# Quick Save Injection And Background Flow（not current implementation）
 
 This document describes the current Save Overlay runtime chain plus the preserved legacy Quick Save message flow.
 

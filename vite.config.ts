@@ -1,19 +1,13 @@
 import { defineConfig } from "vitest/config";
 import react from "@vitejs/plugin-react";
-import { build as buildWithEsbuild, type Plugin as EsbuildPlugin } from "esbuild";
-import { readFile } from "node:fs/promises";
-import { resolve } from "node:path";
+import { build as buildWithEsbuild } from "esbuild";
 import { fileURLToPath } from "node:url";
 
-const quickSaveContentEntry = fileURLToPath(
-  new URL("src/features/quick-save/content.tsx", import.meta.url)
+const pageShortcutContentEntry = fileURLToPath(
+  new URL("src/features/page-shortcut/content.ts", import.meta.url)
 );
-const quickSaveContentOutput = fileURLToPath(new URL("dist/quick-save-content.js", import.meta.url));
-const saveOverlayContentEntry = fileURLToPath(
-  new URL("src/features/save-overlay/content.tsx", import.meta.url)
-);
-const saveOverlayContentOutput = fileURLToPath(
-  new URL("dist/save-overlay-content.js", import.meta.url)
+const pageShortcutContentOutput = fileURLToPath(
+  new URL("dist/page-shortcut-content.js", import.meta.url)
 );
 
 export default defineConfig({
@@ -30,19 +24,13 @@ export default defineConfig({
           platform: "browser" as const,
           target: "es2022",
           minify: true,
-          sourcemap: false,
-          plugins: [rawTextPlugin()]
+          sourcemap: false
         };
 
         await buildWithEsbuild({
           ...bundleOptions,
-          entryPoints: [quickSaveContentEntry],
-          outfile: quickSaveContentOutput
-        });
-        await buildWithEsbuild({
-          ...bundleOptions,
-          entryPoints: [saveOverlayContentEntry],
-          outfile: saveOverlayContentOutput
+          entryPoints: [pageShortcutContentEntry],
+          outfile: pageShortcutContentOutput
         });
       }
     }
@@ -52,7 +40,6 @@ export default defineConfig({
       input: {
         index: fileURLToPath(new URL("index.html", import.meta.url)),
         popup: fileURLToPath(new URL("popup.html", import.meta.url)),
-        save: fileURLToPath(new URL("save.html", import.meta.url)),
         newtab: fileURLToPath(new URL("newtab.html", import.meta.url)),
         "service-worker": fileURLToPath(new URL("src/service-worker.ts", import.meta.url))
       },
@@ -69,19 +56,3 @@ export default defineConfig({
     globals: true
   }
 });
-
-function rawTextPlugin(): EsbuildPlugin {
-  return {
-    name: "raw-text",
-    setup(build) {
-      build.onResolve({ filter: /\?raw$/ }, (args) => ({
-        path: resolve(args.resolveDir, args.path.replace(/\?raw$/, "")),
-        namespace: "raw-text"
-      }));
-      build.onLoad({ filter: /.*/, namespace: "raw-text" }, async (args) => ({
-        contents: `export default ${JSON.stringify(await readFile(args.path, "utf8"))};`,
-        loader: "js"
-      }));
-    }
-  };
-}

@@ -8,10 +8,8 @@
 |---|---|---|---|
 | 管理页 Manager | `index.html` → `src/app/App.tsx` | `src/app/styles.css` | 三栏书签工作台 |
 | Toolbar Popup | `popup.html` → `src/popup/PopupApp.tsx` | `src/popup/styles.css` | 当前页保存 + 管理 / 设置入口 |
-| Legacy Save Overlay | `save-overlay-content.js` → `src/features/save-overlay/SaveOverlayApp.tsx` | Shadow DOM 注入 tokens / popup / save-window CSS + overlay overrides | 保留的内容脚本保存体验，等待 cleanup |
-| Legacy 保存页 | `save.html` → `src/save-window/SaveWindowApp.tsx` → `src/popup/PopupApp.tsx` | `src/popup/styles.css` + `src/save-window/styles.css` | 保留的保存页入口，等待 cleanup |
 | New Tab Portal | `newtab.html` → `src/newtab/NewTabApp.tsx` | `src/newtab/styles.css` | 搜索优先的新标签页 |
-| Legacy Quick Save Dialog | `quick-save-content.js` → `QuickSaveDialog.tsx` | `src/features/quick-save/contentStyle.ts` | 保留的 Shadow DOM 快捷保存浮框 |
+| Page Ctrl+S bridge | `page-shortcut-content.js` → `src/features/page-shortcut/content.ts` | 无 UI 样式 | 可选快捷键 listener，只打开 toolbar popup |
 
 所有页面都应先使用 `src/styles/tokens.css` 中的 `--bv-*` 基础 token，再映射到页面级 alias：`--app-*`、`--popup-*`、`--nt-*`。
 
@@ -118,9 +116,9 @@ src/components/BookmarkCard.tsx
 - 更多按钮 / 右键菜单提供编辑、新建到前后、移动、删除。
 - 搜索结果状态不允许当前文件夹内重排。
 
-## Toolbar Popup 与 legacy 保存入口
+## Toolbar Popup 与页面快捷键
 
-当前主保存体验是 Toolbar Popup：工具栏图标和 `Ctrl+Shift+S` 打开 `popup.html`，在标准扩展 popup 中渲染“保存 / 管理 / 设置”三 Tab。`save.html` 和 Save Overlay 仅作为 legacy 代码保留，等待后续 cleanup。
+当前主保存体验是 Toolbar Popup：工具栏图标和 `Ctrl+Shift+S` 打开 `popup.html`，在标准扩展 popup 中渲染“保存 / 管理 / 设置”三 Tab。页面内 `Ctrl+S` 是默认关闭的可选 bridge，开启后只打开同一个 popup。
 
 ```text
 Toolbar action / Ctrl+Shift+S
@@ -130,28 +128,23 @@ Toolbar action / Ctrl+Shift+S
   → SaveTab / ManageTab / SettingsTab
 ```
 
-Save Overlay 采用居中的无系统标题栏浮层：
+页面内 Ctrl+S bridge 不渲染 UI：
 
 ```text
-Backdrop
-└─ Overlay shell
-   ├─ Header + close
-   ├─ Tabs: Save / Manage / Settings
-   ├─ Scrollable content
-   └─ Save footer when Save tab is active
+src/features/page-shortcut/content.ts
+  → listen Ctrl+S / Command+S outside editable fields
+  → chrome.runtime.sendMessage()
+  → src/background/pageShortcutHandlers.ts
+  → chrome.action.openPopup()
 ```
 
 必须细化维护的 UI 元素：
 
 | 元素 | 代码 | 样式 / selector 方向 | 说明 |
 |---|---|---|---|
-| Overlay host | `src/features/save-overlay/content.tsx` | `#bookmark-visualizer-save-overlay` | 防止重复堆叠，负责 Shadow DOM 和 unmount |
-| Shell / tabs / footer | `SaveOverlayShell.tsx`、`SaveOverlayFooter.tsx` | `.save-overlay-shell`、`.save-overlay-content` | dialog、tabs、footer 和关闭行为 |
-| 保存 Tab | `SaveOverlayTab.tsx` | `.save-overlay-save-tab` | 标题、只读 URL、备注、预览、保存位置 |
 | 内联文件夹树 | `InlineFolderPicker.tsx`、`FolderTree.tsx`、`FolderTreeItem.tsx` | `.inline-folder-picker` | 展开树、搜索、最近位置、新建文件夹，不使用横向 floating cascade |
-| 设置 Tab | `SettingsOverlayTab.tsx` | `.settings-tab` 复用 + overlay overrides | Switch、CustomSelect、默认保存位置内联选择 |
-| 管理 Tab | `ManageOverlayTab.tsx` | `.manage-tab` 复用 + overlay overrides | 打开完整管理页、最近保存、最近位置 |
-| fallback 保存页 | `src/save-window/SaveWindowApp.tsx` → `PopupApp` | `.save-window-shell` | 受限页面和注入失败路径，仍可保存 URL |
+| 设置 Tab | `SettingsTab.tsx` | `.settings-tab` | Switch、CustomSelect、默认保存位置内联选择、页面内 Ctrl+S 开关 |
+| 管理 Tab | `ManageTab.tsx` | `.manage-tab` | 打开完整管理页、最近保存、最近位置 |
 
 ## New Tab Portal
 
@@ -176,18 +169,16 @@ src/newtab/NewTabApp.tsx
 - `.nt-search-row` 是搜索输入所在布局行。
 - 布局模式有 `standard`、`sidebar`、`tabs` 三种 class；其中明显 CSS 覆盖主要集中在 `.is-sidebar-mode`，`standard` / `tabs` 更多通过 React 条件渲染切换内容。
 
-## Quick Save Dialog
+## Quick Save Core
 
-Quick Save 运行在网页 Shadow DOM 中，不能依赖宿主页面 CSS。
+Quick Save 现在是 popup 保存链路复用的消息协议和业务 helper，不再包含网页 Shadow DOM 保存浮框。
 
 代码链路：
 
 ```text
-src/features/quick-save/content.tsx
-  → host.attachShadow({ mode: "open" })
-  → createQuickSaveStyle()
-  → QuickSaveDialog.tsx
-  → chrome.runtime.sendMessage
+src/popup/tabs/SaveTab.tsx
+  → src/features/popup/popupClient.ts
+  → chrome.runtime.sendMessage()
   → src/background/messageRouter.ts
   → src/background/quickSaveHandlers.ts
 ```
@@ -195,7 +186,7 @@ src/features/quick-save/content.tsx
 保存链路：
 
 ```text
-QuickSaveDialog.save()
+SaveTab.save()
   → QUICK_SAVE_CREATE_BOOKMARK
   → handleQuickSaveMessage()
   → bookmarksAdapter.create()
@@ -203,8 +194,8 @@ QuickSaveDialog.save()
   → saveQuickSaveRecentFolder(parentId)
 ```
 
-维护重点：`FolderCascadeMenu` 仍被管理页右键移动、legacy 保存入口和 Legacy Quick Save 复用；当前 Popup / Save Overlay 主保存位置使用共享内联树。修改 class、hover buffer、portal 定位或滚动逻辑时，必须同时验证相关入口。
+维护重点：`FolderCascadeMenu` 仍被管理页右键移动等场景复用；当前 Popup 主保存位置使用共享内联树。修改 class、hover buffer、portal 定位或滚动逻辑时，必须同时验证相关入口。
 
 ## 视觉方向
 
-当前视觉锚点是干净、明亮、轻量阴影、较大圆角和清晰网格。管理页偏效率工作台，Save Overlay 偏当前页轻量表单，保存 fallback 偏扩展页表单，New Tab 偏搜索首页，Legacy Quick Save 偏隔离浮框。不要把 New Tab 的背景光斑、大面积 hero 风格直接迁移到管理页或保存体验。
+当前视觉锚点是干净、明亮、轻量阴影、较大圆角和清晰网格。管理页偏效率工作台，Toolbar Popup 偏当前页轻量表单，New Tab 偏搜索首页。不要把 New Tab 的背景光斑、大面积 hero 风格直接迁移到管理页或保存体验。

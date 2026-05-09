@@ -6,7 +6,7 @@
 
 1. `public/manifest.json` 必须声明 `action.default_popup = "popup.html"`。
 2. manifest 默认快捷键使用 `_execute_action`，默认 `Ctrl + Shift + S` / macOS `Command + Shift + S`。
-3. `commands.open-quick-save` 不应保留 suggested key。
+3. manifest 只使用 `_execute_action` 作为默认 popup 快捷键。
 4. service worker 必须注册 `registerMessageRouter()` 和 `registerNewTabRedirect()`。
 5. service worker 不应注册 `registerSaveExperienceHandlers()` 或 legacy `registerCommandHandlers()`。
 6. manifest 不应新增全局 `host_permissions` 或默认 `content_scripts`。
@@ -21,7 +21,7 @@ npm run build
 npm run verify:popup-entry
 ```
 
-`npm run verify:quick-save-shortcut` 和 `npm run verify:save-window-entry` 仅作为兼容 alias，当前都应检查 popup entry。
+`npm run verify:popup-entry` 还会检查 legacy 保存入口已经删除，以及 `page-shortcut-content.js` 已打包。
 
 ## Troubleshooting
 

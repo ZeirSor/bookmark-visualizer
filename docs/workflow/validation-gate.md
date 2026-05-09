@@ -15,8 +15,8 @@ Do not mark a task `[x]` until relevant validation passes or a documented except
 | Storage / metadata | `npm run test`, `npm run typecheck`, `npm run build`, storage docs check |
 | Chrome API / manifest | `npm run typecheck`, `npm run build`, manifest / entry verification, affected manual QA |
 | Toolbar popup entry | `npm run typecheck`, `npm run build`, `npm run verify:popup-entry`, popup and shortcut manual QA |
-| Legacy Save Overlay / fallback entry | `npm run typecheck`, `npm run build`, `npm run verify:popup-entry`, affected legacy manual QA |
-| Quick Save content script | `npm run typecheck`, `npm run build`, injection manual QA |
+| Removed legacy save surfaces | `npm run typecheck`, `npm run test`, `npm run build`, `npm run verify:popup-entry`, source / dist absence checks |
+| Page Ctrl+S shortcut bridge | `npm run typecheck`, `npm run test`, `npm run build`, `npm run verify:popup-entry`, shortcut manual QA |
 | New Tab redirect | `npm run typecheck`, `npm run build`, New Tab enable / disable manual QA |
 | Documentation-only | `npm run docs:check`, Markdown links, referenced paths, README links if touched |
 | AI workflow / validation docs | `npm run docs:check`, targeted stale-path `rg` checks, `npm run typecheck` if scripts or package commands changed |
@@ -31,20 +31,14 @@ Do not mark a task `[x]` until relevant validation passes or a documented except
 - Search bookmarks.
 - Check card actions affected by the change.
 
-### Toolbar Popup / Legacy Save Surfaces
+### Toolbar Popup / Page Shortcut
 
 - Open toolbar popup from the extension icon and `_execute_action` shortcut on a normal web page.
 - Open toolbar popup from a restricted page such as `chrome://extensions/`.
 - Confirm Save, Manage, and Settings tabs behave as expected.
 - Check current page title / URL detection if affected.
 - Check save location picker if affected.
-
-### Quick Save
-
-- Trigger the configured extension command.
-- Confirm the expected configured entry opens.
-- Confirm Shadow DOM styles remain isolated.
-- Confirm save location and save action still work if affected.
+- If page Ctrl+S is enabled, confirm ordinary page `Ctrl+S` opens the popup and editable fields are not intercepted.
 
 ### Optional New Tab
 

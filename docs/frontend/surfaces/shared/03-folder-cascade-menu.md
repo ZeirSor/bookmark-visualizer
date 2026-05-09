@@ -8,7 +8,7 @@
 | Legacy 保存位置 | `src/popup/components/save-location/LocationCascadeOverlay.tsx` | 保留的旧级联保存位置 |
 | Popup / Save Overlay 保存位置 | `src/components/folder-picker/InlineFolderPicker.tsx` | 当前主保存路径；不使用横向 floating cascade |
 | Popup 设置默认保存位置 | `src/popup/tabs/settings/DefaultFolderMenu.tsx` | 使用内联 picker 修改 `popupDefaultFolderId` |
-| Quick Save 浏览文件夹 | `src/features/quick-save/QuickSaveDialog.tsx` | 浏览 / 选择保存位置 |
+| Popup 保存位置 | `src/popup/components/SaveLocationPicker.tsx` + `src/components/folder-picker/InlineFolderPicker.tsx` | 浏览 / 搜索 / 选择保存位置 |
 
 ## 主要文件
 

@@ -1,4 +1,4 @@
-# Bookmark Visualizer 架构分层分析说明
+# Bookmark Visualizer 架构分层分析说明（not current implementation）
 
 > 文档性质：分析说明  
 > 适用对象：产品负责人、前端工程师、后端工程师、架构负责人  

@@ -4,6 +4,7 @@ import {
   createQuickSaveBookmark,
   createQuickSaveFolder
 } from "../../features/popup";
+import { setPageCtrlSShortcutEnabled } from "../../features/page-shortcut";
 import { normalizeRecentFolderIds } from "../../features/recent-folders";
 import { saveSettings, type SettingsState } from "../../features/settings";
 import type { PopupStatusTone } from "../components/PopupFooter";
@@ -56,6 +57,16 @@ export function usePopupSaveActions({
   const [, setCreatingFolder] = creatingState;
 
   async function updateSettings(patch: Partial<SettingsState>) {
+    if (Object.prototype.hasOwnProperty.call(patch, "enablePageCtrlSShortcut")) {
+      const enabled = Boolean(patch.enablePageCtrlSShortcut);
+      const updated = await setPageCtrlSShortcutEnabled(enabled);
+
+      if (enabled && !updated) {
+        setPopupStatus("需要授权网页快捷键权限后才能开启 Ctrl+S。", "error");
+        return;
+      }
+    }
+
     const nextSettings = await saveSettings({
       ...settings,
       ...patch

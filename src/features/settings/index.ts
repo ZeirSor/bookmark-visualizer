@@ -11,7 +11,7 @@ export interface SettingsState {
   cardSize: CardSize;
   sidebarWidth: number;
   popupAutoCloseAfterSave: boolean;
-  autoCloseSaveWindowOnBlur: boolean;
+  enablePageCtrlSShortcut: boolean;
   popupShowSuccessToast: boolean;
   popupRememberLastFolder: boolean;
   popupShowThumbnail: boolean;
@@ -34,7 +34,7 @@ export const defaultSettings: SettingsState = {
   cardSize: "medium",
   sidebarWidth: 280,
   popupAutoCloseAfterSave: true,
-  autoCloseSaveWindowOnBlur: false,
+  enablePageCtrlSShortcut: false,
   popupShowSuccessToast: true,
   popupRememberLastFolder: true,
   popupShowThumbnail: true,

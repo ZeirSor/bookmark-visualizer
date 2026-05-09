@@ -68,7 +68,7 @@ SettingsTab 是 Popup 的常用配置入口，包含：
 真实 command 在 `public/manifest.json`：
 
 ```json
-"open-quick-save": {
+"_execute_action": {
   "suggested_key": {
     "default": "Ctrl+Shift+S",
     "mac": "Command+Shift+S"

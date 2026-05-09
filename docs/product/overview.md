@@ -22,11 +22,9 @@ public/manifest.json
 | 页面 / 场景 | 入口 | 代码链路 | 用途 |
 |---|---|---|---|
 | Toolbar Popup | `popup.html` | `src/popup/main.tsx` → `src/popup/PopupApp.tsx` | 当前页保存、进入管理页、修改常用设置 |
-| Legacy Save Overlay | `save-overlay-content.js` | `src/features/save-overlay/content.tsx` → `SaveOverlayApp.tsx` | 保留的内容脚本保存体验，等待 cleanup |
-| Legacy 保存页 | `save.html` | `src/save-window/main.tsx` → `src/save-window/SaveWindowApp.tsx` → `src/popup/PopupApp.tsx` | 保留的保存页入口，等待 cleanup |
 | 完整管理页 | `index.html` | `src/main.tsx` → `src/app/App.tsx` | 书签树浏览、搜索、拖拽整理、批量操作、右侧辅助信息 |
 | New Tab Portal | `newtab.html` | `src/newtab/main.tsx` → `src/newtab/NewTabApp.tsx` | 可选的新标签页搜索与快捷入口 |
-| Legacy Quick Save 浮框 | `quick-save-content.js` | `src/features/quick-save/content.tsx` → `QuickSaveDialog.tsx` | 保留的内容脚本保存浮框能力 |
+| Page Ctrl+S bridge | `page-shortcut-content.js` | `src/features/page-shortcut/content.ts` → `src/background/pageShortcutHandlers.ts` | 可选页面快捷键，只打开同一个 toolbar popup |
 | Service Worker | `service-worker.js` | `src/service-worker.ts` → `src/background/serviceWorker.ts` | 注册命令、消息路由、New Tab 条件重定向 |
 
 ## 使用场景
@@ -43,6 +41,7 @@ public/manifest.json
 - 用户删除或移动书签后，可以在本次会话内通过操作日志撤回部分操作。
 - 用户在设置中开启“绑定新标签页”后，浏览器新标签页会被运行时重定向到 `newtab.html`；默认保持关闭。
 - 用户通过 `Ctrl+Shift+S` / `Command+Shift+S` 扩展命令走同一个 action popup 路由；保留的 Quick Save 内容脚本浮框不再是默认键盘主入口。
+- 用户可在 popup 设置中开启页面内 `Ctrl+S` / `Command+S`，授权后普通网页会打开同一个 toolbar popup；输入框和编辑器不被拦截。
 
 ## 产品边界
 
@@ -54,7 +53,7 @@ Bookmark Visualizer 管理的是浏览器当前 Profile 的原生书签。文件
 
 | key | 说明 |
 |---|---|
-| `bookmarkVisualizerSettings` | 管理页、Popup、legacy 保存入口、New Tab 的 UI 与行为设置 |
+| `bookmarkVisualizerSettings` | 管理页、Popup、Page Ctrl+S bridge、New Tab 的 UI 与行为设置 |
 | `bookmarkVisualizerMetadata` | 书签备注、预览图 URL、page kind、source URL 等扩展元数据 |
 | `bookmarkVisualizerRecentFolders` | 最近保存 / 移动目标文件夹 |
 | `bookmarkVisualizerNewTabState` | New Tab 固定快捷方式、隐藏项、选中分组等状态 |

@@ -63,7 +63,7 @@
 - Arrow Up / Down 在可选项之间移动；Arrow Right 展开当前文件夹；Arrow Left 折叠或移动到父级；Enter 选择；Escape 清空搜索或关闭 picker。
 - 只允许选择 `canCreateBookmarkInFolder(folder)` 的目标。
 - 搜索输入使用 `.folder-search-input`，左右 padding 为图标和清空按钮预留空间，避免 placeholder 与图标重叠。
-- `src/features/save-overlay/components/InlineFolderPicker.tsx` 通过 re-export 复用 shared picker，避免维护两套实现。
+- 旧 overlay re-export 已删除；当前 popup 直接使用 `src/components/folder-picker/InlineFolderPicker.tsx`，避免维护两套实现。
 
 互斥规则：
 

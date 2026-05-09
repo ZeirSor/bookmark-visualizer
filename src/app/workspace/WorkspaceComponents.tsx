@@ -26,9 +26,9 @@ import {
   type BookmarkDropPosition
 } from "../../features/drag-drop";
 import {
-  getQuickSaveShortcutCommandConflicts,
-  type QuickSaveShortcutCommandConflict
-} from "../../features/quick-save";
+  getPageShortcutCommandConflicts,
+  type PageShortcutCommandConflict
+} from "../../features/page-shortcut";
 import type { CardSize } from "../../features/settings";
 import type {
   BookmarkContextMenuState,
@@ -606,7 +606,7 @@ export function NewFolderDialog({
 }
 
 export function ShortcutSettingsDialog({ onClose }: { onClose(): void }) {
-  const [conflicts, setConflicts] = useState<QuickSaveShortcutCommandConflict[]>([]);
+  const [conflicts, setConflicts] = useState<PageShortcutCommandConflict[]>([]);
   const [loading, setLoading] = useState(true);
   const [status, setStatus] = useState("");
 
@@ -616,7 +616,7 @@ export function ShortcutSettingsDialog({ onClose }: { onClose(): void }) {
     async function load() {
       setLoading(true);
       try {
-        const nextConflicts = await getQuickSaveShortcutCommandConflicts();
+        const nextConflicts = await getPageShortcutCommandConflicts();
 
         if (!cancelled) {
           setConflicts(nextConflicts);
@@ -671,29 +671,29 @@ export function ShortcutSettingsDialog({ onClose }: { onClose(): void }) {
         </div>
         <div className="shortcut-settings-body">
           <p>
-            当前主入口是页面内 Save Overlay：在普通网页点击 Bookmark Visualizer 图标或按 Ctrl +
-            Shift + S 后，可在“保存”Tab 保存当前网页；受限页面会打开 fallback 保存标签页。
+            当前主入口是 toolbar popup：点击 Bookmark Visualizer 图标或按 Ctrl +
+            Shift + S 后，可在“保存”Tab 保存当前网页。
           </p>
           <p>
-            Ctrl + S 快捷键路线已暂停，不再默认注入全局网页 listener，也不再请求 http/https
-            全局站点权限。Ctrl + Shift + S 仍保留为扩展命令入口，并复用 Save Overlay / fallback 路由。
+            页面内 Ctrl + S 是可选能力，默认关闭。开启后只注册轻量 listener 打开同一个 popup，
+            不渲染页面浮层，也不会在输入框、文本编辑器中拦截。
           </p>
           <div className="shortcut-site-access">
-            <span className="shortcut-site-label">Save Overlay</span>
+            <span className="shortcut-site-label">Toolbar popup</span>
             {loading ? (
               <strong>正在读取...</strong>
             ) : (
               <>
                 <strong>已启用</strong>
-                <span>通过 extension action / command 打开，不依赖站点 content script。</span>
+                <span>通过 extension action / command 打开；页面内 Ctrl + S 由 popup 设置控制。</span>
               </>
             )}
           </div>
           {conflicts.length > 0 ? (
             <div className="shortcut-conflict-warning" role="status">
               Chrome 快捷键页里已有 Ctrl + S 绑定：
-              {conflicts.map((conflict) => conflict.label).join("、")}。当前版本不依赖 Ctrl + S，
-              如测试 Save Overlay 可先清除该绑定，避免误判入口行为。
+              {conflicts.map((conflict) => conflict.label).join("、")}。如需测试页面内 Ctrl + S，
+              请先确认浏览器快捷键优先级没有抢占该组合。
             </div>
           ) : null}
           {status ? <div className="shortcut-status">{status}</div> : null}

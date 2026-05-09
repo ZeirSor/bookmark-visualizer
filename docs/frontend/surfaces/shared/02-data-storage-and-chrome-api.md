@@ -33,7 +33,7 @@
 | 分组 | 字段 |
 |---|---|
 | 管理页 | `showBookmarksInTree`、`theme`、`cardDensity`、`cardSize`、`sidebarWidth` |
-| Toolbar Popup / legacy 保存行为 | `popupAutoCloseAfterSave`、`autoCloseSaveWindowOnBlur`、`popupShowSuccessToast`、`popupRememberLastFolder`、`popupShowThumbnail` |
+| Toolbar Popup / page shortcut 保存行为 | `popupAutoCloseAfterSave`、`enablePageCtrlSShortcut`、`popupShowSuccessToast`、`popupRememberLastFolder`、`popupShowThumbnail` |
 | Toolbar Popup / legacy 偏好 | `popupDefaultOpenTab`、`popupThemeMode`、`popupDefaultFolderId` |
 | New Tab | `newTabOverrideEnabled`、`newTabDefaultSearchEngineId`、`newTabDefaultSearchCategory`、`newTabLayoutMode`、`newTabShowRecentActivity`、`newTabShowStorageUsage`、`newTabShortcutsPerRow` |
 

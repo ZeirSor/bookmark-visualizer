@@ -19,7 +19,7 @@
 - 当前已覆盖 New Tab 设置默认值 / normalize、New Tab state、搜索 URL 构建、混合搜索建议和运行时 New Tab 重定向。
 - 当前已覆盖快捷保存页面标题和图片提取优先级。
 - 当前已覆盖快捷保存最近使用文件夹状态和默认目标选择。
-- 当前 `npm run verify:popup-entry` 用于检查 toolbar popup 入口、`_execute_action` command、service worker message router 和打包产物。`npm run verify:quick-save-shortcut` / `npm run verify:save-window-entry` 保留为兼容 alias。
+- 当前 `npm run verify:popup-entry` 用于检查 toolbar popup 入口、`_execute_action` command、page shortcut bridge、service worker message router、旧保存入口缺失断言和打包产物。
 - 摘要搜索、最近使用时间排序、更多过滤器、元数据导入导出和迁移仍需后续测试。
 
 ## 组件测试
@@ -88,17 +88,13 @@
 - Popup 显示完整保存路径，保存按钮显示目标文件夹名称。
 - Popup 的“管理”Tab 入口可打开 `index.html`。
 - 在普通网页按 `Ctrl + Shift + S` 后打开同一个 action popup；需在扩展快捷键设置页确认该命令最终分配。
-- 当前不验收全局 `Ctrl + S` listener；manifest 不应声明全局 `host_permissions` 或默认 `content_scripts`。
-- 保留快捷保存浮框不显示固定快捷键文案。
-- 保留快捷保存浮框可搜索文件夹、浏览文件夹、选择最近使用文件夹、填写备注并保存。
-- 保留快捷保存浏览面板支持单击选中、双击进入、路径点击跳转和悬浮级联展开。
-- 保留快捷保存文件夹菜单可在当前层级内联新建文件夹，新建后直接选为保存位置。
-- 快捷保存和右键移动级联菜单在右侧 / 底部空间不足时自动向左 / 向上展开。
-- 快捷保存长文件夹菜单滚轮优先滚动菜单区域，不滚动底层页面。
-- 快捷保存浮框关闭后，在同一页面再次按快捷键能重新打开。
+- 页面内 `Ctrl + S` 默认关闭；关闭时普通网页不应被拦截。
+- 开启页面内 `Ctrl + S` 后，普通网页按 `Ctrl + S` / `Command + S` 打开同一个 toolbar popup。
+- 输入框、textarea、select 和 contenteditable 内按 `Ctrl + S` 不应被拦截。
+- 页面快捷键 bridge 不应创建 `#bookmark-visualizer-save-overlay` 或 `#bookmark-visualizer-quick-save` host。
 - 保存成功后浏览器原生书签树出现新书签，备注和预览图片 URL 写入插件元数据。
 - 工作台“快捷键”入口能打开浏览器扩展快捷键设置页。
-- 在不可注入页面触发快捷保存时显示可理解提示。
+- 在不可注入页面保存时，popup 保存 URL 引用且不执行 metadata 注入。
 - 删除文件夹、摘要抓取和元数据导入导出属于后续验收项。
 
 ## 验收边界

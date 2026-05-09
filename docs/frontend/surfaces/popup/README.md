@@ -2,7 +2,7 @@
 
 ## 页面定位
 
-`popup.html` 当前是工具栏主保存入口。点击扩展图标或触发 `_execute_action` 快捷键会打开同一个 toolbar popup，默认进入 Save Tab，并保留 Manage / Settings。`save.html` 和 Save Overlay 代码作为 legacy / cleanup 对象暂时保留。Popup 不是完整管理页，不能塞入复杂书签整理功能。
+`popup.html` 当前是工具栏主保存入口。点击扩展图标或触发 `_execute_action` 快捷键会打开同一个 toolbar popup，默认进入 Save Tab，并保留 Manage / Settings。Popup 不是完整管理页，不能塞入复杂书签整理功能。
 
 ## 入口链路
 
@@ -17,14 +17,10 @@ popup.html
     → import src/popup/styles.css
     → render <PopupApp />
 
-legacy save.html
-  → src/save-window/main.tsx
-    → import src/styles/tokens.css
-    → import src/popup/styles.css
-    → import src/save-window/styles.css
-    → render <SaveWindowApp />
-      → <PopupApp variant="save-window" bootstrapOptions={sourceParams} />
-
+optional page Ctrl+S
+  → src/features/page-shortcut/content.ts
+  → src/background/pageShortcutHandlers.ts
+  → chrome.action.openPopup()
 ```
 
 ## 主要文件
@@ -32,7 +28,6 @@ legacy save.html
 | 责任 | 文件 |
 |---|---|
 | Popup 入口 | `src/popup/main.tsx`、`popup.html` |
-| Legacy 保存页入口 | `src/save-window/*`、`save.html` |
 | Popup 总控、tab 条件渲染、派生 view data | `src/popup/PopupApp.tsx` |
 | Popup 初始状态 / 保存表单 / actions hooks | `src/popup/hooks/*` |
 | 保存 Tab | `src/popup/tabs/SaveTab.tsx` |
@@ -47,8 +42,9 @@ legacy save.html
 | Popup 图标 | `src/popup/components/PopupIcons.tsx` |
 | source tab / Popup feature | `src/features/popup/*` |
 | Quick Save 业务复用 | `src/features/quick-save/*` |
+| Page Ctrl+S bridge | `src/features/page-shortcut/*`、`src/background/pageShortcutHandlers.ts` |
 | Settings | `src/features/settings/*` |
-| 样式 | `src/popup/styles.css`、`src/save-window/styles.css`、`src/styles/tokens.css` |
+| 样式 | `src/popup/styles.css`、`src/styles/tokens.css` |
 
 ## Popup 组件树
 
@@ -76,7 +72,7 @@ legacy save.html
 
 | 状态 | 文件 | 用途 |
 |---|---|---|
-| `activeTab` / `settings` / `pageDetails` / `tree` / `recentFolderIds` / `selectedFolderId` / `title` / footer status | `usePopupBootstrap.ts` | 初始加载和主状态；legacy 保存页可传入 source tab params |
+| `activeTab` / `settings` / `pageDetails` / `tree` / `recentFolderIds` / `selectedFolderId` / `title` / footer status | `usePopupBootstrap.ts` | 初始加载和主状态 |
 | `note` / `query` / `saving` / `creatingFolder` / `createOpen` / `folderName` / `createParentFolderId` / `previewFailed` | `usePopupSaveState.ts` | 保存表单瞬时状态 |
 | `save()` / `createFolder()` / `updateSettings()` / `updateDefaultFolder()` | `usePopupSaveActions.ts` | 保存、新建和设置写入副作用 |
 
@@ -84,8 +80,7 @@ legacy save.html
 
 - `src/styles/tokens.css` 提供 `--popup-width: 800px`、`--popup-height: 600px` 和 popup radius / shadow token。
 - `src/popup/styles.css` 让 `body` 保持透明外框，内部 `.popup-shell` 使用圆角、边框和阴影。
-- `src/save-window/styles.css` 只覆盖 legacy `save.html` 入口；不影响 toolbar popup 尺寸。
-- `PopupApp` 仍支持 `variant="save-window"`，但 toolbar 主路径使用默认 `variant="popup"`。
+- `PopupApp` 只渲染 toolbar popup shell，不再保留 save-window variant。
 
 ## 当前已实现能力
 
@@ -96,6 +91,7 @@ legacy save.html
 - 选择保存位置：路径行、内联 folder picker、搜索、键盘树导航、新建文件夹、最近位置。
 - 管理 Tab：dashboard 入口、搜索入口、最近保存、最近使用文件夹、可用快捷操作。
 - 设置 Tab：New Tab 绑定、搜索引擎、搜索类型、布局模式、快捷键说明、默认保存位置、保存行为、界面偏好；主表单使用 `CustomSelect`，不使用原生 `<select>` 外观。
+- 设置 Tab 可开启页面内 Ctrl+S；开启时请求 optional host permissions，授权后动态注册轻量 listener。
 - 保存后可自动关闭 popup。
 
 ## 当前边界
@@ -105,4 +101,4 @@ legacy save.html
 - 保存位置路径文本只展示，真正打开级联菜单的是箭头按钮。
 - Settings 中默认保存位置使用同一个内联 folder picker，不使用横向 floating cascade。
 - Popup 主题设置存在并会持久化为 `popupThemeMode`，但当前尚未完整作用到 CSS dark mode。
-- `autoCloseSaveWindowOnBlur` 只属于 legacy save-window 设置，不在当前 toolbar popup 设置页展示。
+- 页面内 Ctrl+S bridge 不渲染 UI，不读取页面内容，只打开同一个 toolbar popup。

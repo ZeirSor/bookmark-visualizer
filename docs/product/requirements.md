@@ -4,20 +4,21 @@
 
 第一版构建一个 Chrome / Edge 工具栏入口扩展，用于可视化、搜索和管理浏览器原生书签。
 
-截至 2026-05-09，当前代码已经完成内容脚本 Save Overlay 主入口、`save.html` 受限页 fallback、完整管理页三栏工作台、New Tab 可选入口、保留的 Quick Save message 协议、书签树浏览、书签卡片、标题 / URL 搜索、拖拽移动与重排、书签新建 / 编辑 / 移动 / 删除、文件夹新建 / 重命名 / 移动、最近文件夹、备注编辑、主题与卡片尺寸设置、侧栏宽度设置和会话内操作日志。下面的需求同时保留产品目标和当前实现差异。
+截至 2026-05-09，当前代码已经完成 toolbar popup 主保存入口、可选页面内 Ctrl+S bridge、完整管理页三栏工作台、New Tab 可选入口、保留的 Quick Save message 协议、书签树浏览、书签卡片、标题 / URL 搜索、拖拽移动与重排、书签新建 / 编辑 / 移动 / 删除、文件夹新建 / 重命名 / 移动、最近文件夹、备注编辑、主题与卡片尺寸设置、侧栏宽度设置和会话内操作日志。下面的需求同时保留产品目标和当前实现差异。
 
 ## 功能需求
 
 ### 扩展入口
 
 - 工具栏图标是当前主保存入口；点击后打开 `popup.html`，默认进入保存当前页面的 Save Tab。
-- `chrome://` / `edge://` / 扩展页 / 文件 URL / 注入失败等场景打开普通扩展标签页形式的 `save.html` fallback，仍允许保存该 URL。
+- `chrome://` / `edge://` / 扩展页 / 文件 URL 等场景仍从 toolbar popup 保存 URL 引用，但不执行页面 metadata 注入。
 - Save Overlay 顶部包含“保存 / 管理 / 设置”三个 Tab；默认打开 Tab 由 `settings.popupDefaultOpenTab` 控制。
 - 完整管理页 `index.html` 通过 Save Overlay、保存 fallback、设置入口或其他深链接打开，不是工具栏图标的直接默认页面。
 - 扩展默认不接管浏览器默认新标签页。
 - 用户可以在设置中开启“绑定新标签页”，开启后浏览器新标签页会由 service worker 条件重定向到 `newtab.html`；关闭后保留浏览器默认新标签页。
 - New Tab Portal 是搜索、常用网站启动和轻量书签分组页，不是完整管理页缩小版。
-- Quick Save 键盘入口保留为扩展命令 `open-quick-save`：默认 `Ctrl+Shift+S` / macOS `Command+Shift+S`，普通网页打开 Save Overlay，受限页面走 `save.html` fallback。当前不默认注册全站 `Ctrl+S` content script listener。
+- 默认键盘入口为扩展命令 `_execute_action`：默认 `Ctrl+Shift+S` / macOS `Command+Shift+S`，打开同一个 toolbar popup。
+- 页面内 `Ctrl+S` / `Command+S` 是可选设置，默认关闭；开启后通过 optional host permissions 动态注册轻量 listener，只打开 toolbar popup。
 
 ### 左侧文件夹树
 
@@ -89,7 +90,7 @@
 - Save Overlay 表单自动填充当前 URL、标题和候选预览图片，允许用户编辑标题、复制只读 URL、填写备注并选择保存文件夹。
 - Save Overlay 顶部保留“保存 / 管理 / 设置”三个 Tab；管理 Tab 提供完整管理页入口、最近保存和最近使用文件夹，设置 Tab 提供快捷键说明、默认保存位置、保存行为和界面偏好等常用设置。
 - Save Overlay 保存位置区支持完整路径确认、内联展开文件夹树、按名称或路径搜索、最近使用文件夹、管理位置入口和当前选中位置新建文件夹；不再使用浮动横向级联菜单作为主保存位置选择器。
-- `save.html` fallback 复用保存页 UI 处理受限页面，不作为普通网页的主保存入口。
+- 独立保存页和内容脚本保存浮框已删除；受限页面保存由 toolbar popup 自身处理。
 - 快捷保存的备注和预览图片 URL 保存到插件元数据；书签本体仍写入浏览器原生书签树。
 - `Ctrl + S` 快捷键保存路线暂停；第一阶段不默认注入全局网页 listener，也不请求全部 http/https 站点权限。
 - 默认 `Ctrl + Shift + S` / macOS `Command + Shift + S` 扩展命令仍保留为低权限快捷保存入口；Save Overlay 是普通网页当前主路径。

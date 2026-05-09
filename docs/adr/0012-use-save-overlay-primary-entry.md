@@ -1,10 +1,10 @@
-# ADR 0012: 使用内容脚本 Save Overlay 作为主保存入口
+# ADR 0012: 使用内容脚本 Save Overlay 作为主保存入口（not current implementation）
 
 ## 状态
 
-已被 ADR 0013 取代
+已被 ADR 0013 和 ADR 0014 取代
 
-2026-05-09 起，工具栏主保存入口恢复为 `action.default_popup = "popup.html"`。本 ADR 描述的 Save Overlay 主入口不再是当前架构事实；相关代码暂时保留，等待后续 cleanup run 删除或降级。
+2026-05-09 起，工具栏主保存入口恢复为 `action.default_popup = "popup.html"`。ADR 0014 已删除本 ADR 描述的 Save Overlay、fallback 保存页和 legacy content dialog 代码；本文仅保留历史决策背景。
 
 ## 背景
 

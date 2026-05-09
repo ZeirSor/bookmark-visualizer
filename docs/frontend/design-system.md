@@ -16,14 +16,14 @@ Sources:
 
 1. Base tokens：`--bv-color-*`、`--bv-radius-*`、`--bv-shadow-*`、`--bv-font-*`，存放稳定基础值。
 2. Semantic tokens：表达用途，例如 text、surface、line、accent、success、danger。
-3. Surface aliases：`--nt-*`、`--popup-*`、`--save-*`、`--app-*`，只做页面适配，不再独立维护随机色值。
+3. Surface aliases：`--nt-*`、`--popup-*`、`--app-*`，只做页面适配，不再独立维护随机色值。
 
 代码入口：
 
 - `src/styles/tokens.css` 是跨页面 token 来源。
 - New Tab 必须引入 `src/styles/tokens.css`。
 - Popup 必须引入 `src/styles/tokens.css`，再在 `src/popup/styles.css` 内做 popup 局部布局。
-- 独立保存窗口必须引入 `src/styles/tokens.css`、`src/popup/styles.css` 和 `src/save-window/styles.css`；保存窗口视觉应使用 `--save-*` alias 覆盖，不直接复用 popup 尺寸和圆角。
+- Toolbar popup 必须引入 `src/styles/tokens.css` 和 `src/popup/styles.css`；页面内 Ctrl+S bridge 不渲染 UI，因此不应新增 surface CSS。
 - 管理页后续治理时同样映射到 `--app-*`。
 
 ## Visual Anchor

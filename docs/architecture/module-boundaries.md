@@ -142,38 +142,15 @@
 
 未来如果实现摘要抓取，必须新增明确的权限策略、提取链路和 UI 状态文档，不能把预留字段直接写成已上线能力。
 
-## save-overlay
+## toolbar popup
 
-保留的 legacy 内容脚本保存体验。当前 toolbar 主路径已经恢复为 `popup.html`，本模块等待后续 cleanup run 决定删除或降级。
-
-职责：
-
-- 通过 legacy `src/background/saveExperienceHandlers.ts` 在普通 `http` / `https` 页面注入 `save-overlay-content.js`；当前 service worker 不注册该入口。
-- 在 `src/features/save-overlay/content.tsx` 中创建 Shadow DOM host，注入隔离样式并防止重复 overlay 堆叠。
-- 直接从当前页面读取 URL、标题和候选预览图，不读取正文。
-- 展示标题、只读 URL、备注、预览图和保存位置区域。
-- 提供“保存 / 管理 / 设置”三个 Tab；默认 Tab 由 `settings.popupDefaultOpenTab` 控制。
-- 保存位置使用 `FolderPathSelector` + `InlineFolderPicker`，支持内联文件夹树、搜索、最近文件夹和在当前选中位置新建文件夹。
-- 通过 runtime message 请求 background 打开完整管理页或快捷键设置页。
-- 将保存和新建文件夹请求发给 service worker，复用 quick-save 的原生书签创建、metadata 写入和最近文件夹状态。
-
-不负责：
-
-- 常驻网页监听快捷键。
-- 作为当前 toolbar 主保存体验。
-- 处理 `chrome://` / `edge://` / 扩展页 / `file://` 等当前 popup 保存路径。
-- 替代完整工作台的拖拽整理、批量查看和复杂管理功能。
-
-## toolbar popup / save-window legacy
-
-负责当前 toolbar popup 保存体验，并保留 `save.html` legacy 页面共享 UI。
+负责当前 toolbar popup 保存体验。
 
 职责：
 
 - 通过 `popup.html` / `src/popup/*` 渲染“保存 / 管理 / 设置”三个 Tab；manifest 主入口声明 `action.default_popup = "popup.html"`。
 - 默认快捷键通过 `_execute_action` 打开同一个 action popup。
 - Popup 使用当前活动 tab，并在普通网页中按需执行页面 metadata 提取。
-- `save.html` / `src/save-window/*` 仅保留 legacy 入口，复用 `src/popup/PopupApp.tsx`。
 - 允许 `chrome://` / `edge://` 等浏览器内部页面保存为书签，但不对这些页面注入脚本。
 - 展示标题、只读 URL、备注、预览图和保存位置区域。
 - 支持内联 folder picker、文件夹搜索、键盘树导航、最近使用文件夹展开、当前层级新建文件夹和打开完整工作台入口。
@@ -181,23 +158,34 @@
 
 不负责：
 
-- 注入 Save Overlay 或打开 `save.html` fallback 作为 toolbar 主保存体验。
 - 常驻网页监听快捷键。
 - 替代完整工作台的拖拽整理、批量查看和复杂管理功能。
 
-## quick-save
+## page-shortcut
 
-负责保留的 legacy 内容脚本浮框和共享保存消息协议。
+负责可选的页面内 Ctrl+S bridge。
 
 职责：
 
-- 保留 `quick-save-content.js` / `QuickSaveDialog.tsx` 作为 legacy 内容脚本浮框能力。
-- 提供 Quick Save message types，供 Save Overlay、`save.html` fallback、Popup fallback 和 legacy Quick Save 复用。
-- 在 content script 中读取当前页面 URL、标题和候选预览图片。
-- Legacy Quick Save 展示居中的 Shadow DOM 保存浮框，避免网页样式污染。
-- 展示可滚动、可定位的多级保存文件夹菜单。
-- 展示完整保存路径、文件夹搜索、最近使用文件夹和浏览文件夹面板。
-- 将浮框内新建文件夹请求发回 service worker，由 bookmarks 模块创建真实文件夹。
+- `src/features/page-shortcut/content.ts` 只监听普通网页中的 `Ctrl+S` / `Command+S`，忽略输入框、textarea、select 和 contenteditable。
+- `src/background/pageShortcutHandlers.ts` 在用户开启设置并授予 optional host permissions 后动态注册 `page-shortcut-content.js`。
+- content script 只发送 runtime message，请求 background 调用 `chrome.action.openPopup()`。
+- Settings 中的 `enablePageCtrlSShortcut` 默认 `false`，关闭时注销动态 content script。
+
+不负责：
+
+- 渲染任何页面 overlay。
+- 读取页面 DOM metadata。
+- 创建书签或写入 metadata。
+
+## quick-save
+
+负责共享保存消息协议和保存相关业务 helper。
+
+职责：
+
+- 提供 Quick Save message types，供 Popup SaveTab 与 background 保存 handler 复用。
+- 将 Popup 内新建文件夹请求发回 service worker，由 bookmarks 模块创建真实文件夹。
 - 将保存请求发回 service worker，由 bookmarks 模块创建真实书签。
 - 将备注和预览图片 URL 写入 metadata。
 - 将最近使用文件夹 id 写入共享 recent-folders 状态：`src/features/recent-folders/recentFolders.ts` → `bookmarkVisualizerRecentFolders`。
@@ -207,6 +195,7 @@
 
 - 将 Chrome Keyboard Shortcuts 中的 `Ctrl + S` 分配作为稳定入口。
 - 默认注入全局 `Ctrl + S` 网页 listener。
+- 维护 legacy Shadow DOM 保存浮框。
 - 下载或转存网页图片。
 - 维护独立书签结构。
 
@@ -220,8 +209,8 @@
 - `theme`：管理页主题。
 - `cardSize`：管理页卡片尺寸。
 - `sidebarWidth`：管理页侧栏宽度。
-- Popup / legacy Save Overlay / 保存页保存行为：自动关闭、成功提示、记住保存位置、显示缩略图。
-- Popup / legacy Save Overlay / 保存页偏好：默认打开 Tab、Popup 主题模式、默认保存文件夹。
+- Popup 保存行为：自动关闭、成功提示、记住保存位置、显示缩略图。
+- Popup 偏好：默认打开 Tab、Popup 主题模式、默认保存文件夹、页面内 Ctrl+S 可选开关。
 - New Tab 绑定开关、默认搜索引擎、默认搜索类型、布局模式、最近活动显示、存储信息显示、每行快捷方式数量。
 
 当前边界说明：

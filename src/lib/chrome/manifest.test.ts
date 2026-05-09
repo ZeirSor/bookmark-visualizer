@@ -54,7 +54,7 @@ describe("extension manifest", () => {
       type: "module"
     });
     expect(existsSync(resolve(root, "src/service-worker.ts"))).toBe(true);
-    expect(existsSync(resolve(root, "save.html"))).toBe(true);
+    expect(existsSync(resolve(root, ["save", "html"].join(".")))).toBe(false);
     expect(existsSync(resolve(root, "popup.html"))).toBe(true);
   });
 
@@ -71,7 +71,7 @@ describe("extension manifest", () => {
     ]);
     expect(manifest.permissions).toContain("favicon");
     expect(manifest.permissions).toContain("tabs");
-    expect(manifest.optional_host_permissions).toBeUndefined();
+    expect(manifest.optional_host_permissions).toEqual(["http://*/*", "https://*/*"]);
     expect(manifest.host_permissions).toBeUndefined();
     expect(manifest.content_scripts).toBeUndefined();
   });

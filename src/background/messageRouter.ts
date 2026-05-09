@@ -1,13 +1,13 @@
 import { handleQuickSaveMessage } from "./quickSaveHandlers";
 import {
-  handleSaveExperienceMessage,
-  isSaveExperienceRequest
-} from "./saveExperienceHandlers";
+  handlePageShortcutMessage,
+  isPageShortcutRequest
+} from "./pageShortcutHandlers";
 
 export function registerMessageRouter(): void {
-  chrome.runtime.onMessage.addListener((message: unknown, _sender, sendResponse) => {
-    const handler = isSaveExperienceRequest(message)
-      ? handleSaveExperienceMessage(message)
+  chrome.runtime.onMessage.addListener((message: unknown, sender, sendResponse) => {
+    const handler = isPageShortcutRequest(message)
+      ? handlePageShortcutMessage(message, sender)
       : handleQuickSaveMessage(message);
 
     void handler

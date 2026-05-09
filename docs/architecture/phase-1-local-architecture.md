@@ -1,4 +1,4 @@
-# 第一阶段本地架构收口
+# 第一阶段本地架构收口（not current implementation）
 
 ## 目标
 

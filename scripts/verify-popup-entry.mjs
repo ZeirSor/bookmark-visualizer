@@ -7,14 +7,24 @@ const publicManifestPath = resolve(root, "public/manifest.json");
 const serviceWorkerPath = resolve(root, "src/background/serviceWorker.ts");
 const messageRouterPath = resolve(root, "src/background/messageRouter.ts");
 const quickSaveHandlersPath = resolve(root, "src/background/quickSaveHandlers.ts");
+const pageShortcutHandlersPath = resolve(root, "src/background/pageShortcutHandlers.ts");
 const popupClientPath = resolve(root, "src/features/popup/popupClient.ts");
 const viteConfigPath = resolve(root, "vite.config.ts");
 const distManifestPath = resolve(root, "dist/manifest.json");
 const distServiceWorkerPath = resolve(root, "dist/service-worker.js");
 const distPopupPath = resolve(root, "dist/popup.html");
+const distPageShortcutPath = resolve(root, "dist/page-shortcut-content.js");
 
 const errors = [];
 const notes = [];
+const legacyCommandName = ["open", "quick", "save"].join("-");
+const legacySaveHtml = ["save", "html"].join(".");
+const legacyWindowDir = ["save", "window"].join("-");
+const legacyOverlayDir = ["save", "overlay"].join("-");
+const legacyQuickSaveContent = ["quick", "save", "content.js"].join("-");
+const legacyOverlayBundle = ["save", "overlay", "content.js"].join("-");
+const legacySaveExperience = ["save", "Experience"].join("");
+const legacyVerifyWindow = ["verify", "save", "window", "entry.mjs"].join("-");
 
 function readJson(path) {
   return JSON.parse(readFileSync(path, "utf8"));
@@ -34,7 +44,7 @@ function checkManifest(path, label) {
   const manifest = readJson(path);
   const commandNames = Object.keys(manifest.commands ?? {});
   const actionCommand = manifest.commands?._execute_action;
-  const legacyCommand = manifest.commands?.["open-quick-save"];
+  const legacyCommand = manifest.commands?.[legacyCommandName];
 
   assert(
     manifest.action?.default_popup === "popup.html",
@@ -59,10 +69,15 @@ function checkManifest(path, label) {
   );
   assert(
     !legacyCommand?.suggested_key,
-    `${label}: commands.open-quick-save must not keep a suggested_key`
+    `${label}: legacy quick-save command must not keep a suggested_key`
   );
   assert(!manifest.host_permissions, `${label}: must not add broad host_permissions`);
   assert(!manifest.content_scripts, `${label}: must not add global content_scripts`);
+  assert(
+    JSON.stringify(manifest.optional_host_permissions ?? []) ===
+      JSON.stringify(["http://*/*", "https://*/*"]),
+    `${label}: optional_host_permissions must be limited to http/https page shortcut access`
+  );
 }
 
 checkManifest(publicManifestPath, "public manifest");
@@ -74,7 +89,11 @@ assert(
 );
 assert(
   !serviceWorker.includes("registerCommandHandlers"),
-  "service worker: must not register legacy open-quick-save command handlers"
+  "service worker: must not register legacy quick-save command handlers"
+);
+assert(
+  serviceWorker.includes("registerPageShortcutHandlers()"),
+  "service worker: must register page shortcut lifecycle handlers"
 );
 assert(
   serviceWorker.includes("registerMessageRouter()"),
@@ -87,6 +106,7 @@ assert(
 
 const messageRouter = readText(messageRouterPath);
 const quickSaveHandlers = readText(quickSaveHandlersPath);
+const pageShortcutHandlers = readText(pageShortcutHandlersPath);
 const popupClient = readText(popupClientPath);
 for (const messageType of [
   "QUICK_SAVE_GET_INITIAL_STATE",
@@ -100,18 +120,60 @@ assert(
   messageRouter.includes("handleQuickSaveMessage"),
   "message router: must still route popup quick-save messages"
 );
+assert(
+  messageRouter.includes("handlePageShortcutMessage"),
+  "message router: must route page Ctrl+S shortcut messages"
+);
+assert(
+  pageShortcutHandlers.includes("chrome.action.openPopup"),
+  "page shortcut handler: must open the toolbar popup"
+);
 
 const viteConfig = readText(viteConfigPath);
 assert(viteConfig.includes("popup.html"), "vite config: popup.html must remain a build input");
+assert(!viteConfig.includes(legacySaveHtml), "vite config: legacy save page must not remain a build input");
+assert(
+  !viteConfig.includes(legacyQuickSaveContent),
+  "vite config: legacy quick-save content bundle must be removed"
+);
+assert(
+  !viteConfig.includes(legacyOverlayBundle),
+  "vite config: legacy save overlay content bundle must be removed"
+);
+assert(
+  viteConfig.includes("page-shortcut-content.js"),
+  "vite config: page shortcut content bundle must be built"
+);
 assert(
   viteConfig.includes("src/service-worker.ts"),
   "vite config: service worker must remain a build input"
 );
 
+for (const legacyPath of [
+  legacySaveHtml,
+  `src/${legacyWindowDir}`,
+  `src/features/${legacyOverlayDir}`,
+  `src/background/${legacySaveExperience}Handlers.ts`,
+  "src/background/save" + "Window.ts",
+  `scripts/${legacyVerifyWindow}`
+]) {
+  assert(!existsSync(resolve(root, legacyPath)), `source: ${legacyPath} must be removed`);
+}
+
 if (existsSync(distManifestPath) || existsSync(distPopupPath) || existsSync(distServiceWorkerPath)) {
   assert(existsSync(distManifestPath), "dist: manifest.json is missing");
   assert(existsSync(distPopupPath), "dist: popup.html is missing");
   assert(existsSync(distServiceWorkerPath), "dist: service-worker.js is missing");
+  assert(existsSync(distPageShortcutPath), "dist: page-shortcut-content.js is missing");
+  assert(!existsSync(resolve(root, "dist", legacySaveHtml)), "dist: legacy save page must not exist");
+  assert(
+    !existsSync(resolve(root, "dist", legacyOverlayBundle)),
+    "dist: legacy save overlay bundle must not exist"
+  );
+  assert(
+    !existsSync(resolve(root, "dist", legacyQuickSaveContent)),
+    "dist: legacy quick-save bundle must not exist"
+  );
 
   if (existsSync(distManifestPath)) {
     checkManifest(distManifestPath, "dist manifest");
@@ -120,12 +182,12 @@ if (existsSync(distManifestPath) || existsSync(distPopupPath) || existsSync(dist
   if (existsSync(distServiceWorkerPath)) {
     const distServiceWorker = readText(distServiceWorkerPath);
     assert(
-      !distServiceWorker.includes("open-quick-save"),
-      "dist: service worker should not contain the legacy open-quick-save command path"
+      !distServiceWorker.includes(legacyCommandName),
+      "dist: service worker should not contain the legacy quick-save command path"
     );
     assert(
       !distServiceWorker.includes("chrome.action.onClicked"),
-      "dist: service worker should not register toolbar click save-overlay handlers"
+      "dist: service worker should not register toolbar click legacy save handlers"
     );
   }
 } else {

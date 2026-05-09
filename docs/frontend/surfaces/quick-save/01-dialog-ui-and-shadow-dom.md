@@ -1,4 +1,4 @@
-# Legacy Quick Save Dialog UI 与 Shadow DOM 细节
+# Legacy Quick Save Dialog UI 与 Shadow DOM 细节（not current implementation）
 
 本文档记录保留的 legacy Quick Save 内容脚本浮框。当前普通网页主保存体验已经迁移到 `src/features/save-overlay/` 的 Save Overlay；本页仅在维护旧 `quick-save-content.js` 或复用历史浮框能力时使用。
 

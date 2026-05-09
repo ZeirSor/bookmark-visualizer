@@ -28,11 +28,12 @@ Optional New Tab Portal
   → newtab.html
   → Search / Shortcuts / Bookmark Groups
 
-Legacy Save Overlay / Quick Save Content Dialog
-  → save-overlay-content.js / quick-save-content.js
-  → preserved legacy content-script UI
-  → runtime message
-  → quickSaveHandlers
+Optional Page Ctrl+S Shortcut
+  → settings.enablePageCtrlSShortcut
+  → optional_host_permissions http/https
+  → src/background/pageShortcutHandlers.ts
+  → dynamic content script page-shortcut-content.js
+  → chrome.action.openPopup()
 ```
 
 ## Manifest V3
@@ -53,7 +54,7 @@ Legacy Save Overlay / Quick Save Content Dialog
 - 全局 `host_permissions`
 - 默认 `content_scripts`
 
-因此扩展不会静态接管浏览器默认新标签页，也不会在所有网页常驻脚本。
+当前扩展声明 `optional_host_permissions = ["http://*/*", "https://*/*"]`，只在用户开启“页面内 Ctrl+S 保存”时用于动态注册轻量 content script。因此扩展不会静态接管浏览器默认新标签页，也不会默认在所有网页常驻脚本。
 
 ## 页面入口
 
@@ -61,10 +62,8 @@ Legacy Save Overlay / Quick Save Content Dialog
 |---|---|---|---|
 | 管理页 | `index.html` | `src/main.tsx` → `src/app/App.tsx` | `src/styles/tokens.css` + `src/app/styles.css` |
 | Toolbar Popup | `popup.html` | `src/popup/main.tsx` → `src/popup/PopupApp.tsx` | `src/styles/tokens.css` + `src/popup/styles.css` |
-| Legacy Save Overlay | `save-overlay-content.js` | `src/features/save-overlay/content.tsx` → `SaveOverlayApp.tsx` | Shadow DOM style injection from tokens / popup / save-window CSS plus overlay overrides |
-| Legacy 保存页 | `save.html` | `src/save-window/main.tsx` → `src/save-window/SaveWindowApp.tsx` → `src/popup/PopupApp.tsx` | `src/styles/tokens.css` + `src/popup/styles.css` + `src/save-window/styles.css` |
 | New Tab | `newtab.html` | `src/newtab/main.tsx` → `src/newtab/NewTabApp.tsx` | `src/styles/tokens.css` + `src/newtab/styles.css` |
-| Legacy Quick Save | `quick-save-content.js` | `src/features/quick-save/content.tsx` → `QuickSaveDialog.tsx` | `src/features/quick-save/contentStyle.ts` |
+| Page Ctrl+S bridge | `page-shortcut-content.js` | `src/features/page-shortcut/content.ts` → `src/background/pageShortcutHandlers.ts` | 无 UI，只打开 toolbar popup |
 
 ## 分层
 
@@ -77,7 +76,7 @@ UI entrypoints
 
 | 层 | 当前目录 | 说明 |
 |---|---|---|
-| UI entrypoints | `src/app`、`src/popup`、`src/newtab`、`src/features/save-overlay/*`、`src/features/quick-save/QuickSaveDialog.tsx` | 页面布局、局部状态和用户事件绑定 |
+| UI entrypoints | `src/app`、`src/popup`、`src/newtab` | 页面布局、局部状态和用户事件绑定 |
 | Shared components | `src/components` | 书签卡片、文件夹树、级联菜单、搜索框、图标 |
 | Feature services | `src/features/*` | 书签树、搜索、拖拽、settings、metadata、newtab、favicon、popup、quick-save 等业务能力 |
 | Chrome adapters | `src/lib/chrome/*` | `chrome.bookmarks`、`chrome.storage`、runtime、permissions 等封装 |
@@ -103,7 +102,7 @@ Toolbar popup 通过 `chrome.tabs.query()` 获取当前 tab，并在允许时通
 
 当前代码**没有**提取 `description` 或 `canonical`。失败时回退到 URL host 或空预览图。
 
-浏览器内部页面只保存 URL / tab 标题，不注入脚本。`save.html` legacy 页面仍保留 source tab 参数解析能力，但不是当前 toolbar 主路径。
+浏览器内部页面只保存 URL / tab 标题，不注入脚本。
 
 代码链路：
 
@@ -124,6 +123,7 @@ src/service-worker.ts
   → registerServiceWorker()
   → src/background/serviceWorker.ts
     → registerMessageRouter()
+    → registerPageShortcutHandlers()
     → registerNewTabRedirect()
 ```
 
@@ -131,21 +131,19 @@ src/service-worker.ts
 
 | 文件 | 职责 |
 |---|---|
-| `src/background/serviceWorker.ts` | 聚合注册 runtime message router 和 New Tab redirect |
-| `src/background/saveExperienceHandlers.ts` | legacy Save Overlay / fallback helper，当前不由 service worker 注册 |
-| `src/background/saveWindow.ts` | 保留的独立保存窗口 helper / legacy 测试覆盖，不再是 toolbar 主路径 |
-| `src/background/commandHandlers.ts` | legacy `open-quick-save` helper，当前不由 service worker 注册 |
-| `src/background/messageRouter.ts` | 接收 runtime message，转发给 legacy page-open handler 或 Quick Save handler |
+| `src/background/serviceWorker.ts` | 聚合注册 runtime message router、Page Ctrl+S bridge lifecycle 和 New Tab redirect |
+| `src/background/messageRouter.ts` | 接收 runtime message，转发给 Page Ctrl+S handler 或 Quick Save handler |
+| `src/background/pageShortcutHandlers.ts` | 同步动态 content script、响应页面快捷键打开 toolbar popup |
 | `src/background/quickSaveHandlers.ts` | 创建书签、创建文件夹、读取初始保存状态 |
 | `src/background/openWorkspace.ts` | 打开 `index.html`，必要时附带 source tab 信息 |
 | `src/features/newtab/newTabRedirect.ts` | 注册 tabs event，根据 settings 条件重定向 `chrome://newtab/` / `edge://newtab/` |
 
 ## 保存链路
 
-Toolbar popup、legacy Save Overlay、`save.html` legacy 页面与 Legacy Quick Save 都复用 Quick Save message 协议创建书签：
+Toolbar popup 复用 Quick Save message 协议创建书签；该协议保留为 popup 保存链路的业务 contract，不再代表页面浮框 UI：
 
 ```text
-SaveTab / SaveOverlayTab / QuickSaveDialog
+SaveTab
   → QUICK_SAVE_CREATE_BOOKMARK
   → chrome.runtime.sendMessage()
   → src/background/messageRouter.ts
@@ -155,7 +153,7 @@ SaveTab / SaveOverlayTab / QuickSaveDialog
   → saveQuickSaveRecentFolder(parentId)
 ```
 
-维护重点：如果未来清理 legacy Save Overlay / save-window handler，应保证 toolbar popup 的 `bookmarksAdapter.create()`、`saveBookmarkMetadata()`、`saveRecentFolder()` 行为不回退。
+维护重点：清理旧 UI 入口后，toolbar popup 的 `bookmarksAdapter.create()`、`saveBookmarkMetadata()`、`saveRecentFolder()` 行为不得回退。
 
 ## New Tab 条件重定向
 

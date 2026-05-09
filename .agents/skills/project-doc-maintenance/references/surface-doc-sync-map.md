@@ -27,15 +27,15 @@ Use this map when running `project-doc-maintenance` to determine which PageDocs 
 - `docs/product/ui-design.md`
 - `docs/product/interactions.md`
 
-## Save Window / Popup Fallback
+## Toolbar Popup / Page Shortcut
 
 ### Code areas
 
-- `save.html`
-- `src/save-window/`
 - `popup.html`
 - `src/popup/`
 - `src/features/popup/`
+- `src/features/page-shortcut/`
+- `src/background/pageShortcutHandlers.ts`
 - `src/features/settings/`
 - `src/components/`
 - `src/styles/`

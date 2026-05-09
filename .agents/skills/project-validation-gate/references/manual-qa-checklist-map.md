@@ -8,14 +8,15 @@
 - Test affected card / folder actions.
 - Check search if affected.
 
-## Save Overlay / Popup Fallback
+## Toolbar Popup / Page Shortcut
 
-- Open Save Overlay from toolbar action and extension command on a normal web page.
-- Open `save.html` fallback from a restricted page such as `chrome://extensions/`.
+- Open toolbar popup from toolbar action and `_execute_action` on a normal web page.
+- Open toolbar popup from a restricted page such as `chrome://extensions/`.
 - Confirm tabs render.
 - Confirm Save tab current-page fields if affected.
 - Confirm save location picker and recent folders if affected.
 - Confirm Manage / Settings entries if affected.
+- If page Ctrl+S is enabled, confirm ordinary page `Ctrl+S` opens the popup and editable fields are not intercepted.
 
 ## Quick Save
 

@@ -35,7 +35,7 @@
 
 | key | 文件 | 当前用途 | 维护说明 |
 |---|---|---|---|
-| `bookmarkVisualizerSettings` | `src/features/settings/settingsService.ts` | 管理页、Popup、legacy 保存入口、New Tab 的设置 | 主设置 key |
+| `bookmarkVisualizerSettings` | `src/features/settings/settingsService.ts` | 管理页、Popup、Page Ctrl+S bridge、New Tab 的设置 | 主设置 key |
 | `bookmarkVisualizerMetadata` | `src/features/metadata/metadataService.ts` | 书签备注、预览图 URL、page kind、source URL、预留摘要字段 | 只保存扩展元数据，不保存书签结构 |
 | `bookmarkVisualizerRecentFolders` | `src/features/recent-folders/recentFolders.ts` | 最近保存 / 移动目标文件夹 | 当前最近文件夹主 key |
 | `bookmarkVisualizerNewTabState` | `src/features/newtab/newTabState.ts` | 固定快捷方式、隐藏快捷方式、选中文件夹、精选书签、折叠 section | New Tab 个性化状态 |
@@ -55,7 +55,7 @@ interface SettingsState {
   cardSize: "small" | "medium" | "large" | "extra-large";
   sidebarWidth: number;
   popupAutoCloseAfterSave: boolean;
-  autoCloseSaveWindowOnBlur: boolean;
+  enablePageCtrlSShortcut: boolean;
   popupShowSuccessToast: boolean;
   popupRememberLastFolder: boolean;
   popupShowThumbnail: boolean;
@@ -77,7 +77,7 @@ interface SettingsState {
 - `newTabOverrideEnabled` 默认必须是 `false`，避免安装后直接接管新标签页。
 - `cardDensity` 当前固定 normalize 为 `comfortable`，不是可配置 UI。
 - `popupThemeMode` 当前作为 Popup 主题偏好持久化，用于后续主题适配；当前 Popup CSS 尚未完整消费它，不能描述成已完整生效的暗色主题。
-- `autoCloseSaveWindowOnBlur` 默认 `false`；仅影响保留的独立保存窗口 helper / legacy save.html 行为，不在当前 toolbar popup 设置页展示。
+- `enablePageCtrlSShortcut` 默认 `false`；开启时请求 `http://*/*` / `https://*/*` optional host permissions，并由 `src/background/pageShortcutHandlers.ts` 动态注册页面快捷键 content script。
 - `sidebarWidth` 被限制在 220–640。
 - `newTabShortcutsPerRow` 被限制在 4–10。
 - 新增字段必须同步 `defaultSettings`、`normalizeSettings()`、对应 UI 文档和回归测试。
@@ -109,7 +109,7 @@ interface ExtensionMetadataState {
   → saveBookmarkNote()
   → saveBookmarkMetadata(bookmarkId, { note })
 
-Popup / legacy Save Overlay / legacy 保存页 / Quick Save 保存
+Popup 保存
   → QUICK_SAVE_CREATE_BOOKMARK
   → background/quickSaveHandlers.ts
   → bookmarksAdapter.create()
@@ -129,7 +129,7 @@ src/features/recent-folders/recentFolders.ts
   → resolveRecentFolderOptions()
 ```
 
-它被 Popup、legacy Save Overlay、legacy 保存页、Quick Save 保存位置，以及移动 / 保存相关场景复用。旧的 `bookmarkVisualizerQuickSaveUiState` 仅用于读取历史 recentFolderIds 并迁移。
+它被 Popup 保存位置以及移动 / 保存相关场景复用。旧的 `bookmarkVisualizerQuickSaveUiState` 仅用于读取历史 recentFolderIds 并迁移。
 
 ## New Tab 状态
 
@@ -177,6 +177,6 @@ Primary key: <normalized site key>|<size>
 ## 隐私
 
 - 备注和预览图 URL 默认只保存在本地。
-- Save Overlay 和保存 fallback 页面信息提取只读取 source tab URL、标题、候选预览图和 favicon，不持久化网页正文；浏览器内部页面不执行脚本注入。
-- Quick Save 不下载或转存网页图片，只保存候选图片 URL。
+- Popup 页面信息提取只读取 source tab URL、标题、候选预览图和 favicon，不持久化网页正文；浏览器内部页面不执行脚本注入。
+- Page Ctrl+S bridge 只监听快捷键并打开 popup，不读取页面内容。
 - 当前未上传书签树和备注到远程服务。

@@ -52,15 +52,15 @@ This matrix routes context only. It does not replace `project-doc-maintenance`.
 
 Usually no README update unless the task changes major workspace capabilities, project structure, installation, or public feature descriptions.
 
-## Save Window / Popup Fallback
+## Toolbar Popup / Page Shortcut
 
 ### Code areas
 
-- `save.html`
-- `src/save-window/`
 - `popup.html`
 - `src/popup/`
 - `src/features/popup/`
+- `src/features/page-shortcut/`
+- `src/background/pageShortcutHandlers.ts`
 - `src/features/settings/`
 - `src/components/`
 - `src/styles/`
@@ -83,7 +83,7 @@ Usually no README update unless the task changes major workspace capabilities, p
 
 ### README impact
 
-Update README files only when save-window / popup launch behavior, major save capability, or public project overview changes.
+Update README files when popup launch behavior, page shortcut behavior, optional host permissions, major save capability, or public project overview changes.
 
 ## Popup Save Location Picker / Folder Cascade
 

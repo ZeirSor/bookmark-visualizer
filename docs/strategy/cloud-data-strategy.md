@@ -1,4 +1,4 @@
-# Bookmark Visualizer 架构分层、数据模型与云端化演进指南
+# Bookmark Visualizer 架构分层、数据模型与云端化演进指南（not current implementation）
 
 > 目标：在不改变当前功能的前提下，为 Bookmark Visualizer 做一次面向长期维护、订阅制、云同步、多维表格视图与第三方集成的架构梳理。本文优先讨论架构与代码设计，不安排新功能开发。
 

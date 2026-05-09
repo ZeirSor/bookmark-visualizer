@@ -92,6 +92,12 @@ export function SettingsTab({
           <span>保存当前网页</span>
           <Keycap>Ctrl+Shift+S</Keycap>
         </div>
+        <SwitchRow
+          checked={settings.enablePageCtrlSShortcut}
+          label="页面内 Ctrl+S 保存"
+          description="开启后，普通网页中的 Ctrl+S / Command+S 会打开 Bookmark Visualizer popup；输入框内不会拦截。"
+          onChange={(value) => updateSettings({ enablePageCtrlSShortcut: value })}
+        />
         <div className="shortcut-row">
           <span>打开完整管理页</span>
           <Keycap muted>未设置</Keycap>
