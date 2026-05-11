@@ -12,19 +12,53 @@ Sources:
 
 ## Token Layers
 
-项目 token 分三层：
+项目 token 分四层：
 
-1. Base tokens：`--bv-color-*`、`--bv-radius-*`、`--bv-shadow-*`、`--bv-font-*`，存放稳定基础值。
-2. Semantic tokens：表达用途，例如 text、surface、line、accent、success、danger。
-3. Surface aliases：`--nt-*`、`--popup-*`、`--app-*`，只做页面适配，不再独立维护随机色值。
+1. Raw tokens：`--bv-color-*`、`--bv-radius-*`、`--bv-shadow-*`、`--bv-motion-*`、`--bv-z-*`、`--bv-font-*`，存放稳定基础值。
+2. Semantic tokens：表达用途，例如 text、surface、line、accent、success、danger、focus。
+3. Component tokens：`--bv-button-*`、`--bv-icon-button-*` 等，表达共享 primitive / pattern 的视觉契约。
+4. Surface aliases：`--nt-*`、`--popup-*`、`--app-*`，只做页面适配，不再独立维护随机色值。
 
 代码入口：
 
-- `src/styles/tokens.css` 是跨页面 token 来源。
+- `src/styles/tokens.css` 是跨页面 token 来源；当前已包含 `--bv-button-*`、`--bv-icon-button-*`、`--bv-input-*`、`--bv-card-*`、`--bv-panel-*`、`--bv-dialog-*`、`--bv-drawer-*`、`--bv-menu-*`、`--bv-toast-*` 和 `--bv-chip-*` component-token 组。
 - New Tab 必须引入 `src/styles/tokens.css`。
 - Popup 必须引入 `src/styles/tokens.css`，再在 `src/popup/styles.css` 内做 popup 局部布局。
 - Toolbar popup 必须引入 `src/styles/tokens.css` 和 `src/popup/styles.css`；页面内 Ctrl+S bridge 不渲染 UI，因此不应新增 surface CSS。
 - 管理页后续治理时同样映射到 `--app-*`。
+
+详细治理规则见 [Token ownership](surfaces/reference/token-ownership.md)。
+
+## Code Ownership
+
+Reusable UI system code now has an explicit home:
+
+```text
+src/design-system/
+  tokens/
+  primitives/
+  patterns/
+```
+
+- `src/design-system/primitives/` owns generic UI building blocks such as Button, IconButton, Input, Dialog, Drawer, Toast, Card, Panel, and EmptyState. `Button` and `IconButton` are the first runtime primitives in this path.
+- `src/design-system/patterns/` owns bookmark-specific reusable patterns such as FolderPicker, SaveLocationPicker, BookmarkCard, SearchBox, SettingsRow, and OperationLog.
+- `src/design-system/tokens/` is reserved for future token helpers; current CSS token source remains `src/styles/tokens.css`.
+- Existing shared components under `src/components/` may remain during migration, but new shared primitives and business patterns should be introduced through `src/design-system/` first.
+- Dependency direction must stay `surface -> pattern -> primitive -> token`; shared primitives and patterns must not import from `src/app/`, `src/popup/`, or `src/newtab/`.
+
+## Component Token Groups
+
+Component tokens define the visual contract before broad primitive migration. They are intentionally shared and surface-neutral:
+
+- Button / IconButton: action controls, icon-only controls, loading, selected, danger, and focus states.
+- Input: text input, textarea, and native select shells, including readonly, disabled, error, and focus states.
+- Card / Panel: neutral, hover, selected, muted, elevated, and compact surfaces.
+- Dialog / Drawer: overlay backdrop, shell surface, border, radius, shadow, and z-index.
+- Menu: popover shell, row height, hover, selected, disabled, and layering.
+- Toast: neutral and info/success/warning/danger status surfaces.
+- Chip: pill-like filter, recent-folder, setting, and selection affordances.
+
+Switch, tabs, empty/loading primitives, and search-specific tokens remain future groups tied to their primitive or pattern contracts.
 
 ## Visual Anchor
 

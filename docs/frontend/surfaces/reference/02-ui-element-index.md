@@ -44,7 +44,7 @@
 
 | 元素 | 文件 | selector |
 |---|---|---|
-| 打开管理页 | `PopupApp.tsx` | `.icon-button` |
+| Top Bar 操作 | `PopupTopBar.tsx` | `.topbar-tool-button` |
 | Tab 保存 / 管理 / 设置 | `TabButton.tsx` | `.popup-tabs button` |
 | 页面预览 | `PagePreviewCard.tsx` | `.page-preview` |
 | 标题 input | `SaveTab.tsx` | `.field-stack input` |
@@ -63,7 +63,8 @@
 | Settings switch | `SettingsRows.tsx` | `.switch-control` |
 | Settings select | `SettingsRows.tsx` | `.custom-select` |
 | 配置快捷键 | `SettingsTab.tsx` | `.text-action` |
-| 默认位置更改 | `SettingsTab.tsx` | `.secondary-action.small` |
+| 默认位置选择 | `DefaultFolderMenu.tsx` | `.folder-path-selector` |
+| 默认位置展开 picker | `DefaultFolderMenu.tsx` | `.default-folder-picker-expanded` |
 
 ## New Tab 元素索引
 

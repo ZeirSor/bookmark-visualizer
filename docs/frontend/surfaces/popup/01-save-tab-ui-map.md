@@ -5,8 +5,8 @@
 | 区块 | selector | 代码文件 | 说明 |
 |---|---|---|---|
 | 表单根 | `.save-tab` | `src/popup/tabs/SaveTab.tsx` | `id="popup-save-form"`，Footer submit 绑定这个 form |
-| 保存布局 | `.save-layout` | `SaveTab.tsx` | 两列结构；隐藏预览时追加 `.without-preview` |
-| 预览列 | `.save-preview-column` | `SaveTab.tsx` | 只在 `settings.popupShowThumbnail` 开启时显示 |
+| 保存布局 | `.save-layout` | `SaveTab.tsx` | 单列纵向流程；隐藏预览时追加 `.without-preview` |
+| 预览列 | `.save-preview-column` | `SaveTab.tsx` | 只在 `settings.popupShowThumbnail` 开启时显示，顶部居中 |
 | 编辑列 | `.save-editor-column` | `SaveTab.tsx` | 标题 / URL / 备注 / 保存位置 |
 | 字段组 | `.field-stack.compact` | `SaveTab.tsx` | 标题和 URL |
 | 备注字段 | `.note-field.compact` | `SaveTab.tsx` | textarea |
@@ -31,6 +31,7 @@
 - 不要让预览图失败导致整个保存表单高度跳动。
 - `setPreviewFailed(true)` 后应回落到 fallback，不阻塞保存。
 - 预览列关闭时 `.save-layout.without-preview` 要让编辑列填满宽度。
+- 预览卡在图片、fallback、loading、浏览器内部页面状态下都保持紧凑稳定，避免撑破 720×600 popup。
 
 ## 标题输入框
 

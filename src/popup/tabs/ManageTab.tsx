@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { openWorkspace } from "../../features/popup";
 import { SiteFavicon } from "../../components/SiteFavicon";
 import type { FolderOption } from "../../features/bookmarks";
@@ -5,7 +6,7 @@ import {
   getFolderCountLabel,
   type PopupRecentBookmark
 } from "../../features/popup";
-import { ChevronRightIcon, ExternalLinkIcon, FolderIcon, SearchIcon } from "../components/PopupIcons";
+import { ChevronRightIcon, ExternalLinkIcon, FilterIcon, FolderIcon, SearchIcon } from "../components/PopupIcons";
 
 export function ManageTab({
   recentBookmarks,
@@ -16,24 +17,50 @@ export function ManageTab({
 }) {
   return (
     <section className="manage-tab tab-scroll-area">
-      <button type="button" className="workspace-card manager-hero-card" onClick={() => void openWorkspace()}>
-        <span>
-          <strong>打开完整管理页</strong>
-          <small>浏览全部书签、搜索、整理和管理</small>
+      <div className="manager-hero-card" aria-label="管理入口">
+        <span className="manager-hero-icon" aria-hidden="true">
+          <FolderIcon />
         </span>
-        <ExternalLinkIcon />
-      </button>
+        <span className="manager-hero-copy">
+          <strong>打开完整管理页</strong>
+          <small>在新标签页中浏览、搜索、整理和编辑全部书签。</small>
+        </span>
+        <button
+          type="button"
+          className="manager-hero-action"
+          aria-label="打开完整管理页"
+          title="打开完整管理页"
+          onClick={() => void openWorkspace()}
+        >
+          <ExternalLinkIcon />
+        </button>
+      </div>
 
-      <button type="button" className="manager-search-row" onClick={() => void openWorkspace()}>
-        <SearchIcon />
-        <span>搜索书签或文件夹</span>
-        <ChevronRightIcon />
-      </button>
+      <div className="manager-search-row" aria-label="管理搜索入口">
+        <button type="button" className="manager-search-command" onClick={() => void openWorkspace()}>
+          <SearchIcon />
+          <span>搜索书签或文件夹...</span>
+        </button>
+        <button
+          type="button"
+          className="manager-filter-button"
+          title="在完整管理页中筛选"
+          onClick={() => void openWorkspace()}
+        >
+          <FilterIcon />
+          <span>筛选</span>
+        </button>
+      </div>
 
       <section className="popup-section" aria-labelledby="recent-saved-heading">
-        <h2 id="recent-saved-heading">最近保存</h2>
+        <div className="section-heading">
+          <h2 id="recent-saved-heading">最近保存</h2>
+          <button type="button" className="text-action" onClick={() => void openWorkspace()}>
+            查看全部 <ChevronRightIcon />
+          </button>
+        </div>
         {recentBookmarks.length === 0 ? (
-          <p className="empty-copy">暂无最近保存</p>
+          <p className="empty-copy">保存网页后，最近保存会显示在这里。</p>
         ) : (
           <div className="recent-bookmark-list">
             {recentBookmarks.map((bookmark) => (
@@ -66,9 +93,9 @@ export function ManageTab({
       <section className="popup-section" aria-labelledby="recent-folders-heading">
         <h2 id="recent-folders-heading">最近使用文件夹</h2>
         {recentFolders.length === 0 ? (
-          <p className="empty-copy">暂无最近使用文件夹</p>
+          <p className="empty-copy">选择过保存位置后，常用文件夹会显示在这里。</p>
         ) : (
-          <div className="folder-summary-chips">
+          <div className="folder-card-grid">
             {recentFolders.map((option) => (
               <button
                 key={option.id}
@@ -76,30 +103,57 @@ export function ManageTab({
                 onClick={() => void openWorkspace(buildWorkspaceFolderPath(option.id))}
               >
                 <FolderIcon />
-                {getFolderCountLabel(option)}
+                <strong>{option.title}</strong>
+                <small>{getFolderCountLabel(option)}</small>
               </button>
             ))}
           </div>
         )}
       </section>
 
-      <section className="manager-action-grid" aria-label="快捷操作">
-        <button type="button" onClick={() => void openWorkspace()}>
-          <ExternalLinkIcon />
-          <span>
-            <strong>继续整理</strong>
-            <small>进入完整工作台</small>
-          </span>
-        </button>
-        <button type="button" onClick={() => void openWorkspace()}>
-          <FolderIcon />
-          <span>
-            <strong>按文件夹浏览</strong>
-            <small>使用左侧书签树</small>
-          </span>
-        </button>
+      <section className="popup-section" aria-labelledby="quick-actions-heading">
+        <h2 id="quick-actions-heading">快捷操作</h2>
+        <div className="manager-action-grid">
+          <ManagerActionCard
+            icon={<ExternalLinkIcon />}
+            title="继续整理"
+            description="从完整管理页继续上次整理"
+            onClick={() => void openWorkspace()}
+          />
+          <ManagerActionCard
+            icon={<FolderIcon />}
+            title="按文件夹浏览"
+            description="浏览并管理所有文件夹内容"
+            onClick={() => void openWorkspace()}
+          />
+        </div>
       </section>
     </section>
+  );
+}
+
+function ManagerActionCard({
+  description,
+  icon,
+  onClick,
+  title
+}: {
+  icon: ReactNode;
+  title: string;
+  description: string;
+  onClick(): void;
+}) {
+  return (
+    <button type="button" className="manager-action-card" onClick={onClick}>
+      <span className="manager-entry-icon" aria-hidden="true">
+        {icon}
+      </span>
+      <span className="manager-entry-copy">
+        <strong>{title}</strong>
+        <small>{description}</small>
+      </span>
+      <ChevronRightIcon className="manager-entry-chevron" />
+    </button>
   );
 }
 

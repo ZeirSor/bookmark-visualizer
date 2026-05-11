@@ -63,12 +63,13 @@ npm run verify:popup-entry
 
 ## Popup 回归
 
-- Popup 大小为 800×600，无横向滚动。
+- Popup 大小为 720×600，无横向滚动。
 - 默认 Tab 根据 `popupDefaultOpenTab` 显示。
 - 保存 Tab 能读取当前页面标题 / URL。
 - 标题可编辑，URL readonly 可选中。
 - 备注可输入。
 - 预览图关闭设置生效。
+- 预览图、fallback、loading、浏览器内部页面状态不引发布局跳动。
 - 保存位置路径行 loading / disabled 状态正确。
 - 点击路径文本不打开 picker，点击箭头打开内联 picker。
 - 内联 picker 不被 popup 裁剪。
@@ -76,8 +77,9 @@ npm run verify:popup-entry
 - 新建文件夹显示 spinner，创建成功后选中新文件夹。
 - 最近位置默认 3 个，可展开到 7 个。
 - 保存成功后按设置自动关闭。
-- Manage Tab 最近保存和最近位置空态正常。
+- Manage Tab 入口行、最近保存、最近位置和空态正常。
 - Settings Tab 修改 New Tab 开关 / 搜索引擎 / 搜索类型 / 布局模式后持久化。
+- Settings Tab Switch、CustomSelect、默认保存位置展开块不重叠且 focus-visible 清晰。
 
 ## New Tab 回归
 

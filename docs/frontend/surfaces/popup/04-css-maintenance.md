@@ -25,7 +25,12 @@ Do not reintroduce save-window-specific token aliases for current popup styling.
 
 ## Required Checks
 
-- Popup body remains transparent around the inner shell.
-- `.popup-shell` keeps stable 800 x 600 sizing, rounded shell, border, and shadow.
-- Settings custom selects and inline folder picker stay inside the popup bounds.
+- Popup body/root use full-bleed `--popup-page-bg`; do not reintroduce transparent outer padding.
+- `.popup-shell` keeps stable 720 x 600 sizing as a full-viewport app shell with no outer radius, border, or shell shadow.
+- Save Tab keeps `.save-layout` as a single-column vertical flow with the preview centered above the form.
+- Save Tab inline folder picker uses a constrained internal scroll body so expanded folder browsing stays inside the popup content area.
+- `.popup-content` keeps a bottom safe area and stable scrollbar gutter so Manage / Settings content can scroll cleanly above the footer.
+- Settings rows use `.setting-row` with a label/helper column, a bounded control column, and hairline dividers.
+- Settings custom selects use `.custom-select-trigger`, a down chevron, and a white popover menu with checkmarks.
+- Settings default folder picker expands through `.default-folder-picker-expanded` as a full-width block inside the section.
 - Page Ctrl+S bridge has no CSS because it renders no UI.

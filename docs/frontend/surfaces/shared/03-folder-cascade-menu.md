@@ -5,7 +5,6 @@
 | 使用场景 | 调用文件 | 用途 |
 |---|---|---|
 | 管理页右键移动 | `src/app/workspace/WorkspaceComponents.tsx` + `FolderMoveSubmenuContent.tsx` | 将书签移动到目标文件夹 |
-| Legacy 保存位置 | `src/popup/components/save-location/LocationCascadeOverlay.tsx` | 保留的旧级联保存位置 |
 | Popup / Save Overlay 保存位置 | `src/components/folder-picker/InlineFolderPicker.tsx` | 当前主保存路径；不使用横向 floating cascade |
 | Popup 设置默认保存位置 | `src/popup/tabs/settings/DefaultFolderMenu.tsx` | 使用内联 picker 修改 `popupDefaultFolderId` |
 | Popup 保存位置 | `src/popup/components/SaveLocationPicker.tsx` + `src/components/folder-picker/InlineFolderPicker.tsx` | 浏览 / 搜索 / 选择保存位置 |
@@ -21,7 +20,6 @@
 | `src/components/folder-cascade/cascadePlacement.ts` | folder flatten、尺寸估算、anchor 和 layer style helper |
 | `src/components/folder-cascade/cascadeBehavior.ts` | submenu 延迟关闭与 blur 外部关闭 |
 | `src/components/FolderMoveSubmenuContent.tsx` | 管理页移动菜单内容：搜索、最近、所有文件夹 |
-| `src/features/context-menu/popupCascadePlacement.ts` | Popup cascade root 定位 |
 | `src/features/bookmarks/bookmarkTree.ts` | 文件夹 flatten、路径、高亮、可选判断 |
 | `src/features/drag-drop/index.ts` | 管理页移动目标限制 |
 

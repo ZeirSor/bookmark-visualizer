@@ -8,15 +8,19 @@
 
 | 元素 | selector | 行为 |
 |---|---|---|
-| 打开完整管理页卡片 | `.workspace-card.manager-hero-card` | 点击 → `openWorkspace()` |
-| 搜索入口 | `.manager-search-row` | 点击 → `openWorkspace()`，进入完整管理页搜索 |
+| 管理入口卡 | `.manager-hero-card` | 完整管理页入口，右侧 icon button 打开工作台 |
+| 搜索命令行 | `.manager-search-row` / `.manager-search-command` / `.manager-filter-button` | 轻量搜索 / 筛选入口，点击进入完整管理页 |
+| 快捷操作卡 | `.manager-action-grid` / `.manager-action-card` | 左图标 + 主文案 + 辅助文案 + 右箭头，点击执行对应动作 |
+| 入口图标 | `.manager-hero-icon` / `.manager-entry-icon` | 统一入口图标容器 |
+| 入口文案 | `.manager-entry-copy` | 主标题 + 描述 |
+| 入口箭头 | `.manager-entry-chevron` | 右侧跳转提示 |
 | 最近保存 section | `.popup-section` | 展示 `recentBookmarks` |
 | 最近保存列表 | `.recent-bookmark-list` | 每项点击 `window.open(bookmark.url)` |
 | favicon / fallback | `.recent-bookmark-favicon` / `.site-favicon-fallback` | 优先本地 favicon，失败时使用 domain 首字母 |
 | 最近保存主文案 | `.recent-bookmark-main` | 标题 + domain / folder path |
-| 最近使用文件夹 | `.folder-summary-chips` | 点击打开完整管理页，目前未 deep link 到具体文件夹 |
-| 快捷操作 | `.manager-action-grid` | 仅展示可用操作，当前均跳转完整管理页 |
-| 空态 | `.empty-copy` | 无数据时显示 |
+| 最近使用文件夹 | `.folder-card-grid` | 点击打开完整管理页并 deep link 到对应文件夹 |
+| 底部操作区 | `.popup-footer.popup-footer-utility` | Manage 显示完整管理页主动作，Settings 显示完成动作 |
+| 空态 | `.empty-copy` | 无数据时说明保存或选择位置后会出现内容 |
 
 数据链路：
 
@@ -27,7 +31,7 @@ PopupApp
   → <ManageTab recentBookmarks recentFolders />
 ```
 
-维护建议：最近使用文件夹 chip 已通过 `index.html?folderId=...` deep link 到完整管理页对应文件夹。
+维护建议：最近使用文件夹 chip 已通过 `index.html?folderId=...` deep link 到完整管理页对应文件夹。Manage Tab 不应扩展成完整管理器，只保留轻入口、最近信息和跳转动作。
 
 ## SettingsTab 总览
 
@@ -84,11 +88,13 @@ SettingsTab 是 Popup 的常用配置入口，包含：
 
 | 元素 | selector | 行为 |
 |---|---|---|
-| 行根 | `.default-folder-row` | 展示当前默认路径 |
+| 控件根 | `.default-folder-control` | 默认保存位置选择器、展开 picker、最近位置 chips |
+| 路径选择按钮 | `.folder-path-selector` | 展示当前默认路径，点击展开 / 收起内联 picker |
 | 文件夹图标 | `.location-folder-icon` | 共享图标视觉 |
-| 路径文本 | `.default-folder-row span[title]` | hover title 展示完整路径 |
-| 更改按钮 | `.secondary-action.small` | 打开内联 folder picker |
-| 内联 picker | `.inline-folder-picker` | 内部渲染共享 `InlineFolderPicker` |
+| 路径文本 | `.folder-path-selector-copy small[title]` | hover title 展示完整路径 |
+| 更改状态 | `.folder-path-selector-action` | 显示“更改”或“收起” |
+| 内联 picker 展开块 | `.default-folder-picker-expanded` | section 内全宽块，不与按钮重叠 |
+| 内联 picker | `.default-folder-picker-expanded .inline-folder-picker` | 内部渲染共享 `InlineFolderPicker` |
 | 最近位置 chips | `.settings-mini-chips` | 点击直接设为默认保存位置 |
 
 ### 数据链路
@@ -126,9 +132,9 @@ SettingsTab 更改默认位置
 | 组件 | 文件 | 说明 |
 |---|---|---|
 | `SwitchRow` | `src/popup/tabs/settings/SettingsRows.tsx` | label + `role="switch"` 控件；写入布尔 settings |
-| `SettingsSection` | `src/popup/tabs/settings/SettingsRows.tsx` | 设置卡片 section 结构 |
-| `SettingRow` | `src/popup/tabs/settings/SettingsRows.tsx` | label / helper text / control 行结构 |
+| `SettingsSection` | `src/popup/tabs/settings/SettingsRows.tsx` | 设置卡片 section 结构，支持 section icon，标题和 rows 在同一卡片内 |
+| `SettingRow` | `src/popup/tabs/settings/SettingsRows.tsx` | label / helper text / control 行结构；使用统一高度、间距和分割线 |
 | `Keycap` | `src/popup/tabs/settings/SettingsRows.tsx` | 快捷键 pill |
-| `Switch` | `src/popup/tabs/settings/SettingsRows.tsx` | 胶囊 track + thumb；支持鼠标、Space、Enter 和 focus-visible |
-| `SelectRow` / `CustomSelect` | `src/popup/tabs/settings/SettingsRows.tsx` | 非原生下拉外观；支持 click、Esc、外部点击、ArrowUp / ArrowDown、Enter / Space |
+| `Switch` | `src/popup/tabs/settings/SettingsRows.tsx` | 44×26 track + 20×20 thumb；支持鼠标、Space、Enter 和 focus-visible |
+| `SelectRow` / `CustomSelect` | `src/popup/tabs/settings/SettingsRows.tsx` | 非原生下拉外观；使用 down chevron、checkmark、click、Esc、外部点击、ArrowUp / ArrowDown、Enter / Space |
 | `DefaultFolderMenu` | `src/popup/tabs/settings/DefaultFolderMenu.tsx` | 默认保存位置内联 picker、最近位置 chips |

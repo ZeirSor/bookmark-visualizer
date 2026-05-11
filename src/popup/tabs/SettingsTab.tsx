@@ -2,7 +2,7 @@ import type { BookmarkNode, FolderOption } from "../../features/bookmarks";
 import { openExtensionShortcutSettings, openWorkspace } from "../../features/popup";
 import type { SettingsState } from "../../features/settings";
 import { SEARCH_CATEGORIES, SEARCH_ENGINES } from "../../features/newtab";
-import { ChevronRightIcon } from "../components/PopupIcons";
+import { ChevronRightIcon, FolderIcon, GlobeIcon, SaveIcon, SettingsIcon } from "../components/PopupIcons";
 import { DefaultFolderMenu } from "./settings/DefaultFolderMenu";
 import { Keycap, SelectRow, SettingsSection, SwitchRow } from "./settings/SettingsRows";
 
@@ -51,7 +51,7 @@ export function SettingsTab({
 
   return (
     <section className="settings-tab tab-scroll-area">
-      <SettingsSection title="新标签页">
+      <SettingsSection title="新标签页" icon={<GlobeIcon />}>
         <SwitchRow
           checked={settings.newTabOverrideEnabled}
           label="绑定新标签页"
@@ -87,7 +87,7 @@ export function SettingsTab({
         />
       </SettingsSection>
 
-      <SettingsSection title="快捷键">
+      <SettingsSection title="快捷键" icon={<SettingsIcon />}>
         <div className="shortcut-row">
           <span>保存当前网页</span>
           <Keycap>Ctrl+Shift+S</Keycap>
@@ -111,7 +111,7 @@ export function SettingsTab({
         </button>
       </SettingsSection>
 
-      <SettingsSection title="默认保存位置">
+      <SettingsSection title="默认保存位置" icon={<FolderIcon />}>
         <DefaultFolderMenu
           defaultCompactPath={defaultCompactPath}
           defaultFolderId={defaultFolderId}
@@ -122,7 +122,7 @@ export function SettingsTab({
         />
       </SettingsSection>
 
-      <SettingsSection title="保存行为">
+      <SettingsSection title="保存行为" icon={<SaveIcon />}>
         <SwitchRow
           checked={settings.popupAutoCloseAfterSave}
           label="保存后自动关闭浮窗"
@@ -145,7 +145,7 @@ export function SettingsTab({
         />
       </SettingsSection>
 
-      <SettingsSection title="界面偏好">
+      <SettingsSection title="界面偏好" icon={<SettingsIcon />}>
         <SelectRow
           label="默认打开页"
           value={settings.popupDefaultOpenTab}

@@ -29,6 +29,7 @@ optional page Ctrl+S
 |---|---|
 | Popup 入口 | `src/popup/main.tsx`、`popup.html` |
 | Popup 总控、tab 条件渲染、派生 view data | `src/popup/PopupApp.tsx` |
+| Popup 顶部工具栏 | `src/popup/components/PopupTopBar.tsx` |
 | Popup 初始状态 / 保存表单 / actions hooks | `src/popup/hooks/*` |
 | 保存 Tab | `src/popup/tabs/SaveTab.tsx` |
 | 管理 Tab | `src/popup/tabs/ManageTab.tsx` |
@@ -50,8 +51,8 @@ optional page Ctrl+S
 
 ```text
 <PopupApp>
-  <header.popup-header>
-    logo + brand + open workspace icon button
+  <PopupTopBar>
+    logo + Bookmark Visualizer + history / open manager / close icon buttons
   <nav.popup-tabs>
     <TabButton>保存</TabButton>
     <TabButton>管理</TabButton>
@@ -66,6 +67,7 @@ optional page Ctrl+S
     activeTab === manage → <ManageTab />
     activeTab === settings → <SettingsTab />
   activeTab === save → <PopupFooter />
+  activeTab === manage/settings → utility footer actions
 ```
 
 ## Popup 状态
@@ -78,8 +80,8 @@ optional page Ctrl+S
 
 ## Popup 视觉层
 
-- `src/styles/tokens.css` 提供 `--popup-width: 800px`、`--popup-height: 600px` 和 popup radius / shadow token。
-- `src/popup/styles.css` 让 `body` 保持透明外框，内部 `.popup-shell` 使用圆角、边框和阴影。
+- `src/styles/tokens.css` 提供 `--popup-width: 720px`、`--popup-height: 600px`、`--popup-outer-padding: 0px` 和 popup surface / sticky footer token。
+- `src/popup/styles.css` 让 `html` / `body` / `#root` 使用 full-bleed 浅灰画布；`.popup-shell` 不再依赖透明外框、外层圆角或 shell 阴影。
 - `PopupApp` 只渲染 toolbar popup shell，不再保留 save-window variant。
 
 ## 当前已实现能力

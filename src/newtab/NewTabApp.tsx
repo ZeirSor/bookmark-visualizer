@@ -12,6 +12,7 @@ import {
   SearchIcon,
   SettingsIcon
 } from "../components/icons/AppIcons";
+import { Button, IconButton } from "../design-system";
 import {
   BookmarkGroupStrip,
   FeaturedBookmarkRow,
@@ -85,26 +86,40 @@ export function NewTabApp() {
                 <span className="nt-page-pill">新标签页</span>
               </span>
             </div>
-            <button
-              type="button"
+            <IconButton
               className="nt-icon-button"
-              title="打开管理页"
-              aria-label="打开管理页"
+              icon={<ExternalLinkIcon />}
+              label="打开管理页"
               onClick={() => void openWorkspace()}
-            >
-              <ExternalLinkIcon />
-            </button>
+            />
           </div>
           <nav className="nt-main-nav" aria-label="新标签页操作">
-            <button type="button" className="is-active" onClick={focusSearch}>
-              <SearchIcon /> 搜索
-            </button>
-            <button type="button" onClick={() => void openWorkspace()}>
-              <FolderIcon /> 管理
-            </button>
-            <button type="button" onClick={() => setCustomizeOpen(true)}>
-              <SettingsIcon /> 设置
-            </button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="is-active"
+              selected
+              leadingIcon={<SearchIcon />}
+              onClick={focusSearch}
+            >
+              搜索
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              leadingIcon={<FolderIcon />}
+              onClick={() => void openWorkspace()}
+            >
+              管理
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              leadingIcon={<SettingsIcon />}
+              onClick={() => setCustomizeOpen(true)}
+            >
+              设置
+            </Button>
           </nav>
         </header>
 

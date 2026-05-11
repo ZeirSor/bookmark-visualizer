@@ -6,8 +6,9 @@ import {
   getDisplayTitle,
   type FolderOption
 } from "../features/bookmarks";
-import { ExternalLinkIcon, FolderIcon, SaveIcon, SettingsIcon } from "./components/PopupIcons";
+import { FolderIcon, SaveIcon, SettingsIcon } from "./components/PopupIcons";
 import { PopupFooter } from "./components/PopupFooter";
+import { PopupTopBar } from "./components/PopupTopBar";
 import { TabButton } from "./components/TabButton";
 import { ManageTab } from "./tabs/ManageTab";
 import { SaveTab } from "./tabs/SaveTab";
@@ -96,22 +97,11 @@ export function PopupApp({
 
   return (
     <main className="popup-shell">
-      <header className="popup-header">
-        <img src="/icons/icon-128.png" alt="" className="app-logo" />
-        <div className="brand-block">
-          <h1>我的书签</h1>
-          <p>Bookmark Visualizer</p>
-        </div>
-        <button
-          type="button"
-          className="icon-button"
-          aria-label="打开完整管理页"
-          title="打开完整管理页"
-          onClick={() => void openWorkspace()}
-        >
-          <ExternalLinkIcon />
-        </button>
-      </header>
+      <PopupTopBar
+        onViewHistory={() => bootstrap.setActiveTab("manage")}
+        onOpenManager={() => void openWorkspace()}
+        onClose={() => window.close()}
+      />
 
       <nav className="popup-tabs" aria-label="Popup 功能">
         <TabButton active={bootstrap.activeTab === "save"} icon={<SaveIcon />} onClick={() => bootstrap.setActiveTab("save")}>
@@ -181,7 +171,46 @@ export function PopupApp({
           status={bootstrap.status}
           statusTone={bootstrap.statusTone}
         />
-      ) : null}
+      ) : (
+        <PopupUtilityFooter
+          activeTab={bootstrap.activeTab}
+          onClose={() => window.close()}
+          onOpenManager={() => void openWorkspace()}
+        />
+      )}
     </main>
+  );
+}
+
+function PopupUtilityFooter({
+  activeTab,
+  onClose,
+  onOpenManager
+}: {
+  activeTab: "manage" | "settings";
+  onClose(): void;
+  onOpenManager(): void;
+}) {
+  const primaryLabel = activeTab === "manage" ? "打开完整管理页" : "完成";
+  const hint = activeTab === "manage" ? "完整工作台支持批量整理与编辑" : "设置会自动保存";
+
+  return (
+    <footer className="popup-footer popup-footer-utility">
+      <div className="status-line" aria-live="polite">
+        <span>{hint}</span>
+      </div>
+      <div className="footer-actions">
+        <button type="button" className="secondary-action" onClick={onClose}>
+          取消
+        </button>
+        <button
+          type="button"
+          className="primary-action"
+          onClick={activeTab === "manage" ? onOpenManager : onClose}
+        >
+          {primaryLabel}
+        </button>
+      </div>
+    </footer>
   );
 }

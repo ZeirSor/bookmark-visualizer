@@ -86,6 +86,16 @@ export function SearchIcon(props: IconProps) {
   );
 }
 
+export function FilterIcon(props: IconProps) {
+  return (
+    <IconSvg {...props}>
+      <path d="M4 6h16" />
+      <path d="M7 12h10" />
+      <path d="M10 18h4" />
+    </IconSvg>
+  );
+}
+
 export function GlobeIcon(props: IconProps) {
   return (
     <IconSvg {...props}>
@@ -216,6 +226,14 @@ export function ChevronRightIcon(props: IconProps) {
   return (
     <IconSvg {...props}>
       <path d="m9 6 6 6-6 6" />
+    </IconSvg>
+  );
+}
+
+export function ChevronDownIcon(props: IconProps) {
+  return (
+    <IconSvg {...props}>
+      <path d="m6 9 6 6 6-6" />
     </IconSvg>
   );
 }

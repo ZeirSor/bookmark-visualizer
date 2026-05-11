@@ -1,3 +1,4 @@
+import { Button } from "../../design-system";
 import { CheckIcon } from "./PopupIcons";
 
 export type PopupStatusTone = "idle" | "info" | "success" | "error";
@@ -37,17 +38,26 @@ export function PopupFooter({
         )}
       </div>
       <div className="footer-actions">
-        <button type="button" className="secondary-action" onClick={() => window.close()}>
+        <Button
+          type="button"
+          variant="secondary"
+          size="lg"
+          className="secondary-action"
+          onClick={() => window.close()}
+        >
           取消
-        </button>
-        <button
+        </Button>
+        <Button
           type="submit"
           form={formId}
+          variant="primary"
+          size="lg"
           className="primary-action"
-          disabled={saving || !canSave}
+          disabled={!canSave}
+          loading={saving}
         >
           {saving ? "保存中..." : selectedTitle ? `保存到 ${selectedTitle}` : "保存"}
-        </button>
+        </Button>
       </div>
     </footer>
   );

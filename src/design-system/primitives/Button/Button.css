@@ -1,0 +1,203 @@
+.bv-button,
+.bv-icon-button {
+  box-sizing: border-box;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  color: var(--bv-button-text);
+  font-family: var(--bv-font-ui);
+  font-weight: var(--bv-button-font-weight);
+  border: 1px solid var(--bv-button-border);
+  background: var(--bv-button-bg);
+  transition:
+    color var(--bv-motion-fast),
+    background var(--bv-motion-fast),
+    border-color var(--bv-motion-fast),
+    box-shadow var(--bv-motion-fast),
+    transform var(--bv-motion-fast);
+}
+
+.bv-button {
+  display: inline-flex;
+  min-width: 0;
+  gap: 7px;
+  white-space: nowrap;
+}
+
+.bv-button--sm {
+  min-height: var(--bv-control-height-sm);
+  padding: 0 12px;
+  font-size: 13px;
+  border-radius: var(--bv-radius-control);
+}
+
+.bv-button--md {
+  min-height: var(--bv-control-height-md);
+  padding: 0 16px;
+  font-size: 14px;
+  border-radius: var(--bv-radius-control);
+}
+
+.bv-button--lg {
+  min-height: var(--bv-control-height-lg);
+  padding: 0 20px;
+  font-size: 15px;
+  border-radius: var(--bv-radius-control);
+}
+
+.bv-button--primary {
+  color: var(--bv-button-text-primary);
+  border-color: var(--bv-button-bg-primary);
+  background: var(--bv-button-bg-primary);
+  box-shadow: var(--bv-button-shadow-primary);
+}
+
+.bv-button--danger {
+  color: var(--bv-button-text-primary);
+  border-color: var(--bv-button-bg-danger);
+  background: var(--bv-button-bg-danger);
+}
+
+.bv-button--ghost,
+.bv-button--text {
+  color: var(--bv-color-text-soft);
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+}
+
+.bv-button--text {
+  padding-inline: 8px;
+}
+
+.bv-button:not(:disabled):hover,
+.bv-button:not(:disabled):focus-visible,
+.bv-button.is-selected {
+  color: var(--bv-button-text-accent);
+  border-color: var(--bv-button-border-hover);
+  background: var(--bv-button-bg-hover);
+}
+
+.bv-button--primary:not(:disabled):hover,
+.bv-button--primary:not(:disabled):focus-visible {
+  color: var(--bv-button-text-primary);
+  border-color: var(--bv-button-bg-primary-hover);
+  background: var(--bv-button-bg-primary-hover);
+}
+
+.bv-button--danger:not(:disabled):hover,
+.bv-button--danger:not(:disabled):focus-visible {
+  color: var(--bv-button-text-primary);
+  filter: brightness(0.96);
+}
+
+.bv-button:focus-visible,
+.bv-icon-button:focus-visible {
+  outline: none;
+  box-shadow: var(--bv-focus-ring-compact);
+}
+
+.bv-button:active:not(:disabled),
+.bv-icon-button:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.bv-button:disabled,
+.bv-icon-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.52;
+  box-shadow: none;
+  transform: none;
+}
+
+.bv-button.is-full-width {
+  width: 100%;
+}
+
+.bv-button-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.bv-button-icon {
+  display: inline-grid;
+  flex: 0 0 auto;
+  place-items: center;
+}
+
+.bv-button-icon > svg,
+.bv-icon-button > svg {
+  width: 1.15em;
+  height: 1.15em;
+}
+
+.bv-icon-button {
+  display: inline-grid;
+  place-items: center;
+  color: var(--bv-icon-button-text);
+  border-color: var(--bv-icon-button-border);
+  background: var(--bv-icon-button-bg);
+  border-radius: var(--bv-radius-control);
+}
+
+.bv-icon-button--sm {
+  width: var(--bv-control-height-icon-sm);
+  height: var(--bv-control-height-icon-sm);
+  font-size: 16px;
+}
+
+.bv-icon-button--md {
+  width: var(--bv-control-height-icon-md);
+  height: var(--bv-control-height-icon-md);
+  font-size: 18px;
+}
+
+.bv-icon-button--lg {
+  width: var(--bv-control-height-icon-lg);
+  height: var(--bv-control-height-icon-lg);
+  font-size: 20px;
+}
+
+.bv-icon-button:not(:disabled):hover,
+.bv-icon-button:not(:disabled):focus-visible,
+.bv-icon-button.is-selected {
+  color: var(--bv-icon-button-text-hover);
+  border-color: var(--bv-icon-button-border-hover);
+  background: var(--bv-icon-button-bg-hover);
+}
+
+.bv-icon-button--accent {
+  color: var(--bv-color-accent);
+}
+
+.bv-icon-button--danger {
+  color: var(--bv-color-danger);
+}
+
+.bv-button-spinner {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: var(--bv-radius-pill);
+  animation: bv-button-spin 720ms linear infinite;
+}
+
+@keyframes bv-button-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bv-button,
+  .bv-icon-button {
+    transition: none;
+  }
+
+  .bv-button-spinner {
+    animation: none;
+  }
+}

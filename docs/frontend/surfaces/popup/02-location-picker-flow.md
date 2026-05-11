@@ -59,10 +59,11 @@
 关键设计：
 
 - 不使用横向 floating cascade，避免被 toolbar popup 边界裁剪。
+- 在 Save Tab 中展开时，`.location-picker-shell > .inline-folder-picker .inline-folder-picker-body` 使用更小的内部滚动高度，避免顶出 footer。
 - 初次打开时展开当前选中路径。
 - Arrow Up / Down 在可选项之间移动；Arrow Right 展开当前文件夹；Arrow Left 折叠或移动到父级；Enter 选择；Escape 清空搜索或关闭 picker。
 - 只允许选择 `canCreateBookmarkInFolder(folder)` 的目标。
-- 搜索输入使用 `.folder-search-input`，左右 padding 为图标和清空按钮预留空间，避免 placeholder 与图标重叠。
+- 搜索输入使用 `.folder-search-input`，容器保持 `position: relative`、`width: 100%`、`min-width: 0`，左右 padding 为图标和清空按钮预留空间，避免 placeholder 与图标重叠。
 - 旧 overlay re-export 已删除；当前 popup 直接使用 `src/components/folder-picker/InlineFolderPicker.tsx`，避免维护两套实现。
 
 互斥规则：
@@ -111,7 +112,7 @@
 
 - 点击路径文字不会打开 picker；点击箭头才打开。
 - Picker 内联显示，不被 Popup 边界裁剪。
-- 800×600 popup 中 picker 内部滚动可访问深层文件夹。
+- 720×600 popup 中 picker 内部滚动可访问深层文件夹。
 - 不可保存文件夹显示 disabled label，不可被选择。
 - 搜索输入后结果在 picker 内出现。
 - 搜索 Esc 清空 query，再按 Escape 关闭 picker。

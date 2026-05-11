@@ -7,7 +7,7 @@ import {
   type KeyboardEvent as ReactKeyboardEvent,
   type ReactNode
 } from "react";
-import { CheckIcon, ChevronRightIcon } from "../../components/PopupIcons";
+import { CheckIcon, ChevronDownIcon } from "../../components/PopupIcons";
 
 export interface SelectOption {
   label: string;
@@ -16,14 +16,17 @@ export interface SelectOption {
 
 export function SettingsSection({
   children,
+  icon,
   title
 }: {
   children: ReactNode;
+  icon?: ReactNode;
   title: string;
 }) {
   return (
     <section className="settings-card settings-section">
       <div className="section-heading">
+        {icon ? <span className="settings-section-icon" aria-hidden="true">{icon}</span> : null}
         <h2>{title}</h2>
       </div>
       <div className="settings-section-body">{children}</div>
@@ -239,7 +242,7 @@ export function CustomSelect({
         }}
       >
         <span>{selectedOption?.label ?? "请选择"}</span>
-        <ChevronRightIcon />
+        <ChevronDownIcon />
       </button>
       {open ? (
         <div id={listboxId} className="custom-select-menu" role="listbox" aria-label={label}>

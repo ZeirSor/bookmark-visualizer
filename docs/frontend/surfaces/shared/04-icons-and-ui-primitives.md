@@ -43,6 +43,31 @@ Rules:
 - UI surfaces must keep the image and fallback in the same fixed-size box to prevent layout shift.
 - Do not add direct Google s2, DuckDuckGo, or other third-party favicon URL construction in individual components.
 
+## Button And IconButton
+
+`src/design-system/primitives/Button/` owns the first shared P0 button primitives.
+
+Rules:
+
+- Use `Button` for text actions with `variant`, `size`, `loading`, `selected`, and optional leading/trailing icons.
+- Use `IconButton` for icon-only actions; `label` is required and becomes the accessible name.
+- Shared button styling must consume `--bv-button-*`, `--bv-icon-button-*`, control-height, focus-ring, radius, and motion tokens.
+- Surface selector classes may remain during first migration only for layout and compatibility. Retire them after `rg` confirms no remaining usage.
+- Do not create new page-local button color, radius, shadow, focus, or loading recipes.
+
+## First-Pass Component Tokens
+
+`src/styles/tokens.css` now owns first-pass component token groups for upcoming primitives:
+
+- `--bv-input-*` for text input, textarea, and native select shells.
+- `--bv-card-*` and `--bv-panel-*` for reusable content surfaces.
+- `--bv-dialog-*` and `--bv-drawer-*` for overlay shells and layering.
+- `--bv-menu-*` for menu/popover shells and rows.
+- `--bv-toast-*` for status feedback.
+- `--bv-chip-*` for compact selected/filter/recent-folder affordances.
+
+These tokens are contracts only until the matching runtime primitives are introduced. Surface CSS may consume them during migration, but should not fork their color, radius, focus, z-index, motion, or shadow recipes.
+
 ## Cross-Surface Checks
 
 When changing a primitive, check affected surfaces:
