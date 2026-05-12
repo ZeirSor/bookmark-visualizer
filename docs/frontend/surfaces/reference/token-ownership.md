@@ -96,7 +96,7 @@ Not allowed:
 
 ## Hardcode Policy
 
-New page-level CSS must not add raw values in these categories:
+The full guardrail is maintained in [CSS hardcode policy](css-hardcode-policy.md). In short, new page-level CSS must not add raw values in these categories:
 
 - hex colors;
 - raw `rgb()` / `rgba()` colors for borders, backgrounds, rings, or shadows;
@@ -105,7 +105,7 @@ New page-level CSS must not add raw values in these categories:
 - transition durations or easing values;
 - focus-ring shadows.
 
-Intentional exceptions belong in the planned `token-exceptions.md` document from task `1.6`.
+Intentional exceptions belong in [Token exceptions](token-exceptions.md).
 
 ## Migration Notes
 

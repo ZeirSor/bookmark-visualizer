@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { CloseIcon } from "../../components/icons/AppIcons";
+import { Input } from "../../design-system";
 
 export function ShortcutDialog({
   onClose,
@@ -25,11 +26,12 @@ export function ShortcutDialog({
         </div>
         <label className="nt-field-row vertical">
           <span>名称</span>
-          <input value={title} onChange={(event) => setTitle(event.target.value)} />
+          <Input fullWidth value={title} onChange={(event) => setTitle(event.target.value)} />
         </label>
         <label className="nt-field-row vertical">
           <span>URL</span>
-          <input
+          <Input
+            fullWidth
             value={url}
             placeholder="https://example.com"
             onChange={(event) => setUrl(event.target.value)}

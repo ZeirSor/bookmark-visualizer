@@ -30,4 +30,6 @@ The removed independent save page, Save Overlay, and legacy Quick Save dialog ar
 - [Component inventory](reference/component-inventory.md)
 - [Token audit](reference/token-audit.md)
 - [Token ownership](reference/token-ownership.md)
+- [CSS hardcode policy](reference/css-hardcode-policy.md)
+- [Token exceptions](reference/token-exceptions.md)
 - [Component state matrix](reference/component-state-matrix.md)

@@ -4,7 +4,9 @@
       "PowerShell(treef *)",
       "WebSearch",
       "WebFetch(domain:developer.chrome.com)",
-      "WebFetch(domain:github.com)"
+      "WebFetch(domain:github.com)",
+      "Bash(git add *)",
+      "Bash(git commit *)"
     ]
   }
 }

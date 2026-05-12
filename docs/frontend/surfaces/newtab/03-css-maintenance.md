@@ -25,6 +25,14 @@ New Tab 使用 `--nt-*` alias，这些 alias 来自 `src/styles/tokens.css`：
 | `--nt-radius-*` | 圆角 |
 | `--nt-shadow-*` | 阴影 |
 
+New Tab 也可以直接消费共享 component tokens：
+
+- 已迁移的 header 管理页入口和主导航动作使用 `src/design-system/primitives/Button/`，对应 `.bv-button` / `.bv-icon-button` 与 `--bv-button-*`、`--bv-icon-button-*`。
+- 已迁移的 `CustomizeLayoutPanel` native selects / 数字输入和 `ShortcutDialog` 标题 / URL 输入使用 `src/design-system/primitives/FormControls/`，对应 `.bv-select`、`.bv-input-shell`、`.bv-input-control` 与 `--bv-input-*`。
+- 后续替换 SearchPanel combobox、panel、drawer、dialog、toast、chip 时，应复用 `--bv-input-*`、`--bv-panel-*`、`--bv-dialog-*`、`--bv-drawer-*`、`--bv-toast-*`、`--bv-chip-*`，再保留必要的 `--nt-*` 布局 alias。
+- `.nt-page` 的搜索首屏背景光斑是当前例外，记录在 [Token exceptions](../reference/token-exceptions.md)；不要把该背景样式扩散到其他 surface。
+- 新增页面级 CSS 必须遵守 [CSS hardcode policy](../reference/css-hardcode-policy.md)，避免新增 raw 视觉值。
+
 ## 主要 selector
 
 | selector | 组件 | 说明 |
@@ -40,6 +48,7 @@ New Tab 使用 `--nt-*` alias，这些 alias 来自 `src/styles/tokens.css`：
 | `.nt-search-hero` | `SearchPanel` | 搜索主卡 |
 | `.nt-search-box` | `SearchPanel` | 搜索输入 shell |
 | `.nt-suggestion-panel` | `SearchPanel` | 建议浮层 |
+| `.bv-input-shell` / `.bv-input-control` / `.bv-select` | `ShortcutDialog` / `CustomizeLayoutPanel` | 共享 FormControls 字段 |
 | `.nt-shortcut-grid` | `PinnedShortcutGrid` | 快捷方式网格 |
 | `.nt-folder-strip` | `BookmarkGroupStrip` | 书签分组横向流 |
 | `.nt-featured-row` | `FeaturedBookmarkRow` | 精选书签列表 |

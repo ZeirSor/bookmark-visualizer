@@ -2,6 +2,7 @@ import type { SettingsState } from "../../features/settings";
 import type { SearchCategory } from "../../features/newtab";
 import { SEARCH_CATEGORIES, SEARCH_ENGINES } from "../../features/newtab";
 import { CloseIcon } from "../../components/icons/AppIcons";
+import { Input, Select } from "../../design-system";
 
 export function CustomizeLayoutPanel({
   settings,
@@ -31,53 +32,46 @@ export function CustomizeLayoutPanel({
 
         <label className="nt-field-row">
           <span>默认搜索引擎</span>
-          <select
+          <Select
+            fullWidth
             value={settings.newTabDefaultSearchEngineId}
-            onChange={(event) => onChange({ newTabDefaultSearchEngineId: event.target.value })}
-          >
-            {SEARCH_ENGINES.map((engine) => (
-              <option key={engine.id} value={engine.id}>
-                {engine.label}
-              </option>
-            ))}
-          </select>
+            options={SEARCH_ENGINES.map((engine) => ({ value: engine.id, label: engine.label }))}
+            onValueChange={(value) => onChange({ newTabDefaultSearchEngineId: value })}
+          />
         </label>
 
         <label className="nt-field-row">
           <span>默认搜索类型</span>
-          <select
+          <Select<SearchCategory>
+            fullWidth
             value={settings.newTabDefaultSearchCategory}
-            onChange={(event) =>
-              onChange({ newTabDefaultSearchCategory: event.target.value as SearchCategory })
-            }
-          >
-            {SEARCH_CATEGORIES.map((category) => (
-              <option key={category.id} value={category.id}>
-                {category.label}
-              </option>
-            ))}
-          </select>
+            options={SEARCH_CATEGORIES.map((category) => ({ value: category.id, label: category.label }))}
+            onValueChange={(value) => onChange({ newTabDefaultSearchCategory: value })}
+          />
         </label>
 
         <label className="nt-field-row">
           <span>布局模式</span>
-          <select
+          <Select<SettingsState["newTabLayoutMode"]>
+            fullWidth
             value={settings.newTabLayoutMode}
-            onChange={(event) =>
+            options={[
+              { value: "standard", label: "标准" },
+              { value: "sidebar", label: "动态侧栏" },
+              { value: "tabs", label: "分区 Tab" }
+            ]}
+            onValueChange={(value) =>
               onChange({
-                newTabLayoutMode: event.target.value as SettingsState["newTabLayoutMode"]
+                newTabLayoutMode: value
               })
             }
-          >
-            <option value="standard">标准</option>
-            <option value="sidebar">动态侧栏</option>
-            <option value="tabs">分区 Tab</option>
-          </select>
+          />
         </label>
 
         <label className="nt-field-row">
           <span>每行快捷方式</span>
-          <input
+          <Input
+            fullWidth
             type="number"
             min={4}
             max={10}

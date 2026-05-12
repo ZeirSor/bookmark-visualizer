@@ -22,7 +22,7 @@ Audited files:
 | Semantic tokens | `src/styles/tokens.css` | Partial | Color semantics exist for text, surface, line, accent, success, danger, orange, and blue. Motion, z-index, focus-ring, and component semantics are not fully centralized. |
 | Surface aliases | `src/styles/tokens.css`, plus surface CSS `:root` aliases | Mixed | `--nt-*`, `--popup-*`, and `--app-*` exist in global tokens, but Manager and Popup also define extra local alias layers in page CSS. |
 | Component tokens | `src/styles/tokens.css`, partial first pass | Partial | Button, IconButton, Input, Card, Panel, Dialog, Drawer, Menu, Toast, and Chip component token groups now exist. Switch, tabs, empty/loading primitives, and search controls still need token contracts. |
-| Token exceptions | none yet | Missing | Intentional raw values are not listed in a formal exceptions document. |
+| Token exceptions | `docs/frontend/surfaces/reference/token-exceptions.md` | Exists | First-pass exception ledger records provisional Manager dark-mode, New Tab background, and Popup accent-gradient exceptions. |
 
 ## Raw Value Summary
 
@@ -94,14 +94,14 @@ Risk:
 | Radius | Base tokens exist, but surfaces still use many one-off values and extra aliases. | Define component radius tokens for button/input, card/panel, menu/popover, dialog/drawer, pill. |
 | Shadow | Base shadows exist, but surfaces still use local raw shadows and page-specific shadow aliases. | Define component shadow tokens and list intentional decorative shadows as exceptions. |
 | Component tokens | Partial. | Button, IconButton, Input, Card, Panel, Dialog, Drawer, Menu, Toast, and Chip groups exist as first-pass contracts; later phases should add Switch, Tabs, EmptyState, Skeleton, Spinner, SiteIcon, and search tokens as primitives/patterns are introduced. |
-| Raw-value exceptions | Missing. | Task `1.6` should create the planned future reference doc `token-exceptions.md` under this directory. |
+| Raw-value exceptions | First-pass ledger exists. | Keep `token-exceptions.md` current when a visual raw value cannot be tokenized during a task. |
 
 ## Cleanup Priority
 
 1. Define shared motion, z-index, focus-ring, control-height, radius, and shadow tokens before changing page CSS.
 2. Consume the first-pass component-token groups when migrating Input, Card/Panel, Dialog, Drawer, Toast, Menu, and Chip primitives.
 3. Treat Manager page aliases and Popup component selectors as migration inputs, not as final token contracts.
-4. Keep New Tab search hero and radial page background as explicit exception candidates until a product/design decision is made.
+4. Keep New Tab search hero and radial page background recorded in `token-exceptions.md` until a product/design decision is made.
 5. Do not replace raw values mechanically without checking visual states; many values currently encode hover, focus, selected, loading, and overlay behavior.
 
 ## Related Docs

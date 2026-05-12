@@ -1,0 +1,202 @@
+.bv-input-shell,
+textarea.bv-textarea.bv-textarea,
+select.bv-select.bv-select {
+  box-sizing: border-box;
+  min-width: 0;
+  color: var(--bv-input-text);
+  font-family: var(--bv-font-ui);
+  font-size: 14.5px;
+  font-weight: 600;
+  border: 1px solid var(--bv-input-border);
+  border-radius: var(--bv-input-radius);
+  background: var(--bv-input-bg);
+  box-shadow: var(--bv-input-shadow);
+  transition:
+    color var(--bv-motion-fast),
+    background var(--bv-motion-fast),
+    border-color var(--bv-motion-fast),
+    box-shadow var(--bv-motion-fast);
+}
+
+.bv-input-shell {
+  display: inline-flex;
+  align-items: center;
+}
+
+.bv-input-shell--sm,
+select.bv-select--sm.bv-select--sm {
+  min-height: var(--bv-input-height-sm);
+}
+
+.bv-input-shell--md,
+select.bv-select--md.bv-select--md {
+  min-height: var(--bv-input-height-md);
+}
+
+.bv-input-shell--lg,
+select.bv-select--lg.bv-select--lg {
+  min-height: var(--bv-input-height-lg);
+}
+
+.bv-input-shell--sm {
+  padding-inline: 11px;
+}
+
+.bv-input-shell--md {
+  padding-inline: 13px;
+}
+
+.bv-input-shell--lg {
+  padding-inline: 15px;
+}
+
+.bv-input-shell.is-full-width,
+textarea.bv-textarea.is-full-width,
+select.bv-select.is-full-width {
+  width: 100%;
+}
+
+.bv-input-shell.is-readonly,
+textarea.bv-textarea.is-readonly {
+  background: var(--bv-input-bg-readonly);
+}
+
+.bv-input-shell.is-disabled,
+textarea.bv-textarea:disabled,
+select.bv-select:disabled {
+  color: var(--bv-color-muted);
+  cursor: not-allowed;
+  background: var(--bv-input-bg-disabled);
+  box-shadow: none;
+}
+
+.bv-input-shell.is-invalid,
+textarea.bv-textarea.is-invalid,
+select.bv-select.is-invalid {
+  border-color: var(--bv-input-border-error);
+}
+
+.bv-input-shell:not(.is-disabled):not(.is-readonly):hover,
+textarea.bv-textarea:not(:disabled):not(:read-only):hover,
+select.bv-select:not(:disabled):hover {
+  border-color: var(--bv-input-border-hover);
+}
+
+.bv-input-shell:focus-within,
+textarea.bv-textarea:focus-visible,
+select.bv-select:focus-visible {
+  border-color: var(--bv-input-border-focus);
+  outline: none;
+  box-shadow: var(--bv-input-focus-ring);
+}
+
+.bv-input-shell.is-invalid:focus-within,
+textarea.bv-textarea.is-invalid:focus-visible,
+select.bv-select.is-invalid:focus-visible {
+  border-color: var(--bv-input-border-error);
+}
+
+.bv-input-control {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+  min-height: calc(var(--bv-input-height-md) - 2px);
+  padding: 0;
+  color: inherit;
+  font: inherit;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  border: 0;
+  background: transparent;
+  outline: 0;
+}
+
+.bv-input-shell--sm .bv-input-control {
+  min-height: calc(var(--bv-input-height-sm) - 2px);
+  font-size: 13px;
+}
+
+.bv-input-shell--lg .bv-input-control {
+  min-height: calc(var(--bv-input-height-lg) - 2px);
+  font-size: 15px;
+}
+
+.bv-input-control::placeholder,
+textarea.bv-textarea::placeholder {
+  color: var(--bv-input-placeholder);
+}
+
+.bv-input-control:disabled {
+  cursor: not-allowed;
+}
+
+.bv-input-control.bv-input-control:focus {
+  border: 0;
+  outline: 0;
+  box-shadow: none;
+}
+
+.bv-input-icon,
+.bv-input-trailing {
+  display: inline-grid;
+  flex: 0 0 auto;
+  place-items: center;
+  color: var(--bv-color-muted);
+}
+
+.bv-input-icon {
+  margin-inline-end: 8px;
+}
+
+.bv-input-trailing {
+  margin-inline-start: 8px;
+}
+
+textarea.bv-textarea.bv-textarea {
+  display: block;
+  padding: 11px 13px;
+  line-height: 1.45;
+}
+
+textarea.bv-textarea--sm.bv-textarea--sm {
+  min-height: 72px;
+  font-size: 13.5px;
+}
+
+textarea.bv-textarea--md.bv-textarea--md {
+  min-height: 82px;
+}
+
+textarea.bv-textarea--lg.bv-textarea--lg {
+  min-height: 108px;
+  font-size: 15px;
+}
+
+textarea.bv-textarea--resize-none {
+  resize: none;
+}
+
+textarea.bv-textarea--resize-vertical {
+  resize: vertical;
+}
+
+select.bv-select.bv-select {
+  min-width: 0;
+  padding: 0 32px 0 13px;
+  color: var(--bv-input-text);
+  line-height: 1.35;
+}
+
+textarea.bv-textarea.bv-textarea:focus,
+select.bv-select.bv-select:focus {
+  outline: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bv-input-shell,
+  textarea.bv-textarea.bv-textarea,
+  select.bv-select.bv-select {
+    transition: none;
+  }
+}

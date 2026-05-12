@@ -8,8 +8,8 @@
 | 保存布局 | `.save-layout` | `SaveTab.tsx` | 单列纵向流程；隐藏预览时追加 `.without-preview` |
 | 预览列 | `.save-preview-column` | `SaveTab.tsx` | 只在 `settings.popupShowThumbnail` 开启时显示，顶部居中 |
 | 编辑列 | `.save-editor-column` | `SaveTab.tsx` | 标题 / URL / 备注 / 保存位置 |
-| 字段组 | `.field-stack.compact` | `SaveTab.tsx` | 标题和 URL |
-| 备注字段 | `.note-field.compact` | `SaveTab.tsx` | textarea |
+| 字段组 | `.field-stack.compact` | `SaveTab.tsx` | 标题和 URL，使用共享 `Input` |
+| 备注字段 | `.note-field.compact` | `SaveTab.tsx` | 使用共享 `Textarea` |
 | 字数提示 | `.note-label-row small` | `SaveTab.tsx` | 显示当前备注长度，例如 `0/200` |
 | 内部页面说明 | `.save-info-banner` | `SaveTab.tsx` | `pageKind === "browser-internal"` 时说明浏览器内部页面可保存 |
 
@@ -40,7 +40,7 @@
 | 代码 | `SaveTab.tsx` lines around title input |
 | 数据 | `title` state，初始化自当前标签页标题 |
 | 交互 | 用户可编辑，保存时传给 `createQuickSaveBookmark()` |
-| selector | `.field-stack input` |
+| selector | `.field-stack .bv-input-control` |
 | 维护 | 标题为空时当前仍允许后续逻辑兜底；如要强制标题，需在 `PopupApp.save()` 校验 |
 
 ## URL 输入框
@@ -50,7 +50,7 @@
 | 代码 | `SaveTab.tsx` `.url-input` |
 | 数据 | `pageDetails?.url` |
 | 交互 | `readOnly`，focus 时 select 全部文本，便于复制 |
-| selector | `.url-input` |
+| selector | `.url-input .bv-input-control` |
 | 维护 | readonly 不要做 disabled 样式，否则可读性和选择行为会变差 |
 
 ## 备注 textarea
@@ -60,7 +60,7 @@
 | 代码 | `SaveTab.tsx` `.note-field` |
 | 数据 | `note` state |
 | 交互 | 输入后保存到 extension metadata，不写入 Chrome bookmark 原生字段 |
-| selector | `.note-field textarea` |
+| selector | `.note-field .bv-textarea` |
 | placeholder | `添加一点自己的上下文` |
 
 ## PopupFooter

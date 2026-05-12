@@ -127,3 +127,9 @@ npm run verify:popup-entry
 2. Popup 保存 Tab。
 3. New Tab 首屏。
 4. Quick Save 不受影响，因为它使用 Shadow DOM 独立 CSS。
+
+新增或修改页面级 CSS 时必须执行 hardcode policy 检查：
+
+1. 扫描 touched CSS 中的 hex、`rgb()` / `rgba()`、`box-shadow`、`border-radius`、`z-index` 和 `transition`。
+2. 确认新增视觉值已改用 `src/styles/tokens.css` 中的 raw / semantic / component token。
+3. 对暂时不能 token 化的视觉值，记录到 [Token exceptions](token-exceptions.md)。

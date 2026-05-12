@@ -45,7 +45,16 @@ export function SaveLocationPicker({
   return (
     <section className="location-panel" aria-label="保存位置">
       <div className="location-heading">保存位置</div>
-      <div className="location-picker-shell">
+      <div
+        className="location-picker-shell"
+        onKeyDown={(event) => {
+          if (event.key === "Escape" && locationMenuOpen) {
+            event.preventDefault();
+            event.stopPropagation();
+            closeLocationMenu();
+          }
+        }}
+      >
         <LocationPathRow
           displayPath={displayPath}
           disabled={loading || !selectedFolderId}

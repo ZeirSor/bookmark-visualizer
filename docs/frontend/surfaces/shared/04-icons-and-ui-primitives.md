@@ -55,6 +55,18 @@ Rules:
 - Surface selector classes may remain during first migration only for layout and compatibility. Retire them after `rg` confirms no remaining usage.
 - Do not create new page-local button color, radius, shadow, focus, or loading recipes.
 
+## Form Controls
+
+`src/design-system/primitives/FormControls/` owns the P0 form-control layer. `Input`, `Textarea`, and native `Select` are runtime primitives exported from `src/design-system`; `Switch` is still documented as a contract only.
+
+Rules:
+
+- Use shared `Input`, `Textarea`, and native `Select` for generic low-risk fields where native browser behavior should be preserved.
+- `Input`, `Textarea`, and native `Select` must consume `--bv-input-*`, control-height, focus-ring, radius, and motion tokens.
+- `Switch` must use `button role="switch"` semantics with a required accessible `label`; it needs a future `--bv-switch-*` token group before broad runtime migration.
+- Native select is the first shared select primitive. Popup `CustomSelect` remains page-local until Menu/Listbox primitives exist.
+- Form controls preserve user input in error states; settings persistence feedback belongs to the caller or a future SettingsRow pattern.
+
 ## First-Pass Component Tokens
 
 `src/styles/tokens.css` now owns first-pass component token groups for upcoming primitives:
@@ -66,7 +78,7 @@ Rules:
 - `--bv-toast-*` for status feedback.
 - `--bv-chip-*` for compact selected/filter/recent-folder affordances.
 
-These tokens are contracts only until the matching runtime primitives are introduced. Surface CSS may consume them during migration, but should not fork their color, radius, focus, z-index, motion, or shadow recipes.
+`--bv-input-*` now backs the runtime `Input`, `Textarea`, and native `Select` primitives. Other token groups may remain contracts until the matching runtime primitives are introduced. Surface CSS may consume shared tokens during migration, but should not fork their color, radius, focus, z-index, motion, or shadow recipes.
 
 ## Cross-Surface Checks
 

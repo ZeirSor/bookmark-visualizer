@@ -131,6 +131,6 @@ state.pinnedShortcuts
 
 | 组件 | selector | 说明 |
 |---|---|---|
-| CustomizeLayoutPanel | `.nt-customize-drawer`、`.nt-drawer-backdrop` | 修改 New Tab 显示选项和布局偏好 |
-| ShortcutDialog | `.nt-shortcut-dialog`、`.nt-dialog-actions` | 添加自定义 shortcut |
+| CustomizeLayoutPanel | `.nt-customize-drawer`、`.nt-drawer-backdrop`、`.bv-select`、`.bv-input-control` | 修改 New Tab 显示选项和布局偏好；native selects 和每行快捷方式数字输入使用共享 FormControls，checkbox rows 仍为本地 native checkbox |
+| ShortcutDialog | `.nt-shortcut-dialog`、`.nt-dialog-actions`、`.bv-input-control` | 添加自定义 shortcut；标题和 URL 字段使用共享 `Input` |
 | toast | `.nt-toast` | 2600ms 自动消失 |

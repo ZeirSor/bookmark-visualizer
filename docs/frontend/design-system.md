@@ -40,7 +40,7 @@ src/design-system/
   patterns/
 ```
 
-- `src/design-system/primitives/` owns generic UI building blocks such as Button, IconButton, Input, Dialog, Drawer, Toast, Card, Panel, and EmptyState. `Button` and `IconButton` are the first runtime primitives in this path.
+- `src/design-system/primitives/` owns generic UI building blocks such as Button, IconButton, Input, Dialog, Drawer, Toast, Card, Panel, and EmptyState. `Button`, `IconButton`, `Input`, `Textarea`, and native `Select` are runtime primitives exported from `src/design-system`. `Switch` remains contract-only under `src/design-system/primitives/FormControls/README.md` until switch-specific tokens and migration are ready.
 - `src/design-system/patterns/` owns bookmark-specific reusable patterns such as FolderPicker, SaveLocationPicker, BookmarkCard, SearchBox, SettingsRow, and OperationLog.
 - `src/design-system/tokens/` is reserved for future token helpers; current CSS token source remains `src/styles/tokens.css`.
 - Existing shared components under `src/components/` may remain during migration, but new shared primitives and business patterns should be introduced through `src/design-system/` first.
@@ -76,6 +76,7 @@ Switch, tabs, empty/loading primitives, and search-specific tokens remain future
 - 状态色只用于语义：success、danger、blue、orange，不用作装饰色。
 - 新增颜色必须先进入 `src/styles/tokens.css`，再由页面 alias 引用。
 - 禁止在组件 CSS 中继续散落新的 hex 色值，除非是一次性第三方品牌色或 favicon fallback。
+- 新增页面 CSS 必须遵守 [CSS hardcode policy](surfaces/reference/css-hardcode-policy.md)：视觉值优先使用 token；确需保留的视觉硬编码记录到 [Token exceptions](surfaces/reference/token-exceptions.md)。
 
 ## Radius And Elevation
 

@@ -37,5 +37,16 @@ Current page code can continue using existing `src/components/` exports while mi
 
 - `Button`
 - `IconButton`
+- `Input`
+- `Textarea`
+- `Select`
 
-Both live under `src/design-system/primitives/Button/` and are exported from `src/design-system`.
+`Button` and `IconButton` live under `src/design-system/primitives/Button/`.
+`Input`, `Textarea`, and native `Select` live under `src/design-system/primitives/FormControls/`.
+All current runtime primitives are exported from `src/design-system`.
+
+## Contracted But Not Runtime-Exported
+
+- `Switch`
+
+`Switch` remains contract-only in `src/design-system/primitives/FormControls/README.md` until `--bv-switch-*` tokens and a validated runtime migration land.

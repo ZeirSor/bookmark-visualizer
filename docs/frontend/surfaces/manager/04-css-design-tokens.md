@@ -13,6 +13,7 @@ src/main.tsx
 | 层 | 文件 | 示例 | 说明 |
 |---|---|---|---|
 | 全局基础 token | `src/styles/tokens.css` | `--bv-color-accent-base`、`--bv-radius-lg`、`--bv-shadow-sm` | 跨页面稳定值 |
+| 共享 component token | `src/styles/tokens.css` | `--bv-button-*`、`--bv-input-*`、`--bv-card-*`、`--bv-dialog-*` | 新共享 primitive / pattern 的视觉契约 |
 | app alias | `src/styles/tokens.css` | `--app-bg`、`--app-panel`、`--app-dark-bg` | 管理页使用的页面级 alias |
 | 管理页兼容变量 | `src/app/styles.css` | `--surface-card`、`--text-primary`、`--control-height-md` | 现有 CSS 使用的语义变量 |
 | 组件 selector | `src/app/styles.css` | `.bookmark-card`、`.folder-tree`、`.right-rail` | 具体 UI 样式 |
@@ -35,6 +36,15 @@ src/main.tsx
 | `--shadow-card` | 卡片阴影 |
 | `--motion-fast/normal/slow` | 动效时长 |
 | `--z-dropdown/popover/drawer/toast` | 层级 |
+
+## Token Governance
+
+管理页仍保留较多历史兼容变量，它们是后续迁移输入，不是新增视觉体系的模板。
+
+- 新增或重写按钮、输入框、卡片、panel、dialog、drawer、menu、toast、chip 样式时，优先消费 `--bv-*` semantic / component tokens。
+- 不新增页面级 hex、raw `rgb()` / `rgba()` 视觉色、圆角、阴影、z-index、transition duration 或 focus ring；必要例外记录到 [Token exceptions](../reference/token-exceptions.md)。
+- Manager dark-mode alias 当前是临时保留项，记录为 `TE-001`；在 Phase 4 大范围替换管理页 primitive 前，应把可共享的暗色语义提升到全局 token。
+- 页面 selector 可以继续承担布局、网格、滚动、响应式和数据状态组合，但不要创建新的 base control recipe。
 
 ## 主要 selector 维护表
 

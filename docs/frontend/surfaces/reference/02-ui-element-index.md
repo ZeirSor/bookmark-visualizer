@@ -2,11 +2,13 @@
 
 ## 全局按钮规范
 
+首批共享按钮 primitive 位于 `src/design-system/primitives/Button/`，通过 `src/design-system` 导出。已迁移的按钮会同时出现 `.bv-button` / `.bv-icon-button` 与少量 surface class；surface class 在迁移期只用于布局兼容，不应新增颜色、圆角、阴影、focus 或 loading recipe。
+
 | 类型 | 使用位置 | 规则 |
 |---|---|---|
 | 主按钮 | 保存、确认创建 | 只用于最终提交动作 |
 | 次按钮 | 取消、关闭、轻操作 | 白底 / 灰边 / hover 浅主色 |
-| icon-only | 打开管理页、清除、更多、主题、箭头 | 必须有 `aria-label` 和 `title` |
+| icon-only | 打开管理页、清除、更多、主题、箭头 | 优先使用 `IconButton`；必须有可访问名称和 tooltip / title 策略 |
 | disabled 占位 | 排序、筛选、导入导出、云空间、星标 | 必须弱化，并带 `title="即将支持"` 或类似说明 |
 | danger | 删除 | 使用 danger 色，删除前确认 |
 
@@ -47,9 +49,9 @@
 | Top Bar 操作 | `PopupTopBar.tsx` | `.topbar-tool-button` |
 | Tab 保存 / 管理 / 设置 | `TabButton.tsx` | `.popup-tabs button` |
 | 页面预览 | `PagePreviewCard.tsx` | `.page-preview` |
-| 标题 input | `SaveTab.tsx` | `.field-stack input` |
-| URL readonly | `SaveTab.tsx` | `.url-input` |
-| 备注 textarea | `SaveTab.tsx` | `.note-field textarea` |
+| 标题 input | `SaveTab.tsx` | `.field-stack .bv-input-control` |
+| URL readonly | `SaveTab.tsx` | `.url-input .bv-input-control` |
+| 备注 textarea | `SaveTab.tsx` | `.note-field .bv-textarea` |
 | 保存位置路径 | `LocationPathRow.tsx` | `.location-path-row` |
 | 保存位置箭头 | `LocationPathRow.tsx` | `.location-arrow-button` |
 | 文件夹搜索 | `FolderSearchInput.tsx` | `.folder-search-input input` |
@@ -87,7 +89,10 @@
 | 最近活动 | `NewTabSections.tsx` | `.nt-activity-list button` |
 | 快捷操作 | `NewTabSections.tsx` | `.nt-action-list button` |
 | 自定义抽屉 | `CustomizeLayoutPanel.tsx` | `.nt-customize-drawer` |
+| 自定义抽屉 selects | `CustomizeLayoutPanel.tsx` | `.nt-customize-drawer .bv-select` |
+| 每行快捷方式 input | `CustomizeLayoutPanel.tsx` | `.nt-customize-drawer .bv-input-control` |
 | 添加 shortcut 对话框 | `ShortcutDialog.tsx` | `.nt-shortcut-dialog` |
+| Shortcut 名称 / URL input | `ShortcutDialog.tsx` | `.nt-shortcut-dialog .bv-input-control` |
 
 ## Quick Save 元素索引
 

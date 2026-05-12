@@ -17,7 +17,7 @@
 写入入口：
 
 - Popup SettingsTab。
-- New Tab CustomizeLayoutPanel。
+- New Tab CustomizeLayoutPanel。默认搜索引擎、默认搜索类型、布局模式使用共享 native `Select`，`newTabShortcutsPerRow` 使用共享 `Input type="number"`；boolean 显示开关仍是本地 native checkbox，等待后续 Switch runtime。
 - New Tab SearchPanel 引擎 / 分类切换。
 
 ## NewTabState 字段

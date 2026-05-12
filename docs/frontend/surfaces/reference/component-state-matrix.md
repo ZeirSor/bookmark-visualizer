@@ -15,9 +15,9 @@ This matrix records current state coverage across reusable UI categories. It is 
 |---|---|---|---|---|---|
 | Button | Manager command/action buttons, popup footer/tab/action buttons, New Tab nav/ghost/action buttons; shared `Button` now used by Popup footer and New Tab main nav | default, hover, focus-visible, disabled in many selectors; shared variants/sizes/loading/selected contract in first primitive | danger, icon, active/selected, loading still mixed with legacy surface selectors | full migration, story coverage, tests, and old page selector retirement | P0 |
 | IconButton | Manager folder/toolbar/icon buttons, popup topbar buttons, New Tab icon/search/tile buttons; shared `IconButton` now used by Popup topbar and New Tab header action | default, hover, focus-visible, disabled, labels on many icon-only buttons; required label API and shared size/tone/selected contract in first primitive | selected/open, active, tooltip/title consistency still mixed with legacy surface selectors | story coverage, accessibility tests, and broader migration | P0 |
-| Input / Textarea | Manager inline edit and dialogs, popup save form, New Tab search/dialog fields | default, focus, readonly URL, long text truncation in some rows | error, disabled, saving | shared error field contract, readonly vs disabled distinction, consistent long-content handling | P0 |
-| Select | Manager native sort select, popup custom select, New Tab native engine select | default, focus, option selection | disabled, keyboard in popup custom select | shared select contract, error state, consistent native/custom guidance | P0 |
-| Switch | Popup settings switch | on/off, focus, disabled prop support, keyboard Space/Enter | async saving/error | shared switch primitive, saving/saved/failed state | P0 |
+| Input / Textarea | Manager inline edit and dialogs, popup save form, New Tab search/dialog fields; runtime `Input` / `Textarea` and contracts live in `src/design-system/primitives/FormControls/` | default, focus, readonly URL, long text truncation in some rows; Popup Save fields and New Tab shortcut dialog use shared runtime controls | disabled and saving remain partly page-owned | broader runtime migration, stories, tests, and old page selector retirement | P0 |
+| Select | Manager native sort select, popup custom select, New Tab native engine/customize selects; runtime native `Select` and contract live in `src/design-system/primitives/FormControls/` | default, focus, option selection; New Tab customize native selects use shared runtime control | disabled and popup custom-select keyboard behavior remain page-owned | broader native-select migration; Popup custom select waits for Menu/Listbox primitives | P0 |
+| Switch | Popup settings switch; shared switch contract lives in `src/design-system/primitives/FormControls/README.md` | on/off, focus, disabled prop support, keyboard Space/Enter; shared role/label/loading guidance is contract defined | async saving/error and `--bv-switch-*` tokens remain future work | runtime migration, persistence feedback, stories, and tests | P0 |
 | Card / Panel | Manager bookmark/right-rail cards, popup preview/settings/manager cards, New Tab panels/cards | default, hover, focus-visible, selected for some items, empty panels | elevated, compact, loading | shared surface/elevation/interactive/selected variants | P0 |
 | Dialog | Manager folder/shortcut dialogs, New Tab shortcut dialog | open/close, close button, overlay click | `role="dialog"` only on some dialogs, form submit, Esc through page-level listener | shared focus trap, consistent `aria-modal`, loading footer, error region | P0 |
 | Drawer | Manager operation log drawer, New Tab customize drawer | open/close, close button | empty, scroll | focus trap, Esc contract, shared drawer shell, loading/error | P0 |
@@ -42,7 +42,7 @@ This matrix records current state coverage across reusable UI categories. It is 
 | Surface | Strong current coverage | Main gaps |
 |---|---|---|
 | Manager workspace | Bookmark loading/empty/error, card selected/highlight/drop states, context menu roles, operation log drawer, toast action/busy state. | Dialog focus trap and consistent `role="dialog"`, menu keyboard navigation, field-level edit errors, shared confirm dialog, disabled reasons for future actions. |
-| Toolbar popup | Save status line, preview loading/fallback/internal-page states, inline folder picker keyboard movement, custom select keyboard handling, switch keyboard handling. | Per-setting saving/saved/failed feedback, shared form-control states, unified folder picker core, popup-local button/card/select/switch contracts. |
+| Toolbar popup | Save status line, preview loading/fallback/internal-page states, shared Save Tab form fields, inline folder picker keyboard movement, custom select keyboard handling, switch keyboard handling. | Per-setting saving/saved/failed feedback, unified folder picker core, popup-local card/custom-select/switch contracts, and broader form-control selector retirement. |
 | Optional New Tab | Search suggestions, active category, shortcut/dialog/drawer shells, panel empty states, toast timeout. | Empty search submit, Esc behavior before clearing query, suggestion/content tab keyboard coverage, shared drawer/dialog/toast states. |
 | Page Ctrl+S bridge | No UI state required. | Shortcut failure/fallback remains a behavior docs and verifier concern, not a component state concern. |
 
@@ -51,16 +51,17 @@ This matrix records current state coverage across reusable UI categories. It is 
 1. Button and IconButton have first shared contracts, but still need stories/tests, broader migrations, and legacy selector retirement before they are stable.
 2. Dialog and Drawer need a shared accessibility contract for `role`, `aria-modal`, labelled title, initial focus, focus trap, Esc, overlay click, footer loading, and error display.
 3. FolderPicker and FolderCascadeMenu need one state model for loading, empty, search, selected, active path, disabled target, create-folder, recent folders, long names, overflow, and keyboard movement.
-4. SearchBox needs separate contracts for simple clearable input, folder search, and New Tab suggestions while sharing primitive states.
-5. Toast needs consistent success/error/warning/info, timeout, close, action, and busy-state handling.
-6. SettingsRow needs async persistence states before Popup settings feedback work begins.
+4. Form controls now have shared runtime primitives for `Input`, `Textarea`, and native `Select`, but broader migration, stories/tests, and page-local selector retirement remain pending; `Switch` is still contract-only.
+5. SearchBox needs separate contracts for simple clearable input, folder search, and New Tab suggestions while sharing primitive states.
+6. Toast needs consistent success/error/warning/info, timeout, close, action, and busy-state handling.
+7. SettingsRow needs async persistence states before Popup settings feedback work begins.
 
 ## Story And Test Implications
 
 | Component / pattern | Required story or documented case before calling stable |
 |---|---|
 | Button / IconButton | all variants, disabled, loading, danger, selected/open, icon-only label requirement |
-| Form controls | default, focus, error, disabled, readonly, long content |
+| Form controls | default, focus, error, disabled, readonly, long content; first runtime migration landed for `Input`, `Textarea`, and native `Select`, with stories/tests still pending |
 | Card / Panel | default, elevated, interactive, selected, compact, loading/empty |
 | Dialog / Drawer | open, close, Esc, focus trap, loading footer, error, scroll |
 | Toast | success, error, warning, info, timeout, action |

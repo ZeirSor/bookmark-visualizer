@@ -1,4 +1,5 @@
 import type { FormEvent } from "react";
+import { Input, Textarea } from "../../design-system";
 import type { BookmarkNode, FolderOption } from "../../features/bookmarks";
 import type { PopupPageDetails } from "../../features/popup";
 import { PagePreviewCard } from "../components/PagePreviewCard";
@@ -80,12 +81,13 @@ export function SaveTab({
           <div className="field-stack compact">
             <label>
               <span>标题</span>
-              <input value={title} onChange={(event) => setTitle(event.target.value)} />
+              <Input fullWidth value={title} onChange={(event) => setTitle(event.target.value)} />
             </label>
             <label>
               <span>URL</span>
-              <input
+              <Input
                 className="url-input"
+                fullWidth
                 value={pageDetails?.url ?? ""}
                 readOnly
                 onFocus={(event) => event.currentTarget.select()}
@@ -98,7 +100,9 @@ export function SaveTab({
               <span>备注</span>
               <small>{noteLength}/200</small>
             </span>
-            <textarea
+            <Textarea
+              fullWidth
+              resize="none"
               value={note}
               placeholder="添加一点自己的上下文"
               onChange={(event) => setNote(event.target.value)}
