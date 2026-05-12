@@ -39,7 +39,7 @@ export function SaveLocationPicker({
   setSelectedFolderId(value: string): void;
   tree: BookmarkNode[];
 }) {
-  const [locationMenuOpen, setLocationMenuOpen] = useState(false);
+  const [locationMenuOpen, setLocationMenuOpen] = useState(true);
   const displayPath = formatPopupFolderPath(selectedPath);
 
   return (

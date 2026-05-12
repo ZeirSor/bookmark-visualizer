@@ -50,8 +50,15 @@ export function SettingRow({
       <div className="setting-copy">
         {icon ? <span className="setting-icon" aria-hidden="true">{icon}</span> : null}
         <span>
-          <strong>{label}</strong>
-          {description ? <small>{description}</small> : null}
+          {description ? (
+            <span className="setting-tip-anchor">
+              <strong>{label}</strong>
+              <span className="setting-tip-icon" aria-hidden="true">i</span>
+              <span className="setting-tip-body" role="tooltip">{description}</span>
+            </span>
+          ) : (
+            <strong>{label}</strong>
+          )}
         </span>
       </div>
       <div className="setting-control">{control}</div>

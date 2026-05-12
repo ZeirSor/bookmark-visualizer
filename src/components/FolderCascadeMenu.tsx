@@ -198,7 +198,7 @@ export function FolderCascadeMenu({
               <FloatingCascadeLayer
                 key={layer.folder.id}
                 layer={layer}
-                zIndex={31 + index}
+                zIndex={620 + index}
                 density={density}
                 menuWidth={menuWidth}
                 selectedFolderId={selectedFolderId}
