@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   buildWorkspaceFolderPath,
   deriveNewTabViewModel,
@@ -24,13 +24,14 @@ import {
 } from "./components/NewTabSections";
 import { NewTabModeTabs, type NewTabContentTab } from "./components/NewTabModeTabs";
 import { NewTabSidebar } from "./components/NewTabSidebar";
-import { SearchPanel } from "./components/SearchPanel";
+import { SearchPanel, type SearchPanelHandle } from "./components/SearchPanel";
 import { ShortcutDialog } from "./components/ShortcutDialog";
 import { useNewTabActions } from "./hooks/useNewTabActions";
 import { useNewTabBootstrap } from "./hooks/useNewTabBootstrap";
 
 export function NewTabApp() {
   const bootstrap = useNewTabBootstrap();
+  const searchPanelRef = useRef<SearchPanelHandle>(null);
   const [activeFolderId, setActiveFolderId] = useState<string>();
   const [customizeOpen, setCustomizeOpen] = useState(false);
   const [shortcutDialogOpen, setShortcutDialogOpen] = useState(false);
@@ -140,6 +141,7 @@ export function NewTabApp() {
           <div className="nt-main-grid">
             <section className="nt-center-column" aria-label="新标签页内容">
               <SearchPanel
+                ref={searchPanelRef}
                 category={selectedCategory}
                 engineId={bootstrap.settings.newTabDefaultSearchEngineId}
                 shortcuts={viewModel.shortcuts}
@@ -225,6 +227,6 @@ export function NewTabApp() {
   );
 
   function focusSearch() {
-    document.querySelector<HTMLInputElement>(".nt-search-box input")?.focus();
+    searchPanelRef.current?.focus();
   }
 }

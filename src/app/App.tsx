@@ -1,6 +1,7 @@
 import {
   useEffect,
   useMemo,
+  useRef,
   useState,
   type CSSProperties,
   type DragEvent,
@@ -108,6 +109,7 @@ export function App() {
   const [shortcutDialogOpen, setShortcutDialogOpen] = useState(false);
   const [retainedBreadcrumbTailIds, setRetainedBreadcrumbTailIds] = useState<string[]>([]);
   const [toast, setToast] = useState<ToastState>();
+  const sidebarResizeCleanupRef = useRef<(() => void) | null>(null);
   const dragDrop = useWorkspaceDragDrop();
   const {
     draggedBookmark,
@@ -212,6 +214,8 @@ export function App() {
     selection,
     shortcutDialogOpen
   ]);
+
+  useEffect(() => () => sidebarResizeCleanupRef.current?.(), []);
 
   const searchResults = useMemo(
     () =>
@@ -600,15 +604,22 @@ export function App() {
       document.documentElement.style.setProperty("--live-sidebar-width", `${nextWidth}px`);
     }
 
-    function handleMouseUp() {
+    function cleanup() {
       document.removeEventListener("mousemove", handleMouseMove);
       document.removeEventListener("mouseup", handleMouseUp);
       document.documentElement.style.removeProperty("--live-sidebar-width");
+      sidebarResizeCleanupRef.current = null;
+    }
+
+    function handleMouseUp() {
+      cleanup();
       void handleSettingsChange({ ...settings, sidebarWidth: nextWidth });
     }
 
+    sidebarResizeCleanupRef.current?.();
     document.addEventListener("mousemove", handleMouseMove);
     document.addEventListener("mouseup", handleMouseUp);
+    sidebarResizeCleanupRef.current = cleanup;
   }
 
   async function handleDropBookmark(folder: BookmarkNode) {
@@ -1088,24 +1099,33 @@ export function App() {
       return;
     }
 
-    try {
-      for (const bookmark of deletableBookmarks) {
-        await bookmarksAdapter.remove(bookmark.id);
-      }
+    const results = await Promise.allSettled(
+      deletableBookmarks.map((bookmark) => bookmarksAdapter.remove(bookmark.id))
+    );
+    const succeededCount = results.filter((r) => r.status === "fulfilled").length;
+    const failedCount = results.length - succeededCount;
 
-      await reload();
-      selection.clear();
-      setHighlightedBookmarkId(undefined);
-      setHighlightPulseId(undefined);
+    await reload();
+    selection.clear();
+    setHighlightedBookmarkId(undefined);
+    setHighlightPulseId(undefined);
+
+    if (succeededCount > 0) {
       addOperation({
         title: "批量删除书签",
-        detail: `已删除 ${deletableBookmarks.length} 个书签。此批量操作不可撤回。`
+        detail: failedCount > 0
+          ? `已删除 ${succeededCount}/${deletableBookmarks.length} 个书签，${failedCount} 个删除失败。此批量操作不可撤回。`
+          : `已删除 ${succeededCount} 个书签。此批量操作不可撤回。`
       });
-      setToast({ message: `已删除 ${deletableBookmarks.length} 个书签，当前批量操作不可撤回。` });
-    } catch (cause) {
-      await reload();
-      setToast({ message: getErrorMessage(cause, "批量删除书签失败。") });
     }
+
+    setToast({
+      message: failedCount === 0
+        ? `已删除 ${succeededCount} 个书签，当前批量操作不可撤回。`
+        : succeededCount === 0
+        ? "全部书签删除失败，请重试。"
+        : `已删除 ${succeededCount}/${deletableBookmarks.length} 个书签，${failedCount} 个失败。`
+    });
   }
 
   async function handleDeleteBookmark(bookmark: BookmarkNode) {

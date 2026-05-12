@@ -1,4 +1,4 @@
-import { useMemo, useState, type KeyboardEvent, type ReactNode } from "react";
+import { forwardRef, useImperativeHandle, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import {
   ChevronRightIcon,
   GlobeIcon,
@@ -20,15 +20,9 @@ import {
 } from "../../features/newtab";
 import type { BookmarkNode } from "../../features/bookmarks";
 
-export function SearchPanel({
-  category,
-  engineId,
-  onCategoryChange,
-  onEngineChange,
-  onOpenSuggestion,
-  shortcuts,
-  tree
-}: {
+export type SearchPanelHandle = { focus(): void };
+
+export const SearchPanel = forwardRef<SearchPanelHandle, {
   category: SearchCategory;
   engineId: string;
   shortcuts: NewTabShortcutViewModel[];
@@ -36,9 +30,19 @@ export function SearchPanel({
   onCategoryChange(category: SearchCategory): void;
   onEngineChange(engineId: string): void;
   onOpenSuggestion(suggestion: NewTabSuggestion, openInNewTab?: boolean): void;
-}) {
+}>(function SearchPanel({
+  category,
+  engineId,
+  onCategoryChange,
+  onEngineChange,
+  onOpenSuggestion,
+  shortcuts,
+  tree
+}, ref) {
   const [query, setQuery] = useState("");
   const [activeIndex, setActiveIndex] = useState(0);
+  const inputRef = useRef<HTMLInputElement>(null);
+  useImperativeHandle(ref, () => ({ focus: () => inputRef.current?.focus() }), []);
   const suggestions = useMemo(
     () => createMixedSearchSuggestions({ tree, query, engineId, category, shortcuts }),
     [category, engineId, query, shortcuts, tree]
@@ -68,6 +72,7 @@ export function SearchPanel({
         <div className="nt-search-box">
           <SearchIcon className="nt-search-leading-icon" />
           <input
+            ref={inputRef}
             aria-label="搜索网页、URL 或本地书签"
             aria-controls={suggestionOpen ? "nt-search-suggestions" : undefined}
             aria-expanded={suggestionOpen}
@@ -204,7 +209,7 @@ export function SearchPanel({
       onOpenSuggestion(suggestion, event.ctrlKey || event.metaKey);
     }
   }
-}
+});
 
 function SuggestionGroup({
   actionLabel,
