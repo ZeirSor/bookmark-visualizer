@@ -1,6 +1,6 @@
 import { normalizePopupPageDetails } from "../features/popup/tabDetails";
 import { mockBookmarkTree } from "../lib/chrome/mockBookmarks";
-import type { BookmarkScenario, CurrentTabScenario } from "./devState";
+import type { BehaviorScenario, BookmarkScenario, CurrentTabScenario } from "./devState";
 import type { PopupPageDetails } from "../features/popup/tabDetails";
 
 // ─── Bookmark scenario trees ──────────────────────────────────────────────────
