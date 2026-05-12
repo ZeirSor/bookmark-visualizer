@@ -57,7 +57,7 @@ export function SearchPanel({
           <span className={`nt-engine-avatar is-${currentEngine.id}`} aria-hidden="true">
             {currentEngine.label.slice(0, 1)}
           </span>
-          <select value={engineId} onChange={(event) => onEngineChange(event.target.value)}>
+          <select value={engineId} onChange={(event) => { onEngineChange(event.target.value); setActiveIndex(0); }}>
             {SEARCH_ENGINES.map((engine) => (
               <option key={engine.id} value={engine.id}>
                 {engine.label}
@@ -109,7 +109,7 @@ export function SearchPanel({
             key={item.id}
             type="button"
             className={item.id === category ? "is-active" : undefined}
-            onClick={() => onCategoryChange(item.id)}
+            onClick={() => { onCategoryChange(item.id); setActiveIndex(0); }}
           >
             <CategoryIcon category={item.id} />
             {item.label}

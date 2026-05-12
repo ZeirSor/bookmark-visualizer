@@ -81,7 +81,7 @@ export function SaveTab({
           <div className="field-stack compact">
             <label>
               <span>标题</span>
-              <Input fullWidth value={title} onChange={(event) => setTitle(event.target.value)} />
+              <Input fullWidth required value={title} onChange={(event) => setTitle(event.target.value)} />
             </label>
             <label>
               <span>URL</span>
@@ -102,6 +102,7 @@ export function SaveTab({
             </span>
             <Textarea
               fullWidth
+              maxLength={200}
               resize="none"
               value={note}
               placeholder="添加一点自己的上下文"

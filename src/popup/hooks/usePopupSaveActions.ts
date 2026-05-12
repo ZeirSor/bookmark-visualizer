@@ -87,6 +87,16 @@ export function usePopupSaveActions({
       return;
     }
 
+    if (!title.trim()) {
+      setPopupStatus("请输入标题。", "error");
+      return;
+    }
+
+    if (note.length > 200) {
+      setPopupStatus("备注不能超过 200 字。", "error");
+      return;
+    }
+
     if (!selectedFolderId) {
       setPopupStatus("请选择保存位置。", "error");
       return;
