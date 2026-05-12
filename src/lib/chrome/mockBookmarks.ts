@@ -135,3 +135,7 @@ export const mockBookmarkTree: chrome.bookmarks.BookmarkTreeNode[] =
 export function resetMockBookmarkTree() {
   mockBookmarkTree.splice(0, mockBookmarkTree.length, ...structuredClone(initialMockBookmarkTree));
 }
+
+export function setMockBookmarkTree(tree: chrome.bookmarks.BookmarkTreeNode[]) {
+  mockBookmarkTree.splice(0, mockBookmarkTree.length, ...structuredClone(tree));
+}

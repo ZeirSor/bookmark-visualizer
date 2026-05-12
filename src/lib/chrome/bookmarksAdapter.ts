@@ -1,5 +1,9 @@
-import { mockBookmarkTree } from "./mockBookmarks";
-import { hasChromeApi } from "./runtime";
+import { getScenarioBookmarkTree } from "../../dev/devScenarios";
+import { loadDevState } from "../../dev/devState";
+import { mockBookmarkTree, setMockBookmarkTree } from "./mockBookmarks";
+import { hasChromeApi, isViteDevHttpPage } from "./runtime";
+
+let devTreeInitialized = false;
 
 export interface BookmarkMoveDestination {
   parentId: string;
@@ -36,6 +40,12 @@ export const bookmarksAdapter: BookmarksAdapter = {
   async getTree() {
     if (hasChromeApi("bookmarks") && chrome.bookmarks.getTree) {
       return chrome.bookmarks.getTree();
+    }
+
+    if (isViteDevHttpPage() && !devTreeInitialized) {
+      const { bookmarkScenario } = loadDevState();
+      setMockBookmarkTree(getScenarioBookmarkTree(bookmarkScenario));
+      devTreeInitialized = true;
     }
 
     return structuredClone(mockBookmarkTree);

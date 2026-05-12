@@ -1,3 +1,6 @@
+import { handleDevQuickSaveMessage } from "../../dev/devQuickSave";
+import { getScenarioCurrentTab } from "../../dev/devScenarios";
+import { loadDevState } from "../../dev/devState";
 import type {
   QuickSaveCreatePayload,
   QuickSaveInitialState,
@@ -17,9 +20,14 @@ import {
   type PopupPageDetails
 } from "./tabDetails";
 import { resolveSaveSourceTab, type SaveSourceParams } from "./saveSource";
+import { isViteDevHttpPage } from "../../lib/chrome/runtime";
 
 export async function getCurrentTabDetails(source?: SaveSourceParams): Promise<PopupPageDetails> {
   if (!canUseChromeTabs()) {
+    if (isViteDevHttpPage()) {
+      const { currentTabScenario } = loadDevState();
+      return getScenarioCurrentTab(currentTabScenario);
+    }
     return normalizePopupPageDetails({
       title: "Bookmark Visualizer",
       url: "https://example.com/",
@@ -107,6 +115,10 @@ export async function openExtensionShortcutSettings(): Promise<void> {
 }
 
 async function sendQuickSaveRequest(message: QuickSaveRequest): Promise<QuickSaveResponse> {
+  if (isViteDevHttpPage()) {
+    return handleDevQuickSaveMessage(message);
+  }
+
   if (typeof chrome === "undefined" || !chrome.runtime?.sendMessage) {
     return { ok: false, error: "当前环境不支持扩展消息。" };
   }

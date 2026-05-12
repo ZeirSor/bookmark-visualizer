@@ -1,4 +1,5 @@
-import { hasChromeApi } from "./runtime";
+import { devLocalStorage } from "../../dev/devStorage";
+import { hasChromeApi, isViteDevHttpPage } from "./runtime";
 
 type StorageValue = unknown;
 type StorageItems = Record<string, StorageValue>;
@@ -12,6 +13,10 @@ export const storageAdapter = {
         keys as string | string[] | StorageItems | null | undefined
       );
       return result as T;
+    }
+
+    if (isViteDevHttpPage()) {
+      return devLocalStorage.get<T>(keys as string | string[] | StorageItems | undefined);
     }
 
     if (!keys) {
@@ -41,12 +46,22 @@ export const storageAdapter = {
       return;
     }
 
+    if (isViteDevHttpPage()) {
+      devLocalStorage.set(items);
+      return;
+    }
+
     Object.entries(items).forEach(([key, value]) => memoryStorage.set(key, value));
   },
 
   async remove(keys: string | string[]): Promise<void> {
     if (hasChromeApi("storage") && chrome.storage.local) {
       await chrome.storage.local.remove(keys);
+      return;
+    }
+
+    if (isViteDevHttpPage()) {
+      devLocalStorage.remove(keys);
       return;
     }
 
