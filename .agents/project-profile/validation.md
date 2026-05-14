@@ -11,16 +11,17 @@ This profile file defines Bookmark Visualizer validation commands and manual QA 
 | Storage / metadata | `npm run test`, `npm run typecheck`, `npm run build`, storage docs check |
 | Chrome API / manifest | `npm run typecheck`, `npm run build`, manifest / entry verification, affected manual QA |
 | Toolbar popup entry | `npm run typecheck`, `npm run build`, `npm run verify:popup-entry`, popup and shortcut manual QA |
-| Removed legacy save surfaces | `npm run typecheck`, `npm run test`, `npm run build`, `npm run verify:popup-entry`, source / dist absence checks |
 | Page Ctrl+S shortcut bridge | `npm run typecheck`, `npm run test`, `npm run build`, `npm run verify:popup-entry`, shortcut manual QA |
+| Save protocol / Quick Save helpers | `npm run test`, `npm run typecheck`, `npm run build`, `npm run verify:popup-entry`, popup save flow manual QA if behavior changed |
+| Removed legacy save surfaces | `npm run typecheck`, `npm run test`, `npm run build`, `npm run verify:popup-entry`, source / dist absence checks |
 | New Tab redirect | `npm run typecheck`, `npm run build`, New Tab enable / disable manual QA |
 | Documentation-only | `npm run docs:check`, Markdown links, referenced paths, README links if touched |
-| AI workflow / validation docs | `npm run docs:check`, targeted stale-path `rg` checks, `npm run typecheck` if scripts or package commands changed |
-| Local skill portability | `npm run skills:audit`, skill validation, `npm run docs:check` |
+| AI workflow / validation docs | `npm run docs:check`, targeted stale-path `rg` checks, `npm run skills:audit`, `npm run typecheck` if scripts or package commands changed |
+| Local skill portability | `npm run skills:audit`, `npm run docs:check`, profile path checks |
 
 If a command is unavailable, record that explicitly and do not claim it passed.
 
-## Manual QA By Surface
+## Manual QA By Surface Or Runtime Area
 
 ### Manager Workspace
 
@@ -39,13 +40,12 @@ If a command is unavailable, record that explicitly and do not claim it passed.
 - Check save location picker and recent folders if affected.
 - If page Ctrl+S is enabled, confirm ordinary page `Ctrl+S` opens the popup and editable fields are not intercepted.
 
-### Quick Save
+### Save Protocol / Quick Save Helpers
 
-- Trigger extension command.
-- Confirm overlay injection.
-- Confirm Shadow DOM styling.
-- Confirm save action and folder picker if affected.
-- Confirm closing and reopening behavior if affected.
+- Trigger the normal popup save flow.
+- Confirm folder loading, create-folder behavior, and recent-folder updates if affected.
+- Confirm the background message handler still receives and returns the expected payload shape if message contracts changed.
+- Confirm no legacy content-script overlay, Shadow DOM dialog, or `save.html` path is reintroduced.
 
 ### Optional New Tab
 
@@ -63,7 +63,7 @@ If a command is unavailable, record that explicitly and do not claim it passed.
 
 Use `npm run docs:check` when documentation work changes active path references, validation rules, local skills, project profiles, or workflow docs.
 
-Historical AI records are not active source-of-truth documents. Documentation path validation must exclude:
+Historical and generated records are not active source-of-truth documents. Documentation path validation must exclude:
 
 - `.ai/logs/`
 - `.ai/dev-changelog/`
@@ -71,6 +71,6 @@ Historical AI records are not active source-of-truth documents. Documentation pa
 - concrete `.ai/runs/*` folders except `.ai/runs/_TEMPLATE/`
 - `node_modules/`
 - `dist/`
-- `docs/tmp/`
+- `docs/_archive/`
 
 Future or proposed paths are allowed only when the nearby text explicitly marks them as future, proposed, planned, or not current implementation.

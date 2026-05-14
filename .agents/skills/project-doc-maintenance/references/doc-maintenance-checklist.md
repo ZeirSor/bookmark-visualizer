@@ -34,6 +34,14 @@ Use this checklist with the repository profile.
 - Paused, deprecated, optional, or future behavior is clearly labeled.
 - User-facing copy, default behavior, and settings behavior match implementation.
 
+## Active / Archive Boundary
+
+- Active docs describe current facts or explicitly labeled planned work.
+- Historical, superseded, or deleted implementation details belong in the repository archive docs area named by the profile.
+- Archive docs are not used as current implementation sources.
+- Active Markdown docs include the repository's required minimum metadata when the documentation standard defines it.
+- File names and directory names follow the repository naming standard when docs are added or moved.
+
 ## README And Index Sync
 
 - README files are updated only when profile rules say public onboarding or high-level understanding changed.

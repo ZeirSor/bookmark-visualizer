@@ -1,6 +1,12 @@
 ---
 name: project-playbook-routing
 description: Use before planning or implementation to select the relevant project playbook for feature work, UI refactors, bugfixes, docs sync, reviews, validation investigations, or AI workflow changes.
+metadata:
+  stage: planning
+  follows:
+    - project-doc-routing
+  precedes:
+    - project-run-orchestration
 ---
 
 # Project Playbook Routing
@@ -24,8 +30,9 @@ Read:
 
 1. `AGENTS.md`
 2. `.agents/project-profile/ai-workflow.md` if present
-3. `docs/playbooks/README.md` if present
-4. `references/playbook-routing-matrix.md`
+3. `.agents/project-profile/playbooks.md` if present
+4. `docs/playbooks/README.md` if present
+5. `references/playbook-routing-matrix.md`
 
 If the repository has no playbook docs, use the generic matrix to recommend the nearest workflow and note that a project playbook should be added before repeated work.
 
@@ -56,4 +63,4 @@ Profile notes:
 
 ## Portability Rule
 
-Keep the matrix generic. Project-specific playbook names, workflow docs, or run-folder policies belong in `.agents/project-profile/ai-workflow.md`.
+Keep the matrix generic. Project-specific playbook names, workflow docs, and run-folder policies belong in `.agents/project-profile/playbooks.md` or `.agents/project-profile/ai-workflow.md`.

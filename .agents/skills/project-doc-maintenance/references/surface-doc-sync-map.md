@@ -15,11 +15,11 @@ For every changed file:
 
 | Category | Docs to consider |
 |---|---|
-| Page / app surface | Page docs, interaction docs, CSS/design-token docs, shared component docs |
+| Page / app surface | Active surface docs, interaction docs, CSS/design-token docs, shared component docs |
 | Shared UI / component library | Shared component docs, UI element indexes, consuming surface docs |
 | Data / storage / metadata | Data docs, architecture boundary docs, affected surface docs |
 | Runtime / API / permissions | Architecture docs, permission docs, affected clients, README if public setup changes |
-| Documentation structure | Docs index, directory README files, documentation standards, local skill references |
+| Documentation structure | Docs index, directory README files, documentation standards, templates, archive index, local skill references |
 
 ## Missing Mapping Rule
 

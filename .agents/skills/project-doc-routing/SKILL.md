@@ -1,6 +1,12 @@
 ---
 name: project-doc-routing
 description: Use before implementation, investigation, review, or documentation editing to route a task to the smallest relevant set of project docs by combining generic routing heuristics with the repository profile.
+metadata:
+  stage: prework
+  follows: []
+  precedes:
+    - project-playbook-routing
+    - project-run-orchestration
 ---
 
 # Project Doc Routing

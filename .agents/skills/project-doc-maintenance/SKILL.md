@@ -1,6 +1,11 @@
 ---
 name: project-doc-maintenance
 description: Use after implementation and validation to synchronize formal project docs and README files with the current repository, using the project profile for repository-specific paths and rules.
+metadata:
+  stage: postwork
+  follows:
+    - project-validation-gate
+  precedes: []
 ---
 
 # Project Doc Maintenance

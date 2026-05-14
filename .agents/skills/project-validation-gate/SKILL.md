@@ -1,6 +1,12 @@
 ---
 name: project-validation-gate
 description: Use before marking project tasks complete to select required validation commands, manual checks, and test-log updates from generic rules plus the repository validation profile.
+metadata:
+  stage: validation
+  follows:
+    - project-run-orchestration
+  precedes:
+    - project-doc-maintenance
 ---
 
 # Project Validation Gate
