@@ -1,12 +1,11 @@
 ---
 name: project-playbook-routing
 description: Use before planning or implementation to select the relevant project playbook for feature work, UI refactors, bugfixes, docs sync, reviews, validation investigations, or AI workflow changes.
-metadata:
-  stage: planning
-  follows:
-    - project-doc-routing
-  precedes:
-    - project-run-orchestration
+stage: planning
+follows:
+  - project-doc-routing
+precedes:
+  - project-run-orchestration
 ---
 
 # Project Playbook Routing

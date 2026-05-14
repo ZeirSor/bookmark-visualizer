@@ -34,3 +34,15 @@ When the profile names multiple README variants:
 2. Keep feature lists, command lists, links, and project structure semantically aligned.
 3. Keep translations natural rather than word-for-word.
 4. Verify referenced media and docs links exist.
+
+## Directory README Coverage
+
+Update directory README files when:
+
+- a documentation layer is added, renamed, moved, or archived;
+- a file is added to or removed from the directory;
+- the purpose of a directory changes;
+- a folder becomes an optional extension layer such as `api/`, `data/`, `collaboration/`, or `presentations/`;
+- a new template family is added to `_templates/`.
+
+Root `docs/README.md` should describe the current layer map, not every low-level file.

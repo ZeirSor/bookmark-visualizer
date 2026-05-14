@@ -1,12 +1,11 @@
 ---
 name: project-validation-gate
 description: Use before marking project tasks complete to select required validation commands, manual checks, and test-log updates from generic rules plus the repository validation profile.
-metadata:
-  stage: validation
-  follows:
-    - project-run-orchestration
-  precedes:
-    - project-doc-maintenance
+stage: validation
+follows:
+  - project-run-orchestration
+precedes:
+  - project-doc-maintenance
 ---
 
 # Project Validation Gate
@@ -27,11 +26,12 @@ It answers:
 Read:
 
 1. `AGENTS.md`
-2. `.agents/project-profile/validation.md` if present
-3. `docs/workflow/validation-gate.md` if present
-4. `references/validation-command-map.md`
-5. `references/manual-qa-checklist-map.md`
-6. current run `tasks.md` and `test-log.md` if a run folder exists
+2. `.agents/project-profile/docs-system.md` if present
+3. `.agents/project-profile/validation.md` if present
+4. `docs/workflow/validation-gate.md` if present
+5. `references/validation-command-map.md`
+6. `references/manual-qa-checklist-map.md`
+7. current run `tasks.md` and `test-log.md` if a run folder exists
 
 If the profile is missing or a command is unavailable, inspect `package.json` and test configuration, then record the limitation.
 

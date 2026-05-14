@@ -1,12 +1,11 @@
 ---
 name: project-doc-routing
 description: Use before implementation, investigation, review, or documentation editing to route a task to the smallest relevant set of project docs by combining generic routing heuristics with the repository profile.
-metadata:
-  stage: prework
-  follows: []
-  precedes:
-    - project-playbook-routing
-    - project-run-orchestration
+stage: prework
+follows: []
+precedes:
+  - project-playbook-routing
+  - project-run-orchestration
 ---
 
 # Project Doc Routing
@@ -29,9 +28,10 @@ This skill does not update docs, run validation, write run state, or write logs.
 Read in this order:
 
 1. `AGENTS.md`
-2. `.agents/project-profile/docs-map.md`
-3. `.agents/project-profile/surfaces.md` when the task mentions a UI surface, source path, entrypoint, data flow, or runtime boundary
-4. `references/doc-routing-matrix.md`
+2. `.agents/project-profile/docs-system.md` if present
+3. `.agents/project-profile/docs-map.md`
+4. `.agents/project-profile/surfaces.md` when the task mentions a UI surface, source path, entrypoint, data flow, or runtime boundary
+5. `references/doc-routing-matrix.md`
 
 If the profile is missing or appears stale, run `.agents/skills/project-doc-routing/scripts/discover-project-profile.mjs` or inspect the repo structure, then state the uncertainty in the routing note.
 

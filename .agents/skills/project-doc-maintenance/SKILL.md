@@ -1,11 +1,10 @@
 ---
 name: project-doc-maintenance
 description: Use after implementation and validation to synchronize formal project docs and README files with the current repository, using the project profile for repository-specific paths and rules.
-metadata:
-  stage: postwork
-  follows:
-    - project-validation-gate
-  precedes: []
+stage: postwork
+follows:
+  - project-validation-gate
+precedes: []
 ---
 
 # Project Doc Maintenance
@@ -27,11 +26,12 @@ This skill does not write `.ai/logs/`, dev changelogs, release changelogs, or AD
 Read in this order:
 
 1. `AGENTS.md`
-2. `.agents/project-profile/docs-map.md`
-3. `.agents/project-profile/surfaces.md` for UI, data-flow, entrypoint, or runtime changes
-4. `references/doc-maintenance-checklist.md`
-5. `references/readme-sync-rules.md`
-6. `references/surface-doc-sync-map.md`
+2. `.agents/project-profile/docs-system.md` if present
+3. `.agents/project-profile/docs-map.md`
+4. `.agents/project-profile/surfaces.md` for UI, data-flow, entrypoint, or runtime changes
+5. `references/doc-maintenance-checklist.md`
+6. `references/readme-sync-rules.md`
+7. `references/surface-doc-sync-map.md`
 
 If a run folder exists, also read its `plan.md`, `tasks.md`, `test-log.md`, and `handoff.md`.
 

@@ -55,3 +55,14 @@ Use this checklist with the repository profile.
 - Do not update unrelated docs just because they are nearby.
 - Do not treat run folders, worklogs, or dev changelogs as formal product facts.
 - Mark unresolved documentation gaps explicitly when they cannot be handled in the current task.
+
+## Documentation System Structure Accuracy
+
+- Required documentation layers from `.agents/project-profile/docs-system.md` exist.
+- Every directory under the formal docs root has `README.md`.
+- Every active Markdown file has the required frontmatter fields.
+- `docs/_templates/` contains required templates for the project's document types.
+- `docs/_archive/` contains historical material that should not remain in active layers.
+- Active docs do not use archive files as current sources of truth.
+- Presentation or demo docs link back to upstream source-of-truth docs when they summarize product, architecture, API, or data facts.
+- Documentation-standard changes are reflected in the builder skill templates or project templates when the rule is meant to be reusable.

@@ -1,13 +1,12 @@
 ---
 name: project-run-orchestration
 description: Use for complex or multi-step project work to create, resume, and maintain run folders with spec, plan, tasks, test-log, and handoff files using the repository's AI workflow profile.
-metadata:
-  stage: execution-state
-  follows:
-    - project-doc-routing
-    - project-playbook-routing
-  precedes:
-    - project-validation-gate
+stage: execution-state
+follows:
+  - project-doc-routing
+  - project-playbook-routing
+precedes:
+  - project-validation-gate
 ---
 
 # Project Run Orchestration

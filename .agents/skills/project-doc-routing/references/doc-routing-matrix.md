@@ -32,3 +32,17 @@ If `.agents/project-profile/` is absent:
 2. List top-level docs directories and likely source roots.
 3. Route conservatively to existing docs only.
 4. Recommend creating a project profile before broad work.
+
+## Documentation System Routing Additions
+
+| Task signal | Prefer reading | Likely affected after work |
+|---|---|---|
+| Create docs system from scratch | `docs-system.md`, `project-doc-system-builder` references, base docs structure | `docs/README.md`, `_templates/`, `standards/documentation.md`, profile docs-system config |
+| Migrate old docs structure | Documentation standard, migration rules, archive policy, current docs index | Moved docs, `_archive/`, README indexes, broken-link checks |
+| Add new docs layer | `docs-system.md`, layer taxonomy, folder work modes | New layer README, root docs index, templates, profile docs-map |
+| Add or change templates | `_templates/`, builder templates, documentation standard | Template index, docs-system profile, validation rules |
+| Quality or validation docs | `quality/`, `validation.md`, validation command map | `quality/`, docs checks, workflow docs |
+| Operations docs | `operations/`, setup/deploy/runbook docs | README, operations runbooks, public setup docs |
+| Strategy or roadmap | `strategy/`, product requirements when needed | Strategy docs, product docs if scope becomes current |
+| Collaboration docs | `collaboration/`, project-specific workflow docs | Collaboration README, review templates, role handoff docs |
+| Presentation docs | `presentations/`, upstream source docs | Deck README files, slide briefs, upstream links |
