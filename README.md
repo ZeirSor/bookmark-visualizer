@@ -23,12 +23,12 @@
 
 ## Overview
 
-Bookmark Visualizer is a Manifest V3 browser extension for people with large bookmark collections. It provides three extension pages plus a toolbar popup save flow:
+Bookmark Visualizer is a Manifest V3 browser extension for people with large bookmark collections. It provides three user-facing extension surfaces plus a toolbar popup save flow:
 
 - a toolbar popup for saving the current page without leaving the browser chrome;
 - an optional page-level `Ctrl+S` / `Command+S` bridge that opens the same popup after user-granted optional host access;
 - a full bookmark manager workspace for browsing, searching, editing, moving, and reviewing bookmarks;
-- an optional New Tab surface that can be enabled in settings for a search-first bookmark dashboard;
+- an optional New Tab surface that can be enabled in settings for a search-first bookmark dashboard.
 
 The extension uses `chrome.bookmarks` as the source of truth. Moves, edits, deletes, folder changes, and bookmark creation operate on the browser's native bookmark tree instead of a private bookmark copy. Extension-only data such as notes, summaries, recent folders, New Tab state, settings, and UI state belong in `chrome.storage.local`; website favicon images are cached separately in local IndexedDB as UI-only data.
 
@@ -88,9 +88,14 @@ Start the Vite development server:
 npm run dev
 ```
 
-Run the validation commands:
+Run the common validation commands:
 
 ```bash
+npm run docs:root-check
+npm run docs:check
+npm run agents:check
+npm run skills:audit
+npm run verify:popup-entry
 npm run typecheck
 npm run test
 npm run build
@@ -163,14 +168,30 @@ public/
 docs/
   product/             Product requirements, UI design, interaction, and roadmap docs
   architecture/        Architecture overview and module boundary docs
-  data/                Storage and data model docs
+  data/                Storage, domain model, and import/export docs
   frontend/            Surface-level PageDocs and UI maintenance docs
-  guides/              Testing, acceptance, and development guides
+  quality/             Testing, validation, and acceptance docs
+  operations/          Local environment and operational notes
   workflow/            AI-assisted development lifecycle and run-folder rules
   playbooks/           Reusable execution manuals for recurring Agent workflows
   standards/           Documentation and maintenance standards
-  adr/                 Architecture decision records
+  strategy/            Planned future architecture and product strategy
+  _templates/          Reusable documentation templates
+  _archive/            Historical and superseded documents
+  adr/                 Current architecture decision records
 
+.agents/
+  skills/              Portable Agent skills
+  project-profile/     Project-specific routing, validation, and playbook mappings
+
+.ai/
+  README.md            AI state directory guide
+  runs/                Active or resumable task state
+
+scripts/               Validation and maintenance scripts
+AGENTS.md              Agent operating rules
+AI_HANDOFF.md          Short AI session entry pointer
+CHANGELOG.md           Release-facing change log
 index.html             Full manager workspace entry
 popup.html             Toolbar popup entry
 newtab.html            Optional New Tab entry
@@ -181,15 +202,20 @@ newtab.html            Optional New Tab entry
 - [Documentation index](docs/README.md)
 - [Requirements](docs/product/requirements.md)
 - [Architecture](docs/architecture/overview.md)
+- [Runtime flows](docs/architecture/runtime-flows.md)
 - [UI design](docs/product/ui-design.md)
 - [Data and storage](docs/data/storage.md)
+- [Import/export](docs/data/import-export.md)
 - [Module boundaries](docs/architecture/module-boundaries.md)
 - [Interactions](docs/product/interactions.md)
-- [Testing and acceptance](docs/guides/testing-and-acceptance.md)
+- [Testing and acceptance](docs/quality/testing-and-acceptance.md)
+- [Validation gate](docs/quality/validation-gate.md)
 - [Roadmap](docs/product/roadmap.md)
 - [Right-click move menu](docs/product/right-click-move-menu.md)
 - [Frontend PageDocs](docs/frontend/surfaces/README.md)
 - [AI development workflow](docs/workflow/README.md)
+- [Agent skills](.agents/skills/README.md)
+- [Project profile](.agents/project-profile/README.md)
 - [Agent playbooks](docs/playbooks/README.md)
 - [Documentation maintenance standard](docs/standards/documentation-maintenance.md)
 - [Architecture decision records](docs/adr/README.md)
@@ -198,9 +224,9 @@ newtab.html            Optional New Tab entry
 
 - Folder delete flows.
 - Compact list view plus lightweight sort and filter controls.
-- Metadata import/export.
+- UI integration for metadata import/export flows.
 - Stronger New Tab customization and shortcut management.
-- On-demand summary fetching remains planned; optional `http://*/*` / `https://*/*` host access is currently used only for the user-enabled page Ctrl+S bridge.
+- On-demand summary fetching remains planned; optional `http://*/*` / `https://*/*` host access is currently used only for the user-enabled page `Ctrl+S` bridge.
 - Component-level UI tests.
 - First public release packaging and maintained screenshots.
 

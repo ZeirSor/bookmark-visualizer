@@ -23,7 +23,7 @@
 
 ## 项目概览
 
-Bookmark Visualizer 是一个 Manifest V3 浏览器扩展，适合书签数量较多、需要长期整理的人。它当前主要包含三个扩展页面和一个工具栏 popup 保存流程：
+Bookmark Visualizer 是一个 Manifest V3 浏览器扩展，适合书签数量较多、需要长期整理的人。它当前包含三个用户可见的扩展界面，以及一个工具栏 popup 保存流程：
 
 - 工具栏 popup：用于保存当前页面，不离开浏览器工具栏上下文；
 - 可选页面内 `Ctrl+S` / `Command+S` bridge：用户授权可选站点权限后打开同一个 popup；
@@ -88,9 +88,14 @@ npm run build
 npm run dev
 ```
 
-运行校验命令：
+运行常用校验命令：
 
 ```bash
+npm run docs:root-check
+npm run docs:check
+npm run agents:check
+npm run skills:audit
+npm run verify:popup-entry
 npm run typecheck
 npm run test
 npm run build
@@ -163,14 +168,30 @@ public/
 docs/
   product/             产品需求、UI 设计、交互规则和路线图
   architecture/        架构概览和模块边界
-  data/                存储与数据模型
+  data/                存储、领域模型和导入导出文档
   frontend/            页面级 PageDocs 和 UI 维护文档
-  guides/              测试、验收和开发指南
+  quality/             测试、验证与验收文档
+  operations/          本地环境和运维说明
   workflow/            AI-assisted development lifecycle 和 run-folder 规则
   playbooks/           面向常见 Agent 工作流的可复用执行手册
   standards/           文档维护和工程维护规范
-  adr/                 架构决策记录
+  strategy/            未来阶段策略和规划
+  _templates/          可复用文档模板
+  _archive/            历史和被取代文档
+  adr/                 当前架构决策记录
 
+.agents/
+  skills/              可迁移 Agent 技能
+  project-profile/     项目专属路由、验证和 playbook 映射
+
+.ai/
+  README.md            AI 状态目录说明
+  runs/                当前或可恢复的任务状态
+
+scripts/               验证和维护脚本
+AGENTS.md              Agent 执行规则
+AI_HANDOFF.md          新 AI 会话短入口
+CHANGELOG.md           面向发布的变更记录
 index.html             完整管理工作台入口
 popup.html             工具栏 popup 入口
 newtab.html            可选 New Tab 入口
@@ -181,15 +202,20 @@ newtab.html            可选 New Tab 入口
 - [文档总览](docs/README.md)
 - [需求说明](docs/product/requirements.md)
 - [架构设计](docs/architecture/overview.md)
+- [运行链路](docs/architecture/runtime-flows.md)
 - [UI 设计](docs/product/ui-design.md)
 - [数据与存储](docs/data/storage.md)
+- [导入导出](docs/data/import-export.md)
 - [模块边界](docs/architecture/module-boundaries.md)
 - [交互规则](docs/product/interactions.md)
-- [测试与验收](docs/guides/testing-and-acceptance.md)
+- [测试与验收](docs/quality/testing-and-acceptance.md)
+- [验证门禁](docs/quality/validation-gate.md)
 - [路线图](docs/product/roadmap.md)
 - [右键移动菜单](docs/product/right-click-move-menu.md)
 - [前端 PageDocs](docs/frontend/surfaces/README.md)
 - [AI 开发工作流](docs/workflow/README.md)
+- [Agent Skills](.agents/skills/README.md)
+- [项目 Profile](.agents/project-profile/README.md)
 - [Agent Playbooks](docs/playbooks/README.md)
 - [文档维护规范](docs/standards/documentation-maintenance.md)
 - [架构决策记录](docs/adr/README.md)
@@ -198,9 +224,9 @@ newtab.html            可选 New Tab 入口
 
 - 文件夹删除流程。
 - 紧凑列表视图，以及轻量排序和过滤控制。
-- 元数据导入 / 导出。
+- 元数据导入 / 导出流程的 UI 集成。
 - 更强的 New Tab 自定义和快捷入口管理能力。
-- 摘要抓取仍属于后续能力；可选 `http://*/*` / `https://*/*` 站点访问权限目前只用于用户开启的页面内 Ctrl+S bridge。
+- 摘要抓取仍属于后续能力；可选 `http://*/*` / `https://*/*` 站点访问权限目前只用于用户开启的页面内 `Ctrl+S` bridge。
 - 组件级 UI 测试。
 - 首个公开版本打包和稳定截图维护。
 
