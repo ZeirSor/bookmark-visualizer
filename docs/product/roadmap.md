@@ -1,68 +1,30 @@
-# 路线图
+---
+type: reference
+status: active
+scope: product
+owner: project
+last_verified: 2026-05-14
+source_of_truth: true
+---
 
-## 当前已完成
+# Roadmap
 
-- Manifest V3 工具栏入口扩展。
-- React + TypeScript + Vite 工程。
-- 读取并展示浏览器原生书签树。
-- 左侧文件夹树。
-- 右侧书签卡片。
-- 全局搜索标题和 URL。
-- 书签卡片拖拽到文件夹。
-- 左侧树内书签拖拽到文件夹。
-- 书签卡片在当前文件夹内拖拽重排。
-- 左侧树内书签拖拽到右侧卡片区参与同父级重排。
-- 当前文件夹直接新建书签。
-- 书签卡片前后新建书签。
-- 右键书签菜单：编辑、移动、删除。
-- 多级“移动到...”悬浮菜单。
-- 可搜索文件夹移动目标。
-- 本地备注编辑。
-- 标题和 URL 编辑。
-- 文件夹重命名。
-- 单一顶部搜索框。
-- 删除书签确认。
-- 会话内操作日志和撤销。
-- 明暗主题切换。
-- 卡片尺寸切换。
-- 侧栏宽度拖拽调整。
-- Vite dev mock 数据兜底。
-- Vite dev 环境使用 mock 数据，扩展环境读取真实书签树。
-- 书签卡片右上角打开链接按钮。
-- 拖拽书签到左侧树时的边缘自动滚动。
-- 右侧顶部路径导航可点击跳转到任一父级文件夹。
-- 独立保存小窗口“保存”Tab 可保存当前网页，工具栏点击和 `Ctrl + Shift + S` 扩展命令入口行为一致。
+## Current Baseline
 
-## MVP 剩余收口
+- Toolbar popup is restored as the primary save entry.
+- Manager workspace supports core bookmark browsing, search, edit, move, reorder and delete flows.
+- Optional New Tab Portal is runtime-toggleable and disabled by default.
+- Legacy save page, Save Overlay and Shadow DOM Quick Save dialog are archived.
 
-- 更完整的右键移动手动验收，尤其是多层菜单 hover。
-- 使用测试 Chrome / Edge Profile 验证真实删除和撤销恢复。
-- 继续补齐组件级交互测试或形成手动验收记录。
+## Near-term
 
-## 增强版
+1. Tighten documentation validation and keep active docs aligned with current code paths.
+2. Improve popup save confidence: clearer restricted-page messages, stronger folder picker regression coverage and stable auto-close behavior.
+3. Improve manager bulk operations, especially bulk move and clearer multi-select feedback.
+4. Expand import/export quality and user-facing recovery guidance.
 
-- 搜索摘要。
-- 按需抓取网页 description。
-- 文件夹删除。
-- 紧凑列表视图。
-- 更多排序和过滤控制。
-- 删除文件夹及其子项确认。
-- 元数据导出和导入。
-- 搜索过滤器扩展。
-- 卡片密度设置。
+## Later
 
-## 长期版
-
-- 大量书签下的虚拟列表和性能优化。
-- 批量整理和批量移动。
-- 重复书签检测。
-- 断链检查。
-- AI 摘要和智能分类建议。
-
-## 暂不进入第一版
-
-- Firefox 兼容。
-- 云端同步。
-- 团队协作。
-- AI 自动批量处理。
-- 替换浏览器原生书签管理器。
+1. User-triggered page summary extraction with explicit permissions.
+2. Optional cloud sync or external mapping strategy after local data boundaries are stable.
+3. Subscription, Notion or AI integrations only after accepted ADRs define data ownership, privacy and failure modes.

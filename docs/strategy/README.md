@@ -1,12 +1,20 @@
+---
+type: strategy
+status: planned
+scope: strategy
+owner: project
+last_verified: 2026-05-14
+source_of_truth: false
+---
+
 # Strategy
 
-本目录保存未来阶段策略。这里的文档用于指导方向，不代表当前第一版立即实现。
+本目录只放未来方向，并必须明确标记为 planned。Strategy 不是当前实现事实源；一旦方案进入实现，需要拆分为 requirements、architecture、data、ADR 或 quality 文档。
 
-## Active Docs
+## Current Documents
 
-- [Cloud data strategy](cloud-data-strategy.md)：长期云端化、数据模型、订阅制、Notion 和后端策略。
-- [Phase 3 cloud, subscription, and Notion architecture](phase-3-cloud-subscription-notion.md)：第三阶段云端、订阅、Notion 架构指南。
+- [Cloud subscription and Notion architecture](cloud-subscription-notion-architecture.md)
 
-## Maintenance
+## Archived
 
-策略文档可以讨论未来能力，但必须明确当前阶段是否实现。任何被正式接受为约束的长期技术决策，应同步落入 [ADR](../adr/README.md)。
+过期云端化拆分草案已移动到 `docs/_archive/strategy/`。

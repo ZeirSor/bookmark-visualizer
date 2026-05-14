@@ -1,3 +1,12 @@
+---
+type: reference
+status: active
+scope: frontend
+owner: project
+last_verified: 2026-05-14
+source_of_truth: true
+---
+
 # Token Audit
 
 This audit records the current design-token and raw CSS value baseline for the UI-system refactor. It is descriptive, not a cleanup patch.

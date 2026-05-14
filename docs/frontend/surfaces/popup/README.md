@@ -1,3 +1,12 @@
+---
+type: reference
+status: active
+scope: frontend
+owner: project
+last_verified: 2026-05-14
+source_of_truth: true
+---
+
 # Toolbar Popup / Save PageDoc
 
 ## 页面定位

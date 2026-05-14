@@ -1,3 +1,12 @@
+---
+type: reference
+status: active
+scope: frontend
+owner: project
+last_verified: 2026-05-14
+source_of_truth: true
+---
+
 # Component Inventory
 
 This inventory captures the current UI component reality for Bookmark Visualizer as of 2026-05-11. It is a reference baseline for the UI-system refactor run, not a list of completed future primitives.

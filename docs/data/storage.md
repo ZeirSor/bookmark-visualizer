@@ -1,3 +1,12 @@
+---
+type: reference
+status: active
+scope: data
+owner: project
+last_verified: 2026-05-14
+source_of_truth: true
+---
+
 # 数据与存储
 
 ## 数据源原则

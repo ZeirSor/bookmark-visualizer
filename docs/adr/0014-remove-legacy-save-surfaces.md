@@ -1,3 +1,12 @@
+---
+type: decision
+status: active
+scope: architecture
+owner: project
+last_verified: 2026-05-14
+source_of_truth: true
+---
+
 # ADR 0014: 删除 legacy 保存入口并保留可选页面快捷键 bridge
 
 ## 状态

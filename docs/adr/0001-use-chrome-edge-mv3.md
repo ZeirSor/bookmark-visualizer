@@ -1,3 +1,12 @@
+---
+type: decision
+status: active
+scope: architecture
+owner: project
+last_verified: 2026-05-14
+source_of_truth: true
+---
+
 # ADR 0001: 第一版使用 Chrome / Edge Manifest V3
 
 ## 状态

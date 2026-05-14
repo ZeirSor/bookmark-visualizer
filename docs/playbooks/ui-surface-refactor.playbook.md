@@ -1,3 +1,12 @@
+---
+type: playbook
+status: active
+scope: ai-workflow
+owner: project
+last_verified: 2026-05-14
+source_of_truth: true
+---
+
 # Playbook: UI Surface Refactor
 
 ## When To Use
@@ -23,7 +32,7 @@ Read:
 - affected `docs/frontend/surfaces/<surface>/README.md`
 - affected surface UI / CSS / interaction docs
 - `docs/frontend/surfaces/shared/` when shared components are touched
-- `docs/frontend/surfaces/reference/03-regression-checklist.md`
+- `docs/frontend/surfaces/reference/regression-checklist.md`
 
 ## Refactor Rules
 

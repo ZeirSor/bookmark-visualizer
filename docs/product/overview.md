@@ -1,3 +1,12 @@
+---
+type: reference
+status: active
+scope: product
+owner: project
+last_verified: 2026-05-14
+source_of_truth: true
+---
+
 # 项目概览
 
 ## 愿景

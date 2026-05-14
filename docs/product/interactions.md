@@ -1,149 +1,50 @@
-# 交互规则
+---
+type: reference
+status: active
+scope: product
+owner: project
+last_verified: 2026-05-14
+source_of_truth: true
+---
 
-## 点击
+# Interactions
 
-- 点击浏览器工具栏图标：打开 Bookmark Visualizer toolbar popup，并默认进入当前网页保存入口。
-- 点击浏览器新标签页按钮：默认保持浏览器原生 New Tab；当设置中开启“绑定新标签页”后，跳转到 Bookmark Visualizer New Tab Portal。
-- 点击左侧文件夹：右侧展示该文件夹直接子书签。
-- 点击左侧文件夹行：同时选中文件夹并展开 / 折叠。
-- 点击右侧顶部路径导航中的任一文件夹节点：切换到对应文件夹并退出搜索状态；如果从当前路径点击上级，后续子级会以灰显尾项保留且仍可点击返回。
-- 从左侧树、树内书签、拖拽定位、新建或重命名等非路径导航入口切换文件夹时，清除灰显路径尾项，只显示当前真实路径。
-- 点击左侧书签条目：右侧切换到该书签所在文件夹，自动滚动并高亮对应卡片。
-- 点击右侧卡片空白区域：新标签页打开书签 URL。
-- 点击右侧卡片右上角打开图标：新标签页打开书签 URL。
-- 点击标题、URL 或备注编辑入口：进入行内编辑，不触发打开。
+## Entry Interactions
 
-## 搜索
+- Clicking the toolbar icon opens `popup.html`.
+- The browser extension command `_execute_action` opens the same popup.
+- Optional page `Ctrl+S` bridge only calls `chrome.action.openPopup()` through background logic; it has no visible UI of its own.
+- The full manager opens in `index.html`.
+- New Tab opens in `newtab.html` only when the user enables the runtime setting.
 
-- 输入关键词后进入全局搜索状态。
-- 当前搜索匹配标题、URL 和已有备注；摘要搜索后续实现。
-- 清空关键词后回到当前文件夹视图。
-- 搜索结果展示卡片和所在路径。
-- 右侧只保留顶部工具栏中的一个搜索框。
-- 搜索范围可在全部书签和当前文件夹之间切换。
-- 命令栏支持默认顺序、标题 A-Z、最新添加、最早添加排序。
-- `有备注` 筛选已实现；未读、收藏等过滤器仍属于后续能力。
+## Save Interaction
 
-## 批量选择
+- Popup opens on the configured default tab, normally Save.
+- Save Tab shows current page title, read-only URL, optional preview image, notes and save location.
+- Location selection uses inline folder tree search rather than a floating cascade menu.
+- Esc inside folder search clears search first; outside search it follows popup/browser focus behavior.
+- Creating a folder inside the picker selects the new folder after background creation succeeds.
+- Save success shows feedback and may close the popup if `popupAutoCloseAfterSave` is enabled.
+- Restricted browser pages are not injected; popup uses available tab title and URL context.
 
-- 点击管理页命令栏中的“批量操作”进入选择模式。
-- 选择模式下，书签卡片左上显示选择控件。
-- 选择模式下，点击卡片主体切换选中状态，不打开网页。
-- 选择模式下，点击卡片右上角打开图标仍然在新标签页打开书签 URL。
-- 按 `Esc` 时，如果没有弹窗、菜单、草稿或拖拽状态，退出选择模式。
-- 批量删除需要先确认；确认后逐个通过书签 adapter 删除真实浏览器书签。
-- 当前批量删除暂不支持批量撤回，操作日志和 toast 必须明确提示不可撤回。
-- 批量移动、添加标签和加入稍后阅读当前是禁用占位，不触发假操作。
+## Manager Interaction
 
-## New Tab Portal
+- Folder tree selection updates the bookmark card grid.
+- Breadcrumb items navigate to parent folders.
+- Search shows matching bookmarks with path context.
+- Bookmark cards open URLs by default unless selection or edit mode is active.
+- Context menus support edit, create nearby, move and delete where valid.
+- Drag operations must keep clear hover feedback and avoid moving protected root folders.
 
-- New Tab 页面不自动抢占浏览器地址栏焦点；用户点击页面搜索框后进入页面内搜索。
-- 页面搜索框输入关键词后显示混合建议：本地书签 / 文件夹优先，网络搜索建议兜底。
-- `ArrowUp` / `ArrowDown` 在建议间移动，`Enter` 打开选中项，`Esc` 清空并关闭建议。
-- 合法 URL 输入生成直接打开建议。
-- 点击固定快捷方式在当前标签页打开；按住 Ctrl / Command 点击时在新标签页打开。
-- 点击书签分组卡片切换下方精选书签；点击分组卡片右下角入口打开完整管理页并定位该文件夹。
-- 最近活动中的可打开项点击后打开对应 URL。
-- 快捷操作只包含打开管理页、新建书签、导入 HTML 和自定义布局；保存当前标签页仍属于 toolbar popup 保存入口。
-- 自定义布局打开右侧 Drawer，调整默认搜索引擎、搜索类型、布局模式、每行快捷方式数量和显示开关。
+## New Tab Interaction
 
-## 拖拽书签
+- Search treats URL-like input as direct navigation.
+- Keyword input shows local bookmark suggestions and web search suggestions.
+- Shortcuts and featured bookmarks open target URLs and record recent activity.
+- Layout customization changes only New Tab presentation state.
 
-- 右侧卡片可拖到左侧文件夹。
-- 开启“显示树内书签”后，左侧树内书签条目也可拖到左侧文件夹。
-- 开启“显示树内书签”后，左侧树内书签条目可拖到同父级书签条目上方 / 下方，使用水平插入线预览并完成前后插入。
-- 左侧树内书签条目仍可作为右侧卡片重排的拖拽源；右侧卡片也可拖到左侧同父级树内书签条目前后。
-- 非搜索状态下，右侧卡片可拖到当前文件夹内其他卡片前后，调整浏览器原生书签顺序。
-- 搜索结果跨文件夹，不支持拖拽重排。
-- drop 前高亮合法目标。
-- 拖拽到左侧长文件夹树时，靠近树顶部 / 底部会自动滚动文件夹树；拖拽过程中滚动鼠标滚轮也会滚动左侧树容器。
-- 不可修改文件夹不接受 drop。
-- 移动到其他文件夹成功后刷新树和卡片区；当前文件夹内重排成功后就地更新卡片顺序，避免滚动位置跳动。
-- 移动成功后显示撤销提示。
+## Undo Interaction
 
-## 拖拽文件夹
-
-- 普通文件夹可以在左侧树中拖拽移动。
-- 根节点、浏览器顶层特殊文件夹和不可修改节点不可拖动。
-- 文件夹不能移动到自身或自身子孙节点。
-- 拖到目标文件夹中部表示移动为子级；拖到目标行上 / 下边缘表示同级插入。
-- 移动成功后刷新树并显示撤销提示；撤销恢复原 parentId 和 index。
-
-## 右键菜单
-
-- 当前支持右键书签卡片，菜单包含“编辑”“在前面新建书签”“在后面新建书签”“移动”“删除”。
-- 右键“编辑”会让卡片进入行内编辑，而不是打开弹窗。
-- 悬浮“移动”后展示原生嵌套式多级文件夹级联菜单；菜单应贴着当前触发行展开，并根据可视区域选择向左 / 向右、向上 / 向下。
-- 在“移动”级联菜单中，悬浮有子级或可新建入口的文件夹会展开下一层；点击可移动文件夹本身表示把当前书签移动到该文件夹。
-- “移动”菜单顶部提供原位“搜索文件夹...”输入框，用于深层文件夹的快速定位。
-- 输入搜索词后，当前移动子菜单内直接展示匹配文件夹；点击可移动结果会立即移动当前书签。
-- 搜索结果为空时显示“没有匹配的文件夹”；搜索框内按 Esc 时，有搜索词先清空，搜索词为空时再关闭菜单。
-- 搜索词为空时，“移动”子菜单展示最近使用文件夹和所有文件夹级联树。
-- 多级文件夹级联菜单应保留约 320ms 的短暂关闭缓冲，允许鼠标跨过父子菜单之间的间隙。
-- 当某一级菜单在当前方向无法完整显示时，优先在该级菜单内部滚动，不带动底层页面滚动。
-- 移动级联菜单中可在目标父文件夹下新建文件夹，并把当前书签移动到新建文件夹中。
-- 选择目标文件夹后调用真实移动。
-- 当前支持右键文件夹并新建子文件夹或重命名；独立搜索式文件夹选择器可保留为备用入口，但右键移动菜单默认使用原位搜索。
-- 当前节点所在文件夹可以显示但不可作为无意义移动目标；它的子文件夹仍必须可继续展开并作为目标。
-
-## 新建
-
-- 当前支持从左侧文件夹右键菜单新建子文件夹。
-- 当前支持从书签“移动到...”级联菜单中新建目标文件夹并移动当前书签。
-- 当前支持从右侧当前文件夹标题区或空状态新建书签。
-- 当前支持从书签卡片右键菜单在当前卡片前后新建书签。
-- 新建书签成功后就地插入当前文件夹；新建文件夹成功后刷新树。
-- 新建失败时不保留虚假 UI 项。
-
-## 编辑
-
-- 书签可行内编辑标题、URL 和备注；摘要后续实现。
-- 普通可写文件夹可行内重命名，浏览器顶层特殊文件夹不可重命名。
-- 标题为空时需要阻止保存。
-- URL 必须是浏览器可打开的合法地址。
-
-## 删除
-
-- 删除书签需要确认或提供明显撤销。
-- 当前删除书签需要确认，成功后进入操作日志并可撤回。
-- 删除文件夹属于后续能力，必须确认，因为会影响子项。
-- 删除成功后从 UI 移除。
-- 若撤销无法完整恢复原结构，应在提示中说明。
-
-## 摘要抓取
-
-当前代码只预留摘要字段和入口概念，尚未实现网页 description 抓取或 AI 摘要。
-
-未来实现时的交互原则：
-
-- 用户点击“获取摘要”后触发，不后台批量抓取。
-- 若没有目标站点权限，先请求授权。
-- 授权后再读取页面 metadata 或正文片段。
-- 抓取失败时保留手动填写入口。
-
-## 快捷保存
-
-- 当前主路径是在任意可读取当前 tab 的页面点击扩展工具栏图标或按 `Ctrl+Shift+S`，打开 `popup.html` toolbar popup。
-- Save Overlay 顶部包含“保存 / 管理 / 设置”三个 Tab，默认 Tab 由 `settings.popupDefaultOpenTab` 控制。
-- 同一网页内重复触发不会堆叠多个 overlay；内容脚本会先移除旧 host 再重新渲染。
-- 保存成功后可按 `settings.popupAutoCloseAfterSave` 自动关闭 overlay；取消、点击遮罩、按 Esc、打开完整管理页和配置快捷键会关闭当前 overlay。
-- `chrome://` / `edge://` / 扩展页 / `file://` 等页面不执行页面 metadata 注入，但仍可在 toolbar popup 中保存 URL 引用。
-- “保存”Tab 已实现标题、只读 URL、备注、预览图、保存位置选择、最近文件夹和新建文件夹。
-- Save Overlay 保存位置使用内联展开文件夹树；搜索模式替换树主体，Esc 先清空搜索或关闭选择器，最近位置和新建文件夹保留在同一区域。
-- “管理”Tab 提供打开完整管理页、最近保存、最近使用位置等入口。
-- “设置”Tab 已实现 New Tab 绑定、默认搜索引擎、搜索类型、布局模式、快捷键说明、默认保存位置、保存行为和界面偏好。
-- “设置”Tab 的“配置快捷键”通过 background 打开 `chrome://extensions/shortcuts` 并关闭当前 overlay，不打开完整管理页。
-- `popupThemeMode` 当前只是已持久化的 Popup 主题偏好状态，尚未作为完整暗色主题作用到 Popup CSS。
-- 扩展命令 `Ctrl+Shift+S` / `Command+Shift+S` 使用 `_execute_action`，与工具栏图标共用同一个 popup 路由。
-
-## 撤销
-
-- 操作成功后显示 toast。
-- 移动撤销恢复原 parentId 和 index。
-- 书签重排撤销恢复原 parentId 和 index。
-- 文件夹移动撤销恢复原 parentId 和 index。
-- 移动过程中创建新文件夹并移动书签时，撤销只恢复书签原位置，不自动删除新建文件夹。
-- 编辑撤销恢复旧字段。
-- 新建书签撤销删除本次创建的书签。
-- 删除撤销优先恢复书签；当前通过重新创建书签恢复，因此会生成新的 bookmarkId。
-- 文件夹删除撤销如无法完整恢复，需要明确提示限制。
+- Move, reorder, edit and delete actions should emit feedback.
+- Undo restores the previous parent/index or previous editable values where possible.
+- Delete undo recreates bookmarks and may receive a new native bookmark id; metadata continuity is best-effort.

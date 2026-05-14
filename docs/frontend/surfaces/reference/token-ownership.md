@@ -1,3 +1,12 @@
+---
+type: reference
+status: active
+scope: frontend
+owner: project
+last_verified: 2026-05-14
+source_of_truth: true
+---
+
 # Token Ownership
 
 This reference defines the token hierarchy for the shared UI-system refactor. It complements the descriptive baseline in [Token audit](token-audit.md).

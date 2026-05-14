@@ -1,3 +1,12 @@
+---
+type: decision
+status: active
+scope: architecture
+owner: project
+last_verified: 2026-05-14
+source_of_truth: true
+---
+
 # ADR 0009: 使用可开关的新标签页重定向
 
 ## 状态

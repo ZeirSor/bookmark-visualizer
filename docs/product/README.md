@@ -1,18 +1,28 @@
+---
+type: reference
+status: active
+scope: product
+owner: project
+last_verified: 2026-05-14
+source_of_truth: true
+---
+
 # Product
 
-本目录保存产品定位、需求、交互和具体体验设计。
+本目录维护当前产品事实：定位、需求、交互、视觉方向和路线图。历史保存入口设计已移动到 `docs/_archive/product/`。
 
-## Active Docs
+## Reading Order
 
-- [Overview](overview.md)：产品愿景、使用场景和成功标准。
-- [Requirements](requirements.md)：第一版功能和非功能需求。
-- [UI design](ui-design.md)：界面布局和视觉体验原则。
-- [Interactions](interactions.md)：点击、搜索、拖拽、右键、快捷保存和撤销规则。
-- [Roadmap](roadmap.md)：已完成、MVP 收口、增强版和长期版计划。
-- [Popup save design](popup-save-design.md)：历史保存页设计参考，不代表当前实现。
-- [Quick-save dialog design](quick-save-dialog-design.md)：历史 content dialog 设计参考，不代表当前实现。
-- [Right-click move menu](right-click-move-menu.md)：右键移动菜单专项设计。
+1. [Overview](overview.md)
+2. [Requirements](requirements.md)
+3. [Interactions](interactions.md)
+4. [UI design](ui-design.md)
+5. [Right-click move menu](right-click-move-menu.md)
+6. [Roadmap](roadmap.md)
 
-## Maintenance
+## Current Product Boundary
 
-用户可见行为、交互入口或产品范围变化时，更新本目录。架构边界变化写入 [Architecture](../architecture/README.md)，长期决策写入 [ADR](../adr/README.md)。
+- Toolbar popup 是当前主保存入口。
+- 完整管理页负责书签管理工作台。
+- New Tab Portal 是可选轻量入口，不替代完整管理页。
+- 独立保存页、Save Overlay 和旧 Quick Save dialog 是历史方案。

@@ -1,3 +1,12 @@
+---
+type: decision
+status: active
+scope: architecture
+owner: project
+last_verified: 2026-05-14
+source_of_truth: true
+---
+
 # ADR 0013: 恢复工具栏 popup 作为主保存入口
 
 ## 状态
@@ -6,7 +15,7 @@
 
 ## 背景
 
-ADR 0011 和 ADR 0012 先后尝试用独立 `save.html` 保存窗口和内容脚本 Save Overlay 承载主保存体验。它们解决了 popup 尺寸或当前页沉浸感问题，但也引入了入口分叉、内容脚本注入边界、fallback 说明复杂度和更多 background 入口状态。
+历史 ADR 0011 和 ADR 0012 先后尝试用独立 `save.html` 保存窗口和内容脚本 Save Overlay 承载主保存体验。它们解决了 popup 尺寸或当前页沉浸感问题，但也引入了入口分叉、内容脚本注入边界、fallback 说明复杂度和更多 background 入口状态。
 
 当前产品优先级回到“点击工具栏图标即可打开稳定、可验证、功能完整的 Save / Manage / Settings popup”。后续 ADR 0014 已删除旧 overlay / save-window 代码，并新增默认关闭的页面内 Ctrl+S popup bridge。
 

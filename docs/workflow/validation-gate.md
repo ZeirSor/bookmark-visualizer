@@ -1,3 +1,12 @@
+---
+type: workflow
+status: active
+scope: ai-workflow
+owner: project
+last_verified: 2026-05-14
+source_of_truth: true
+---
+
 # Validation Gate
 
 The validation gate decides whether a task can be marked complete.
@@ -75,6 +84,9 @@ Historical AI records are not active source-of-truth documents. Documentation pa
 - concrete `.ai/runs/*` folders except `.ai/runs/_TEMPLATE/`
 - `node_modules/`
 - `dist/`
-- `docs/tmp/`
+- `docs/_archive/tmp/`
 
 Future or proposed paths are allowed only when the nearby text explicitly marks them as future, proposed, planned, or not current implementation.
+
+
+Project-level validation details live in [Quality validation gate](../quality/validation-gate.md).

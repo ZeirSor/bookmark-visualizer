@@ -1,3 +1,12 @@
+---
+type: reference
+status: active
+scope: frontend
+owner: project
+last_verified: 2026-05-14
+source_of_truth: true
+---
+
 # Token Exceptions
 
 This document records intentional visual raw-value exceptions for the UI-system refactor. It complements [CSS hardcode policy](css-hardcode-policy.md) and [Token ownership](token-ownership.md).

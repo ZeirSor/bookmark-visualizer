@@ -1,114 +1,66 @@
-# 需求说明
+---
+type: reference
+status: active
+scope: product
+owner: project
+last_verified: 2026-05-14
+source_of_truth: true
+---
 
-## 第一版目标
+# Requirements
 
-第一版构建一个 Chrome / Edge 工具栏入口扩展，用于可视化、搜索和管理浏览器原生书签。
+## Product Goal
 
-截至 2026-05-09，当前代码已经完成 toolbar popup 主保存入口、可选页面内 Ctrl+S bridge、完整管理页三栏工作台、New Tab 可选入口、保留的 Quick Save message 协议、书签树浏览、书签卡片、标题 / URL 搜索、拖拽移动与重排、书签新建 / 编辑 / 移动 / 删除、文件夹新建 / 重命名 / 移动、最近文件夹、备注编辑、主题与卡片尺寸设置、侧栏宽度设置和会话内操作日志。下面的需求同时保留产品目标和当前实现差异。
+Bookmark Visualizer 是 Chrome / Edge MV3 扩展，用于可视化、搜索、保存和管理浏览器原生书签。浏览器书签树仍是书签数据的单一事实源；扩展只补充备注、设置、最近文件夹、favicon cache 和后续增强元数据。
 
-## 功能需求
+## Current Entry Requirements
 
-### 扩展入口
+- Toolbar icon opens `popup.html`; this is the primary save entry.
+- `_execute_action` uses the browser extension command, normally `Ctrl+Shift+S` / `Command+Shift+S`, and opens the same toolbar popup.
+- `index.html` is the full manager workspace and is opened from product links, popup manage tab, new tab actions or direct extension URL.
+- `newtab.html` is optional and only becomes active when the user enables New Tab binding.
+- Page `Ctrl+S` / `Command+S` is optional, default-off, and only opens the toolbar popup through the page shortcut bridge. It does not render a content-script dialog and does not create bookmarks directly.
+- Browser internal pages such as `chrome://`, `edge://`, extension pages and file URLs may be saved as URL references from popup when available, but they are not injected for page metadata.
 
-- 工具栏图标是当前主保存入口；点击后打开 `popup.html`，默认进入保存当前页面的 Save Tab。
-- `chrome://` / `edge://` / 扩展页 / 文件 URL 等场景仍从 toolbar popup 保存 URL 引用，但不执行页面 metadata 注入。
-- Save Overlay 顶部包含“保存 / 管理 / 设置”三个 Tab；默认打开 Tab 由 `settings.popupDefaultOpenTab` 控制。
-- 完整管理页 `index.html` 通过 Save Overlay、保存 fallback、设置入口或其他深链接打开，不是工具栏图标的直接默认页面。
-- 扩展默认不接管浏览器默认新标签页。
-- 用户可以在设置中开启“绑定新标签页”，开启后浏览器新标签页会由 service worker 条件重定向到 `newtab.html`；关闭后保留浏览器默认新标签页。
-- New Tab Portal 是搜索、常用网站启动和轻量书签分组页，不是完整管理页缩小版。
-- 默认键盘入口为扩展命令 `_execute_action`：默认 `Ctrl+Shift+S` / macOS `Command+Shift+S`，打开同一个 toolbar popup。
-- 页面内 `Ctrl+S` / `Command+S` 是可选设置，默认关闭；开启后通过 optional host permissions 动态注册轻量 listener，只打开 toolbar popup。
+## Save Requirements
 
-### 左侧文件夹树
+- Popup Save Tab auto-fills the current page title and URL when tab information is available.
+- The URL is displayed as read-only context; user-editable content includes title, notes, thumbnail URL visibility and save location.
+- Save location uses `InlineFolderPicker` with tree browsing, search, recent folders and create-folder support.
+- Save creates a native browser bookmark through the background save handler.
+- Notes and preview image URL are stored in extension metadata keyed by bookmark id.
+- Recent folders are stored in shared recent-folder state.
+- Save success may show feedback and may auto-close popup according to settings.
 
-- 展示浏览器完整书签文件夹层级。
-- 默认只展示文件夹。
-- 提供“显示书签条目”开关，打开后在树中展示具体书签标题。
-- 支持展开、折叠和选中文件夹；当前实现中点击文件夹行即可选择并展开 / 折叠。
-- 右侧顶部路径导航展示当前文件夹的层级路径；路径中的每个节点都可点击并切换到对应文件夹。通过路径点击上级时，原路径后续子级以灰显尾项保留并可点击返回；通过其它入口切换文件夹时清除该尾项。
-- 打开“显示树内书签”后，点击左侧书签会在右侧打开其所在文件夹并高亮对应卡片。
-- 打开“显示树内书签”后，左侧书签条目可以拖拽到可写文件夹，也可以拖到同父级书签条目上方 / 下方完成前后插入。
-- 文件夹右键菜单当前支持新建子文件夹。
-- 普通可写文件夹支持行内重命名；浏览器顶层特殊文件夹不可重命名。
-- 文件夹支持拖拽移动；拖到目标中部为子级，拖到上 / 下边缘为同级排序。
-- 左侧树在拖拽过程中支持边缘自动滚动和鼠标滚轮滚动，避免长列表无法继续定位目标。
+## Manager Requirements
 
-### 右侧书签卡片
+- Manager shows the browser bookmark folder tree and current folder bookmark cards.
+- Users can search bookmarks by title, URL and existing notes.
+- Users can create, edit, move, reorder and delete bookmarks where Chrome bookmarks API allows it.
+- Users can create, rename and move writable folders. Browser-managed root folders remain protected.
+- Drag and drop supports moving bookmarks to folders and reordering bookmarks inside writable folders.
+- Destructive actions require confirmation and should write an operation log where undo is supported.
 
-- 点击左侧文件夹后，右侧显示该文件夹下的书签。
-- 卡片展示 favicon、标题、URL、备注或摘要。
-- 卡片尺寸偏舒展美观，不做高密度表格。
-- 点击卡片默认在新标签页打开书签 URL。
-- 卡片支持拖拽到左侧文件夹。
-- 卡片支持在当前文件夹内拖拽重排；搜索结果视图不支持重排。
-- 卡片支持右键菜单：编辑、在前后新建书签、移动、删除。
-- 编辑支持标题、URL 和备注的行内编辑；标题 / URL 写入浏览器原生书签，备注写入 `chrome.storage.local`。
-- 新建书签可从当前文件夹标题区、空状态或已有卡片前后插入，写入浏览器原生书签树。
-- 管理页命令栏当前提供批量选择入口；进入选择模式后卡片左上显示选择控件，点击卡片主体切换选中，不直接打开网页。
-- 移动支持菜单内原位搜索、最近使用文件夹、多级文件夹悬浮菜单，并可在移动过程中创建目标文件夹。
-- 删除书签需要确认，成功后进入操作日志并提供撤回。
+## New Tab Requirements
 
-### 搜索
+- New Tab binding is opt-in and stays disabled after first install or migration unless the user enables it.
+- New Tab supports mixed web/bookmark search, pinned shortcuts, selected bookmark groups, recent activity and quick actions.
+- New Tab is a portal, not a compact version of the full manager workspace.
 
-- 顶部工具栏提供主搜索框。
-- 搜索范围默认为全局书签。
-- 当前实现搜索标题、URL 和已有备注；摘要搜索属于后续增强。
-- 搜索结果以卡片形式展示。
-- 结果展示所在文件夹路径。
-- 管理页当前显示排序、筛选、有备注、未读和收藏等命令栏入口；排序和有备注筛选已实现，未读和收藏仍为禁用占位，不写入假状态。
-- 右侧仅保留顶部工具栏搜索框，不提供第二个重复搜索入口。
-- 搜索默认排序为匹配度优先，其次添加时间；用户可显式切换标题 A-Z、最新添加和最早添加。最近使用时间排序和更多过滤器属于后续增强。
+## Settings Requirements
 
-### 可选 New Tab Portal
+- Settings include default popup tab, default save folder, popup auto-close behavior, save feedback, thumbnail visibility, page Ctrl+S bridge switch, New Tab binding, search defaults, layout mode and visual preferences.
+- Optional host permissions must be requested only after explicit user action.
 
-- 新增 `newtab.html` 独立入口，顶部仅显示轻量品牌 `Bookmark Visualizer · 新标签页`。
-- 页面优先展示网络搜索、本地书签混合搜索和固定快捷方式。
-- 固定快捷方式位于书签分组前，支持添加网站、移除固定和隐藏推荐；拖拽排序后续实现。
-- 书签分组作为第二层入口，展示 4-5 个主题文件夹、数量说明和少量直接书签示例。
-- 精选书签展示当前分组中的快速入口。
-- 右侧面板展示最近活动、快捷操作和本地存储说明。
-- 快捷操作包含打开管理页、新建书签、导入 HTML 和自定义布局，不包含“保存当前标签页”。
-- 搜索引擎首版支持 Google、Bing 和 DuckDuckGo；搜索类型支持 Web、图片、新闻、视频和地图。
-- 输入合法 URL 时直接打开；输入关键词时同时显示本地书签建议和网络搜索建议。
-- 首次安装和旧设置迁移后，`newTabOverrideEnabled` 必须保持关闭。
+## Summary and AI Requirements
 
-### 完整管理
+- Manual notes are current implementation.
+- Page summary and AI summary remain future enhancements.
+- Future summary collection must be user-triggered and permission-aware; the extension must not read page body content in the background by default.
 
-- 当前支持行内编辑书签标题、URL、备注和文件夹名称。
-- 当前支持删除书签，并通过确认框和操作日志撤回降低误操作风险。
-- 当前支持批量选择多个书签并批量删除；批量删除前必须确认，第一版暂不支持批量撤回，操作日志会明确记录这一限制。
-- 批量移动、标签和稍后阅读当前只显示禁用入口，属于后续增强。
-- 当前支持新建书签、新建文件夹和移动文件夹。
-- 删除文件夹属于后续能力。
-- 删除文件夹前必须明确提示会影响其子项。
+## Non-functional Requirements
 
-### 备注和摘要
-
-- 用户可以手动编辑备注。
-- 用户可以在普通网页点击扩展工具栏图标，打开当前页面内的 Save Overlay“保存”Tab，并保存当前网页为浏览器原生书签。
-- Save Overlay 表单自动填充当前 URL、标题和候选预览图片，允许用户编辑标题、复制只读 URL、填写备注并选择保存文件夹。
-- Save Overlay 顶部保留“保存 / 管理 / 设置”三个 Tab；管理 Tab 提供完整管理页入口、最近保存和最近使用文件夹，设置 Tab 提供快捷键说明、默认保存位置、保存行为和界面偏好等常用设置。
-- Save Overlay 保存位置区支持完整路径确认、内联展开文件夹树、按名称或路径搜索、最近使用文件夹、管理位置入口和当前选中位置新建文件夹；不再使用浮动横向级联菜单作为主保存位置选择器。
-- 独立保存页和内容脚本保存浮框已删除；受限页面保存由 toolbar popup 自身处理。
-- 快捷保存的备注和预览图片 URL 保存到插件元数据；书签本体仍写入浏览器原生书签树。
-- `Ctrl + S` 快捷键保存路线暂停；第一阶段不默认注入全局网页 listener，也不请求全部 http/https 站点权限。
-- 默认 `Ctrl + Shift + S` / macOS `Command + Shift + S` 扩展命令仍保留为低权限快捷保存入口；Save Overlay 是普通网页当前主路径。
-- 摘要模块当前只保留入口，不抓取网页内容。
-- 未来抓取网页摘要时使用主动授权策略，不在安装时请求全部网站权限。
-- AI 摘要仅预留入口，第一版不实现。
-
-### 撤销
-
-- 移动、删除、编辑等操作成功后进入操作日志并显示撤销提示。
-- 当前撤销覆盖书签移动、标题 / URL 编辑、备注编辑和书签删除。
-- 删除撤销通过重新创建书签恢复标题、URL、父文件夹和位置；由于浏览器会生成新 id，关联到旧 bookmarkId 的元数据无法作为同一原生节点完全延续。
-
-## 非功能需求
-
-- 操作必须真实同步到浏览器原生书签。
-- 插件不读取网页正文，除非用户主动触发摘要抓取；当前 Save Overlay 只在用户点击工具栏图标或触发保存命令后读取当前页标题、URL 和候选图片。浏览器内部页面不执行脚本注入，只通过 fallback 保存 URL。
-- 大量书签下搜索和树渲染应保持可用。
-- New Tab 搜索建议需要限制数量，避免大量书签导致面板过长或首屏阻塞。
-- 所有失败操作必须有可理解的错误提示。
-- 文档和代码应优先服务长期维护，不以临时演示为目标。
+- Native bookmark writes must be real Chrome bookmarks API operations.
+- Active docs and code paths must stay aligned; deleted save surfaces must remain archived.
+- Large bookmark trees should remain usable through search, lazy rendering decisions and constrained suggestion lists.
+- All failure states must show understandable user feedback.

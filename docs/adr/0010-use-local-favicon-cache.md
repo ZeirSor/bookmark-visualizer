@@ -1,3 +1,12 @@
+---
+type: decision
+status: active
+scope: architecture
+owner: project
+last_verified: 2026-05-14
+source_of_truth: true
+---
+
 # ADR 0010: 使用本地 favicon cache
 
 ## 状态

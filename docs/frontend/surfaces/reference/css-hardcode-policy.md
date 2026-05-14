@@ -1,3 +1,12 @@
+---
+type: reference
+status: active
+scope: frontend
+owner: project
+last_verified: 2026-05-14
+source_of_truth: true
+---
+
 # CSS Hardcode Policy
 
 This policy defines the Phase 1 guardrail for new UI CSS. It applies to Manager, Popup, New Tab, shared components, and future `src/design-system/` primitives or patterns.

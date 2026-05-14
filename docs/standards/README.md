@@ -1,16 +1,20 @@
+---
+type: standard
+status: active
+scope: project
+owner: project
+last_verified: 2026-05-14
+source_of_truth: true
+---
+
 # Standards
 
-本目录保存文档维护、协作和项目内长期规范。
+本目录维护项目通用规范。
 
-## Active Docs
+## Documents
 
-- [Documentation maintenance](documentation-maintenance.md)：docs 信息架构、索引、草稿晋升、AI workflow 文档边界和变更同步规则。
+- [Documentation maintenance](documentation-maintenance.md)
 
-## Related Workflow Docs
+## Rule
 
-- [AI development workflow](../workflow/README.md)：AI-assisted development lifecycle、run folder、任务状态、停止交接和验证门禁。
-- [Playbooks](../playbooks/README.md)：可复用任务执行手册。
-
-## Maintenance
-
-当文档组织方式、命名规则或协作约定变化时，更新本目录。项目级 AI 工作规则仍以仓库根目录 `AGENTS.md`、`.ai/README.md` 和 `docs/workflow/` 为准。
+若规范改变会影响文档位置、命名、frontmatter、归档策略或验证命令，必须同步更新 `docs/_templates/` 和 `docs/quality/validation-gate.md`。

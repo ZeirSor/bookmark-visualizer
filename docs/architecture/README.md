@@ -1,14 +1,26 @@
+---
+type: reference
+status: active
+scope: architecture
+owner: project
+last_verified: 2026-05-14
+source_of_truth: true
+---
+
 # Architecture
 
-本目录保存项目架构、模块边界和阶段性架构治理方案。
+本目录维护当前系统架构、模块边界、运行链路和入口事实。阶段性分析和旧保存入口架构已移动到 `docs/_archive/architecture/`。
 
-## Active Docs
+## Reading Order
 
-- [Architecture overview](overview.md)：Manifest V3 扩展总体架构、状态流和分层原则。
-- [Module boundaries](module-boundaries.md)：`features/*`、popup、quick-save、settings 等模块职责边界。
-- [Phase 1 local architecture](phase-1-local-architecture.md)：第一阶段本地架构收口目标、非目标和后续拆分顺序。
-- [Layering analysis](layering-analysis.md)：当前分层状态、长期目标分层和云端化前置边界分析。
+1. [Overview](overview.md)
+2. [Runtime flows](runtime-flows.md)
+3. [Module boundaries](module-boundaries.md)
+4. [ADR index](../adr/README.md)
 
-## Maintenance
+## Current Entry Facts
 
-代码入口、模块职责、Chrome API 访问边界或第一阶段收口方向变化时，先更新本目录，再按需要更新 [ADR](../adr/README.md)。
+- `popup.html`：toolbar popup，当前主保存入口。
+- `index.html`：完整管理工作台。
+- `newtab.html`：可选 New Tab Portal。
+- `src/features/page-shortcut/content.ts`：可选 listener，只请求打开 popup。

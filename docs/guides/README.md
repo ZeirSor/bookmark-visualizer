@@ -1,12 +1,12 @@
+---
+type: guide
+status: active
+scope: project
+owner: project
+last_verified: 2026-05-14
+source_of_truth: false
+---
+
 # Guides
 
-本目录保存操作型指南、测试验收和健康检查。
-
-## Active Docs
-
-- [Testing and acceptance](testing-and-acceptance.md)：单元测试、组件测试、手动验收和质量门槛。
-- [Popup save entry health check](popup-save-entry-health-check.md)：toolbar popup 入口、manifest、构建产物和常见故障检查。
-
-## Maintenance
-
-新增验证脚本、手动验收路径或健康检查规则时，更新本目录。长期架构原则不要写在指南里，应写入 [Architecture](../architecture/README.md) 或 [ADR](../adr/README.md)。
+Most operational guides have moved to [`docs/quality/`](../quality/README.md). Keep this directory only for future task-oriented guides that do not belong to quality, operations or standards.

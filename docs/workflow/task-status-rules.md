@@ -1,3 +1,12 @@
+---
+type: workflow
+status: active
+scope: ai-workflow
+owner: project
+last_verified: 2026-05-14
+source_of_truth: true
+---
+
 # Task Status Rules
 
 `tasks.md` is the execution state file for a run folder.

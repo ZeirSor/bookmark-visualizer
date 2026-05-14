@@ -1,3 +1,12 @@
+---
+type: workflow
+status: active
+scope: ai-workflow
+owner: project
+last_verified: 2026-05-14
+source_of_truth: true
+---
+
 # Run Folder Convention
 
 A run folder stores the active state for one complex AI-assisted task or workstream.

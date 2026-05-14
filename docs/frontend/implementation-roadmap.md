@@ -1,3 +1,12 @@
+---
+type: reference
+status: active
+scope: frontend
+owner: project
+last_verified: 2026-05-14
+source_of_truth: true
+---
+
 # Frontend Implementation Roadmap
 
 ## Phase 1: Token Unification
@@ -33,7 +42,7 @@ Validation:
 Validation:
 
 - Popup 默认态、级联态、搜索态、新建态、最近展开态都能手动验收。
-- `npm run verify:save-window-entry`
+- `npm run verify:popup-entry`
 
 ## Phase 4: Management Surface Consistency
 

@@ -1,3 +1,12 @@
+---
+type: reference
+status: active
+scope: architecture
+owner: project
+last_verified: 2026-05-14
+source_of_truth: true
+---
+
 # 模块边界
 
 ## 第一阶段分层边界
@@ -9,7 +18,7 @@
 - Domain models and pure rules：未来 `src/domain/*` 放稳定领域模型和纯规则；本阶段只规划，不强制创建。
 - Infrastructure adapters：当前 `src/lib/chrome/` 保持为 Chrome API 访问边界，UI 和业务模块不得散落直接调用 `chrome.*`。
 
-第一阶段不做云端、账号、订阅、Notion、AI 摘要或完整多维表格视图。相关后续方向见 [Phase 1 local architecture](phase-1-local-architecture.md) 和 [Strategy](../strategy/README.md)。
+第一阶段不做云端、账号、订阅、Notion、AI 摘要或完整多维表格视图。相关后续方向见 [Archived phase 1 local architecture](../_archive/architecture/phase-1-local-architecture.md) 和 [Strategy](../strategy/README.md)。
 
 ## bookmarks
 
@@ -195,7 +204,7 @@
 
 - 将 Chrome Keyboard Shortcuts 中的 `Ctrl + S` 分配作为稳定入口。
 - 默认注入全局 `Ctrl + S` 网页 listener。
-- 维护 legacy Shadow DOM 保存浮框。
+- 维护任何网页浮层保存 UI。
 - 下载或转存网页图片。
 - 维护独立书签结构。
 

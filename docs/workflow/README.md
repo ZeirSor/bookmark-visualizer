@@ -1,3 +1,12 @@
+---
+type: workflow
+status: active
+scope: ai-workflow
+owner: project
+last_verified: 2026-05-14
+source_of_truth: true
+---
+
 # AI Development Workflow
 
 This directory defines the repository's AI-assisted development workflow. It explains how Agents should move from a user request to a scoped spec, implementation plan, executable task list, validation record, formal documentation sync, and handoff.

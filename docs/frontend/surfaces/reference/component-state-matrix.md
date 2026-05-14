@@ -1,3 +1,12 @@
+---
+type: reference
+status: active
+scope: frontend
+owner: project
+last_verified: 2026-05-14
+source_of_truth: true
+---
+
 # Component State Matrix
 
 This matrix records current state coverage across reusable UI categories. It is the Phase 0 baseline for later component contracts, stories, tests, and manual QA.
@@ -72,4 +81,4 @@ This matrix records current state coverage across reusable UI categories. It is 
 
 - [Component inventory](component-inventory.md)
 - [Token audit](token-audit.md)
-- [Regression checklist](03-regression-checklist.md)
+- [Regression checklist](regression-checklist.md)

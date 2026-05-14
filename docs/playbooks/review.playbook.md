@@ -1,3 +1,12 @@
+---
+type: playbook
+status: active
+scope: ai-workflow
+owner: project
+last_verified: 2026-05-14
+source_of_truth: true
+---
+
 # Playbook: Review
 
 ## When To Use

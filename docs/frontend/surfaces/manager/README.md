@@ -1,3 +1,12 @@
+---
+type: reference
+status: active
+scope: frontend
+owner: project
+last_verified: 2026-05-14
+source_of_truth: true
+---
+
 # 管理页 Workspace PageDoc
 
 ## 页面定位
@@ -137,4 +146,4 @@ index.html
 - 搜索态下禁止书签重排，因为 `displayedBookmarks` 来自全局搜索结果，不是当前文件夹真实顺序。
 - 批量模式下点击卡片应该切换选择，不能打开网页。
 - 修改 `BookmarkCard` 样式时必须同时检查正常态、hover、selected、highlight、inline edit、drag drop。
-- 修改 `FolderCascadeMenu` 时必须同步回归管理页右键移动、legacy 保存入口和 Quick Save 浏览文件夹；当前 Popup 保存位置和 Settings 默认保存位置使用共享内联 picker。
+- 修改 `FolderCascadeMenu` 时必须同步回归管理页右键移动、Popup Save Tab 和 Settings 默认保存位置；当前 Popup 保存位置和 Settings 默认保存位置使用共享内联 picker。
