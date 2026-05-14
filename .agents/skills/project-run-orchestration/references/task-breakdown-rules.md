@@ -1,4 +1,4 @@
-# Task Breakdown Rules
+# Generic Task Breakdown Rules
 
 ## Good Task Shape
 
@@ -7,7 +7,7 @@ A good sub-task is:
 - specific;
 - verifiable;
 - small enough for one focused work round;
-- tied to a file, component, behavior, or doc update;
+- tied to a file, component, behavior, doc update, validation step, or workflow rule;
 - not a hidden bundle of unrelated cleanup.
 
 ## Checklist Rules

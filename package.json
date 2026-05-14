@@ -9,6 +9,7 @@
     "typecheck": "tsc -b --pretty",
     "test": "vitest run --dir src --exclude '**/node_modules/**' --exclude '**/.git/**'",
     "docs:check": "node scripts/check-doc-paths.mjs",
+    "skills:audit": "node .agents/skills/project-doc-routing/scripts/audit-skill-portability.mjs --root . --format markdown",
     "verify:page-shortcut": "node scripts/verify-popup-entry.mjs",
     "verify:popup-entry": "node scripts/verify-popup-entry.mjs",
     "verify:quick-save-shortcut": "node scripts/verify-popup-entry.mjs"

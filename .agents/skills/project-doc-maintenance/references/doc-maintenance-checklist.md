@@ -1,106 +1,49 @@
-# Documentation Maintenance Checklist
+# Generic Documentation Maintenance Checklist
 
-Use this checklist when running `project-doc-maintenance`.
+Use this checklist with the repository profile.
 
-## 1. Code Path Accuracy
+## Code Path Accuracy
 
-For every code path mentioned in docs:
+- Every referenced file or directory exists, unless clearly marked planned, future, historical, or external.
+- Renamed or moved paths are updated in all active docs selected by the profile.
+- Deleted implementation paths are removed from active docs unless historically relevant.
+- Entry files and source roots match current repository structure.
 
-- The file exists.
-- The path uses the current directory name.
-- Future suggested files are clearly marked as planned, not existing.
-- Renamed files are updated in every affected doc.
-- Deleted files are removed from docs unless mentioned historically.
-- Entry files match current entrypoints:
-  - `index.html`
-  - `popup.html`
-  - `newtab.html`
+## UI / Surface Accuracy
 
-## 2. UI Surface Accuracy
+- Entrypoint, page layout, component list, and shared component ownership match current code.
+- Buttons, inputs, icons, menus, dialogs, empty states, and relevant interaction states are documented when maintainable knowledge changed.
+- CSS selectors, design tokens, class names, and responsive behavior are current where docs track them.
+- Keyboard and pointer behavior are documented when changed or user-facing.
 
-For UI changes, verify:
+## Data And State Accuracy
 
-- Page entrypoint is correct.
-- Component list matches current code.
-- Buttons, inputs, icons, tabs, menus, dialogs, and empty states are documented.
-- CSS selectors and class names are current.
-- Interaction states are current:
-  - default
-  - hover
-  - focus
-  - active
-  - loading
-  - empty
-  - error
-  - disabled
-- Keyboard and pointer behavior are documented when relevant.
-- Surface-specific state transitions match current implementation.
-- Shared component docs are updated when a reusable UI primitive changes.
+- Persisted keys, schemas, migrations, imports, exports, and compatibility notes match current code.
+- Ownership of external/native data versus project-owned metadata is clear.
+- UI docs are updated when data is displayed, edited, searched, saved, imported, or exported.
 
-## 3. Data And Storage Accuracy
+## Runtime / API Boundary Accuracy
 
-For data changes, verify:
+- Permissions, manifests, adapters, message routes, service boundaries, or external API ownership match current code.
+- Pure UI docs do not imply ownership of environment APIs unless that is intentional.
+- Optional permissions or opt-in behavior are not documented as mandatory defaults.
 
-- Storage keys are listed.
-- Ownership is clear:
-  - `chrome.bookmarks` for native bookmark structure
-  - `chrome.storage.local` for extension metadata and UI state
-- Migration or compatibility notes are present when keys are renamed or deprecated.
-- Import/export behavior is described only if actually implemented.
-- New Tab, Quick Save, popup, manager, and settings state ownership is current.
-
-## 4. Chrome API Boundary Accuracy
-
-For Chrome API changes, verify:
-
-- Manifest permissions match documentation.
-- Background, popup, quick-save, and New Tab environment boundary files are documented.
-- UI components do not appear to own direct Chrome API responsibility unless intentionally documented.
-- Optional permissions are not described as install-time permissions.
-- Runtime message routes match the actual `src/background/` routing files.
-
-## 5. Product Behavior Accuracy
-
-For product-facing changes, verify:
+## Product Behavior Accuracy
 
 - Requirements describe current behavior, not planned behavior.
-- Paused or deprecated behavior is clearly marked.
-- Default behavior is distinguished from optional settings.
-- Popup, Manager, Quick Save, and New Tab entry behavior is current.
-- UI copy and interaction docs match current product wording.
+- Paused, deprecated, optional, or future behavior is clearly labeled.
+- User-facing copy, default behavior, and settings behavior match implementation.
 
-## 6. README Sync
+## README And Index Sync
 
-Update root README files only when the change affects:
+- README files are updated only when profile rules say public onboarding or high-level understanding changed.
+- Root docs indexes and directory README files link to added, moved, or renamed docs.
+- Cross-links use valid relative paths from the current file.
+- Image, GIF, and preview asset paths exist when referenced.
 
-- project identity
-- installation or build commands
-- extension entrypoints
-- major features
-- browser support
-- permissions
-- project structure
-- docs index links
-- public roadmap
-
-Do not update root README files for small internal component changes.
-
-## 7. Link And Index Sync
-
-After docs edits, verify:
-
-- `docs/README.md` links to new or moved docs.
-- Directory README files link to important child docs.
-- Root README links still resolve.
-- Cross-links use relative paths that work from the current file location.
-- Image and GIF asset paths exist if referenced.
-- `docs/frontend/surfaces/reference/` indexes reflect renamed UI elements or files.
-
-## 8. Scope Control
-
-When updating docs:
+## Scope Control
 
 - Prefer targeted edits over broad rewrites.
 - Do not update unrelated docs just because they are nearby.
-- Do not remove useful historical context unless it is misleading.
-- Mark known gaps explicitly when a doc cannot be fully synchronized in the current task.
+- Do not treat run folders, worklogs, or dev changelogs as formal product facts.
+- Mark unresolved documentation gaps explicitly when they cannot be handled in the current task.

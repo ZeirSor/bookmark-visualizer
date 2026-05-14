@@ -1,9 +1,9 @@
-# Run Folder Template Reference
+# Generic Run Folder Template Reference
 
 A run folder should contain:
 
 ```text
-.ai/runs/<yyyy-mm-dd__short-topic>/
+<run-root>/<yyyy-mm-dd__short-topic>/
   spec.md
   plan.md
   tasks.md
@@ -11,7 +11,7 @@ A run folder should contain:
   handoff.md
 ```
 
-Use `.ai/runs/_TEMPLATE/` as the source template.
+Use the repository's project profile or `.ai/README.md` to identify `<run-root>`. If no project rule exists, recommend `.ai/runs/`.
 
 ## Naming
 
@@ -23,16 +23,16 @@ YYYY-MM-DD__short-kebab-topic
 
 Examples:
 
-- `2026-05-08__popup-save-location-picker`
-- `2026-05-08__manager-page-ui-refactor`
-- `2026-05-08__newtab-search-settings`
+- `2026-05-14__popup-save-location-picker`
+- `2026-05-14__ui-refactor`
+- `2026-05-14__validation-rule-update`
 
 ## Required First Pass
 
 Before implementation begins, ensure:
 
-- `spec.md` has a clear goal, scope, and acceptance criteria;
-- `plan.md` names likely affected files and validation strategy;
-- `tasks.md` has executable sub-tasks;
+- `spec.md` states user request, goal, scope, affected areas, acceptance criteria, and constraints;
+- `plan.md` names relevant docs, selected workflow, likely files, implementation strategy, validation strategy, risks, and rollback notes;
+- `tasks.md` has small executable sub-tasks;
 - `test-log.md` is ready to record validation;
-- `handoff.md` identifies the current state and next task.
+- `handoff.md` identifies current state and next task.

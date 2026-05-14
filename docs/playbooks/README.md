@@ -27,7 +27,8 @@ Use `*.playbook.md` instead of `*.play.md` for clarity. The term comes from “p
 
 1. Read `AGENTS.md`.
 2. Use `project-playbook-routing` to select the relevant playbook.
-3. Read the selected playbook.
-4. Create or resume a run folder if the task is complex.
-5. Apply the playbook steps to the current `spec.md`, `plan.md`, and `tasks.md`.
-6. Validate and update run state before stopping.
+3. Read `.agents/project-profile/ai-workflow.md` when repository-specific workflow conventions matter.
+4. Read the selected playbook.
+5. Create or resume a run folder if the task is complex.
+6. Apply the playbook steps to the current `spec.md`, `plan.md`, and `tasks.md`.
+7. Validate and update run state before stopping.

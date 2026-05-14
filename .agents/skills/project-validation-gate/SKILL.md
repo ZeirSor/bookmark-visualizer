@@ -1,6 +1,6 @@
 ---
 name: project-validation-gate
-description: Use before marking tasks complete to select required validation commands, manual QA checks, and test-log updates for Bookmark Visualizer changes.
+description: Use before marking project tasks complete to select required validation commands, manual checks, and test-log updates from generic rules plus the repository validation profile.
 ---
 
 # Project Validation Gate
@@ -20,36 +20,27 @@ It answers:
 
 Read:
 
-- `AGENTS.md`
-- `docs/workflow/validation-gate.md`
-- `references/validation-command-map.md`
-- `references/manual-qa-checklist-map.md`
-- current run `tasks.md` and `test-log.md` if a run folder exists
+1. `AGENTS.md`
+2. `.agents/project-profile/validation.md` if present
+3. `docs/workflow/validation-gate.md` if present
+4. `references/validation-command-map.md`
+5. `references/manual-qa-checklist-map.md`
+6. current run `tasks.md` and `test-log.md` if a run folder exists
+
+If the profile is missing or a command is unavailable, inspect `package.json` and test configuration, then record the limitation.
 
 ## Workflow
 
-1. Identify change type.
-2. Select command checks.
-3. Select manual QA checks.
+1. Identify change type and affected areas.
+2. Select command checks from the project validation profile, falling back to generic command families.
+3. Select manual checks from the project profile, falling back to generic scenario categories.
 4. Run or request the relevant validation.
 5. Decide whether the task may be marked complete.
 6. Record results in `test-log.md` when a run folder exists.
 
-## Documentation Path Validation Rule
+## Completion Rule
 
-For documentation-only, AI workflow, local skill, or validation-command changes that touch path references, include `npm run docs:check`.
-
-The docs path check validates active source-of-truth docs and skills. It must exclude historical/generated records:
-
-- `.ai/logs/`
-- `.ai/dev-changelog/`
-- `.ai/archive/`
-- concrete `.ai/runs/*` folders except `.ai/runs/_TEMPLATE/`
-- `node_modules/`
-- `dist/`
-- `docs/tmp/`
-
-Do not require mass-editing historical AI logs to satisfy current path validation. Future or proposed paths are acceptable only when nearby text clearly marks them as future, proposed, planned, or not current implementation.
+Do not mark a task `[x]` until relevant validation passes or an exception is documented as unavailable, unrelated, or pre-existing.
 
 ## Output Format
 
@@ -58,15 +49,19 @@ Do not require mass-editing historical AI logs to satisfy current path validatio
 
 Change type: <type>
 Required commands:
-- `<command>` — <why>
+- `<command>` - <why>
 
-Manual QA:
-- <check>
+Manual checks:
+- <check or none>
 
-Completion decision: <pass | blocked | exception-documented>
-Test log update: <path or none>
+Can mark complete: <yes | no>
+Test-log update:
+- <entry to record>
+
+Profile notes:
+- <missing/stale/assumed profile details, or none>
 ```
 
-## Completion Rule
+## Portability Rule
 
-Do not mark tasks complete unless validation passed or a documented exception explains why the failure is unrelated, pre-existing, or impossible to run in the current environment.
+Do not hard-code project commands, platform-specific manual QA, source paths, or product surfaces in this skill. Put those details in `.agents/project-profile/validation.md`.

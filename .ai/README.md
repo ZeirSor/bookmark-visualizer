@@ -12,6 +12,8 @@
   archive/          Optional storage for obsolete or completed run folders
 ```
 
+Project-local skills are portable workflow guides under `.agents/skills/`. Bookmark Visualizer-specific skill inputs live under `.agents/project-profile/`, including docs maps, surface maps, validation commands, and AI workflow conventions.
+
 ## Run Folder Contract
 
 Each complex task should use:

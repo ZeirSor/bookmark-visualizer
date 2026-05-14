@@ -1,15 +1,21 @@
-# Validation Command Map
+# Generic Validation Command Map
 
-| Change type | Commands |
+Use this reference after reading the repository validation profile.
+
+| Change type | Generic validation family |
 |---|---|
-| TypeScript logic | `npm run typecheck`, relevant tests, `npm run build` |
-| UI surface | `npm run typecheck`, `npm run build` |
-| Storage / metadata | `npm run test`, `npm run typecheck`, `npm run build` |
-| Chrome API / manifest | `npm run typecheck`, `npm run build`, affected verification script if present |
-| Removed legacy save surfaces | `npm run typecheck`, `npm run test`, `npm run build`, `npm run verify:popup-entry`, source and dist absence checks |
-| Page Ctrl+S shortcut bridge | `npm run typecheck`, `npm run test`, `npm run build`, `npm run verify:popup-entry`, shortcut manual QA |
-| New Tab redirect | `npm run typecheck`, `npm run build`, New Tab enable / disable manual QA |
-| Documentation-only | `npm run docs:check`, Markdown link / path check |
-| AI workflow / validation docs | `npm run docs:check`, targeted stale-path `rg` checks, `npm run typecheck` if scripts or package commands changed |
+| Typed application logic | typecheck, relevant tests, build |
+| Untyped application logic | relevant tests, build or smoke check |
+| UI surface behavior | build, affected UI tests if present, manual UI QA |
+| Shared component / design system | build, consuming surface checks, visual or interaction QA |
+| Data / storage / migration | tests, typecheck if applicable, build, data docs check |
+| Runtime boundary / external API / permissions | build, integration or adapter tests, affected manual QA |
+| Documentation-only | docs link/path check, referenced path check |
+| Workflow / validation / local skills | docs check, skill validation, portability audit if available |
+| Build / tooling / package scripts | package command smoke check, typecheck/build as relevant |
 
-If a command is unavailable, record that explicitly and do not claim it passed.
+If a command is unavailable:
+
+1. Verify whether the profile or package scripts are stale.
+2. Record the unavailable command.
+3. Use the nearest meaningful check without claiming the missing command passed.

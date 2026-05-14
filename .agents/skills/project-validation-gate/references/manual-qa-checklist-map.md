@@ -1,39 +1,28 @@
-# Manual QA Checklist Map
+# Generic Manual QA Checklist Map
 
-## Manager Workspace
+Use this reference after reading the repository validation profile.
 
-- Open manager workspace.
-- Confirm folder tree loads.
-- Select folders and breadcrumbs.
-- Test affected card / folder actions.
-- Check search if affected.
+## UI Surface
 
-## Toolbar Popup / Page Shortcut
+- Open the affected surface through its normal entrypoint.
+- Exercise the changed control, interaction, or workflow.
+- Check default, hover, focus, active, disabled, loading, empty, and error states when relevant.
+- Check long text, overflow, keyboard behavior, and pointer behavior when relevant.
 
-- Open toolbar popup from toolbar action and `_execute_action` on a normal web page.
-- Open toolbar popup from a restricted page such as `chrome://extensions/`.
-- Confirm tabs render.
-- Confirm Save tab current-page fields if affected.
-- Confirm save location picker and recent folders if affected.
-- Confirm Manage / Settings entries if affected.
-- If page Ctrl+S is enabled, confirm ordinary page `Ctrl+S` opens the popup and editable fields are not intercepted.
+## Data Or State Flow
 
-## Quick Save
+- Create, update, and read the affected data through the normal UI or API path.
+- Confirm persistence or reset behavior according to product expectations.
+- Confirm compatibility with existing data when keys, schemas, or migrations changed.
 
-- Trigger extension command.
-- Confirm overlay injection.
-- Confirm Shadow DOM styling.
-- Confirm save action and folder picker if affected.
-- Confirm closing and reopening behavior if affected.
+## Runtime / External API
 
-## Optional New Tab
+- Trigger the affected runtime boundary through the normal user or system action.
+- Confirm permissions, authentication, host access, or environment assumptions are accurate.
+- Confirm failure states are handled when the external API is unavailable.
 
-- Enable New Tab override.
-- Open a new tab.
-- Test search box / categories if affected.
-- Disable override and confirm browser default behavior returns.
+## Documentation / Workflow
 
-## Shared UI
-
-- Test every surface that consumes the changed shared component.
-- Check overflow, long text, focus, hover, and disabled states when relevant.
+- Confirm changed docs point to existing active paths.
+- Confirm examples and commands match current repository scripts.
+- Confirm local skills route to project profile files instead of hard-coded project facts.

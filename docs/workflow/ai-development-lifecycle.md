@@ -33,6 +33,8 @@ Many real tasks use both Spec-run Mode and Playbook Mode.
 
 Use `project-doc-routing` to find the smallest relevant reading set.
 
+Local skills are portable workflow guides. They load Bookmark Visualizer-specific routing details from `.agents/project-profile/`, especially `docs-map.md` and `surfaces.md`.
+
 The goal is to avoid two failure modes:
 
 - not reading the docs that define current facts;
@@ -115,6 +117,8 @@ Default behavior:
 
 Use `project-validation-gate` and `docs/workflow/validation-gate.md`.
 
+Project-specific validation commands and manual QA checks live in `.agents/project-profile/validation.md`.
+
 Do not mark a task complete until validation passes or the failure is clearly documented as unrelated / pre-existing.
 
 ## 10. Update Run State
@@ -128,6 +132,8 @@ After each sub-task:
 ## 11. Synchronize Formal Docs
 
 Use `project-doc-maintenance` after implementation and validation.
+
+When docs synchronization depends on repository surfaces, README variants, source paths, or workflow conventions, use `.agents/project-profile/` as the project-specific source.
 
 Update formal docs only when the change affects durable facts:
 

@@ -6,7 +6,8 @@
       "WebFetch(domain:developer.chrome.com)",
       "WebFetch(domain:github.com)",
       "Bash(git add *)",
-      "Bash(git commit *)"
+      "Bash(git commit *)",
+      "Bash(npm run *)"
     ]
   }
 }

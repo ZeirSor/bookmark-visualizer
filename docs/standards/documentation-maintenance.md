@@ -94,5 +94,6 @@
 - UI surface、组件、CSS selector 或页面链路变化时，更新 `docs/frontend/surfaces/`。
 - 验证命令、手动验收或健康检查变化时，更新 `docs/guides/` 和必要的 `docs/workflow/validation-gate.md`。
 - AI-assisted workflow、run folder、task 状态、playbook 或 local skill 变化时，更新 `docs/workflow/`、`docs/playbooks/`、`.agents/skills/`、`.ai/README.md` 和 `AGENTS.md`。
+- Local skill 的项目适配事实变化时，同步 `.agents/project-profile/`；通用流程变化时同步 `.agents/skills/`。
 - 持久技术决策变化时，新增或更新 `docs/adr/`。
 - 非轻量工作收尾按项目规则写入 `.ai/logs/`。

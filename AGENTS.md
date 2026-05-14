@@ -43,6 +43,8 @@ newtab.html            Optional New Tab entry
 docs/                  Formal project docs, workflow docs, playbooks, standards, and ADRs
 .ai/                   AI run state, worklogs, and development changelog records
 .agents/skills/        Local Agent skills for routing, orchestration, validation, and docs maintenance
+.agents/project-profile/
+                        Bookmark Visualizer-specific profile consumed by portable local skills
 ```
 
 ## Documentation And AI State System
@@ -117,6 +119,8 @@ Required:
 
 This repository defines local skills. They complement global repo-record skills.
 
+The local skills are designed as portable workflow skills. Generic process belongs in `.agents/skills/`; Bookmark Visualizer-specific surfaces, source paths, validation commands, README rules, and AI workflow conventions belong in `.agents/project-profile/`. When changing local skill behavior, update the profile when the fact is project-specific instead of hard-coding it into `SKILL.md`.
+
 ### `project-doc-routing`
 
 Use before implementation, investigation, or documentation editing.
@@ -129,7 +133,7 @@ It answers:
 - Which docs are likely to be affected after implementation?
 - Which docs are intentionally out of scope?
 
-It does not update docs or write logs.
+It does not update docs or write logs. It reads `.agents/project-profile/docs-map.md` and `.agents/project-profile/surfaces.md` for this repository's current docs and surface mappings.
 
 ### `project-playbook-routing`
 
@@ -143,7 +147,7 @@ It answers:
 - Which playbook should constrain the work?
 - Which workflow docs should also be read?
 
-It does not implement code.
+It does not implement code. It reads `.agents/project-profile/ai-workflow.md` when repository-specific workflow conventions are needed.
 
 ### `project-run-orchestration`
 
@@ -157,7 +161,7 @@ It answers:
 - What is the current executable sub-task?
 - What must be updated before stopping?
 
-It does not replace product, architecture, data, or PageDocs.
+It does not replace product, architecture, data, or PageDocs. It reads `.agents/project-profile/ai-workflow.md` for repository-specific run-folder and workflow conventions.
 
 ### `project-validation-gate`
 
@@ -172,6 +176,8 @@ It answers:
 - Can the task be marked complete?
 - What must be written to `test-log.md`?
 
+It reads `.agents/project-profile/validation.md` for this repository's command map and manual QA checks.
+
 ### `project-doc-maintenance`
 
 Use after implementation and validation, before global repo-record logging.
@@ -184,7 +190,7 @@ It answers:
 - Which README files need updating, if any?
 - Are code paths, CSS selectors, UI elements, storage keys, and Chrome API boundaries still accurate?
 
-It does not write `.ai/logs/`, `.ai/dev-changelog/`, `CHANGELOG.md`, or ADRs.
+It does not write `.ai/logs/`, `.ai/dev-changelog/`, `CHANGELOG.md`, or ADRs. It reads `.agents/project-profile/docs-map.md` and `.agents/project-profile/surfaces.md` for repository-specific documentation routing and README rules.
 
 ## Required Workflows
 

@@ -1,4 +1,4 @@
-# Handoff Rules
+# Generic Handoff Rules
 
 Update `handoff.md` whenever stopping a complex run.
 
@@ -18,7 +18,7 @@ Update `handoff.md` whenever stopping a complex run.
 A new Agent should be able to continue by reading:
 
 1. `AGENTS.md`
-2. `.ai/README.md`
+2. project AI workflow profile or `.ai/README.md`
 3. the run folder
 4. relevant docs named in the run folder
 

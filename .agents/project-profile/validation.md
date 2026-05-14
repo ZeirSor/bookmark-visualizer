@@ -1,19 +1,13 @@
-# Validation Gate
+# Project Validation Profile
 
-The validation gate decides whether a task can be marked complete.
-
-## General Rule
-
-Do not mark a task `[x]` until relevant validation passes or a documented exception exists.
+This profile file defines Bookmark Visualizer validation commands and manual QA checks. Portable skills should use this file instead of hard-coding project commands.
 
 ## Command Map
 
-The current repository-specific command map lives in `.agents/project-profile/validation.md`. The table below summarizes the active Bookmark Visualizer validation expectations and should stay aligned with that profile.
-
-| Change type | Required validation |
+| Change type | Commands / checks |
 |---|---|
 | TypeScript logic | `npm run typecheck`, relevant tests, `npm run build` |
-| UI surface behavior | `npm run typecheck`, `npm run build`, surface manual QA |
+| UI surface behavior | `npm run typecheck`, `npm run build`, affected surface manual QA |
 | Storage / metadata | `npm run test`, `npm run typecheck`, `npm run build`, storage docs check |
 | Chrome API / manifest | `npm run typecheck`, `npm run build`, manifest / entry verification, affected manual QA |
 | Toolbar popup entry | `npm run typecheck`, `npm run build`, `npm run verify:popup-entry`, popup and shortcut manual QA |
@@ -22,6 +16,9 @@ The current repository-specific command map lives in `.agents/project-profile/va
 | New Tab redirect | `npm run typecheck`, `npm run build`, New Tab enable / disable manual QA |
 | Documentation-only | `npm run docs:check`, Markdown links, referenced paths, README links if touched |
 | AI workflow / validation docs | `npm run docs:check`, targeted stale-path `rg` checks, `npm run typecheck` if scripts or package commands changed |
+| Local skill portability | `npm run skills:audit`, skill validation, `npm run docs:check` |
+
+If a command is unavailable, record that explicitly and do not claim it passed.
 
 ## Manual QA By Surface
 
@@ -31,7 +28,7 @@ The current repository-specific command map lives in `.agents/project-profile/va
 - Confirm folder tree renders.
 - Select folders and breadcrumbs.
 - Search bookmarks.
-- Check card actions affected by the change.
+- Check affected card, folder, or command actions.
 
 ### Toolbar Popup / Page Shortcut
 
@@ -39,8 +36,16 @@ The current repository-specific command map lives in `.agents/project-profile/va
 - Open toolbar popup from a restricted page such as `chrome://extensions/`.
 - Confirm Save, Manage, and Settings tabs behave as expected.
 - Check current page title / URL detection if affected.
-- Check save location picker if affected.
+- Check save location picker and recent folders if affected.
 - If page Ctrl+S is enabled, confirm ordinary page `Ctrl+S` opens the popup and editable fields are not intercepted.
+
+### Quick Save
+
+- Trigger extension command.
+- Confirm overlay injection.
+- Confirm Shadow DOM styling.
+- Confirm save action and folder picker if affected.
+- Confirm closing and reopening behavior if affected.
 
 ### Optional New Tab
 
@@ -49,23 +54,14 @@ The current repository-specific command map lives in `.agents/project-profile/va
 - Disable override and confirm browser default behavior returns.
 - Test search engine / category behavior if affected.
 
-## Recording Results
+### Shared UI
 
-Record every validation attempt in `.ai/runs/<run-id>/test-log.md` when a run folder exists.
-
-At minimum include:
-
-- command or manual check;
-- result;
-- relevant output summary;
-- whether failure is new, pre-existing, or unrelated;
-- what remains unverified.
+- Test every surface that consumes the changed shared component.
+- Check overflow, long text, focus, hover, and disabled states when relevant.
 
 ## Active Documentation Path Validation
 
-Use `npm run docs:check` when documentation work changes active path references, validation rules, local skills, or workflow docs.
-
-This includes `.agents/project-profile/` changes because profile files are active sources for local skill routing and validation.
+Use `npm run docs:check` when documentation work changes active path references, validation rules, local skills, project profiles, or workflow docs.
 
 Historical AI records are not active source-of-truth documents. Documentation path validation must exclude:
 
