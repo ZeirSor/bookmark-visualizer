@@ -1,180 +1,135 @@
-import fs from "node:fs";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
+import fs from 'node:fs';
+import path from 'node:path';
 
-const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const root = process.cwd();
+const docsRoot = path.join(root, 'docs');
+const failures = [];
 
-const explicitFiles = [
-  "AGENTS.md",
-  "AI_HANDOFF.md",
-  "README.md",
-  "README.zh-CN.md",
-  "CHANGELOG.md",
-  "package.json",
-  ".ai/README.md",
-];
+const exists = (p) => fs.existsSync(path.join(root, p));
+const isDir = (p) => fs.existsSync(p) && fs.statSync(p).isDirectory();
+const isFile = (p) => fs.existsSync(p) && fs.statSync(p).isFile();
 
-const markdownRoots = [
-  "docs",
-  ".agents/skills",
-  ".ai/runs/_TEMPLATE",
-];
-
-const ignoredPathPrefixes = [
-  ".ai/logs/",
-  ".ai/dev-changelog/",
-  ".ai/archive/",
-  "docs/tmp/",
-  "node_modules/",
-  "dist/",
-];
-
-const pathPattern = /(?:^|[\s`"'([])((?:src|docs|scripts|\.ai|\.agents)\/[^\s`"')\],;]+|(?:AGENTS|AI_HANDOFF|README|README\.zh-CN|CHANGELOG)\.md|package\.json)(?=$|[\s`"')\],;:。。，、])/g;
-const futurePattern = /future|proposed|planned|proposal|example|not current|not current repository path|not current implementation|未来|后续|建议|规划|计划|提案|示例|例如|不代表当前|不是当前|非当前/i;
-
-function toPosix(value) {
-  return value.split(path.sep).join("/");
+function walk(dir, acc = []) {
+  if (!fs.existsSync(dir)) return acc;
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    const p = path.join(dir, entry.name);
+    if (entry.isDirectory()) walk(p, acc);
+    else acc.push(p);
+  }
+  return acc;
 }
 
-function exists(relativePath) {
-  return fs.existsSync(path.join(root, ...relativePath.split("/")));
+function rel(p) {
+  return path.relative(root, p).split(path.sep).join('/');
 }
 
-function shouldIgnoreScanPath(relativePath) {
-  const normalized = relativePath.endsWith("/") ? relativePath : `${relativePath}/`;
-  if (ignoredPathPrefixes.some((prefix) => normalized.startsWith(prefix))) {
-    return true;
-  }
-  if (normalized.startsWith(".ai/runs/") && !normalized.startsWith(".ai/runs/_TEMPLATE/")) {
-    return true;
-  }
-  return false;
+function isArchivedFile(p) {
+  return rel(p).startsWith('docs/_archive/');
 }
 
-function walk(dir) {
-  const absolute = path.join(root, ...dir.split("/"));
-  if (!fs.existsSync(absolute)) {
-    return [];
-  }
+function add(file, message) {
+  failures.push(`${rel(file)}: ${message}`);
+}
 
-  const results = [];
-  for (const entry of fs.readdirSync(absolute, { withFileTypes: true })) {
-    const relative = toPosix(path.relative(root, path.join(absolute, entry.name)));
-    if (shouldIgnoreScanPath(relative)) {
+const mdFiles = walk(docsRoot).filter((p) => p.endsWith('.md'));
+const activeMdFiles = mdFiles.filter((p) => !isArchivedFile(p));
+
+// 1. Active markdown frontmatter.
+for (const file of activeMdFiles) {
+  const text = fs.readFileSync(file, 'utf8');
+  if (!text.startsWith('---\n')) add(file, 'missing YAML frontmatter');
+}
+
+// 2. Directory README coverage.
+function walkDirs(dir, acc = []) {
+  if (!fs.existsSync(dir)) return acc;
+  acc.push(dir);
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    const p = path.join(dir, entry.name);
+    if (entry.isDirectory()) walkDirs(p, acc);
+  }
+  return acc;
+}
+for (const dir of walkDirs(docsRoot)) {
+  const relative = rel(dir);
+  if (relative.includes('/.')) continue;
+  if (!isFile(path.join(dir, 'README.md'))) add(path.join(dir, 'README.md'), 'directory missing README.md');
+}
+
+// 3. Semantic filenames in active docs.
+for (const file of activeMdFiles) {
+  const base = path.basename(file);
+  if (/^\d{2}[-_]/.test(base)) add(file, 'numeric ordering prefix is not allowed in active docs');
+}
+
+// 4. Markdown local links.
+const mdLinkRe = /\[[^\]]*\]\(([^)]+)\)/g;
+for (const file of activeMdFiles) {
+  const text = fs.readFileSync(file, 'utf8');
+  let m;
+  while ((m = mdLinkRe.exec(text))) {
+    let target = m[1].trim();
+    if (!target || target.startsWith('http:') || target.startsWith('https:') || target.startsWith('mailto:') || target.startsWith('#')) continue;
+    if (target.startsWith('<') && target.endsWith('>')) target = target.slice(1, -1);
+    target = decodeURIComponent(target.split('#')[0]);
+    if (!target) continue;
+    const resolved = path.normalize(path.resolve(path.dirname(file), target));
+    if (!resolved.startsWith(root)) {
+      add(file, `local link escapes repository: ${m[1]}`);
       continue;
     }
-    if (entry.isDirectory()) {
-      results.push(...walk(relative));
-    } else if (entry.isFile() && relative.endsWith(".md")) {
-      results.push(relative);
-    }
+    if (!fs.existsSync(resolved)) add(file, `broken local link: ${m[1]}`);
   }
-  return results;
 }
 
-function scanFiles() {
-  const files = new Set();
-  for (const file of explicitFiles) {
-    if (exists(file) && !shouldIgnoreScanPath(file)) {
-      files.add(file);
-    }
-  }
-  for (const dir of markdownRoots) {
-    for (const file of walk(dir)) {
-      files.add(file);
-    }
-  }
-  return [...files].sort();
-}
-
-function cleanReference(raw) {
-  return raw
-    .replace(/\\\|/g, "|")
-    .replace(/[.,;:!?。，、]+$/u, "")
-    .replace(/#+.*$/, "")
-    .replace(/:\d+(?::\d+)?$/, "")
-    .replace(/\/+$/, (match, offset, value) => (offset === value.length - match.length && value.length > match.length ? "/" : ""));
-}
-
-function isPlaceholderOrPattern(reference) {
-  return /[<>]/.test(reference);
-}
-
-function isIgnoredReference(reference) {
-  const withSlash = reference.endsWith("/") ? reference : `${reference}/`;
-  return ignoredPathPrefixes.some((prefix) => withSlash.startsWith(prefix));
-}
-
-function referenceBase(reference) {
-  let base = reference;
-  const wildcardIndex = base.search(/[*?]/);
-  const ellipsisIndex = base.indexOf("...");
-  const cut = [wildcardIndex, ellipsisIndex].filter((index) => index >= 0).sort((a, b) => a - b)[0];
-  if (cut !== undefined) {
-    base = base.slice(0, cut);
-    base = base.slice(0, base.lastIndexOf("/") + 1);
-  }
-  return base.replace(/\/$/, "");
-}
-
-function isFutureContext(lines, index, headingStack) {
-  const start = Math.max(0, index - 4);
-  const nearby = [...headingStack, ...lines.slice(start, index + 1)].join("\n");
-  return futurePattern.test(nearby);
-}
-
-function findMissingReferences(file) {
-  const text = fs.readFileSync(path.join(root, ...file.split("/")), "utf8");
-  const lines = text.split(/\r?\n/);
-  const headingStack = [];
-  const missing = [];
-  let inFutureFence = false;
-
-  lines.forEach((line, index) => {
-    const heading = line.match(/^(#{1,6})\s+(.+)$/);
-    if (heading) {
-      headingStack.length = heading[1].length - 1;
-      headingStack.push(heading[2]);
-    }
-
-    const isFence = /^```/.test(line.trim());
-    if (isFence) {
-      inFutureFence = !inFutureFence && isFutureContext(lines, index, headingStack);
-      return;
-    }
-
-    for (const match of line.matchAll(pathPattern)) {
-      const reference = cleanReference(match[1]);
-      if (!reference || isPlaceholderOrPattern(reference) || isIgnoredReference(reference)) {
-        continue;
-      }
-      const base = referenceBase(reference);
-      if (!base || inFutureFence || isFutureContext(lines, index, headingStack)) {
-        continue;
-      }
-      if (!exists(base)) {
-        missing.push({
-          file,
-          line: index + 1,
-          reference,
-        });
-      }
+// 5. Backticked project paths in active docs.
+const codeRe = /`([^`\n]+)`/g;
+const projectPathRe = /^(docs|src|public|scripts|dist)\//;
+const rootHtml = new Set(['index.html', 'popup.html', 'newtab.html']);
+const knownGenerated = new Set(['service-worker.js', 'page-shortcut-content.js']);
+const historicalContext = /(archiv|histor|legacy|removed|deleted|not current|no longer|superseded|已删除|归档|历史|旧|不再|不得|删除|移除|取代|without a new ADR)/i;
+for (const file of activeMdFiles) {
+  const lines = fs.readFileSync(file, 'utf8').split(/\r?\n/);
+  lines.forEach((line, idx) => {
+    let m;
+    while ((m = codeRe.exec(line))) {
+      const raw = m[1].trim();
+      if (!raw || raw.includes(' ') || raw.includes('*') || raw.includes('{') || raw.includes('(') || raw.includes('<') || raw.includes('>')) continue;
+      if (raw.startsWith('chrome://') || raw.startsWith('edge://') || raw.startsWith('http://') || raw.startsWith('https://')) continue;
+      if (knownGenerated.has(raw)) continue;
+      let candidate = raw.replace(/^\.\//, '');
+      if (candidate.startsWith('../')) continue;
+      if (!(projectPathRe.test(candidate) || rootHtml.has(candidate))) continue;
+      if (candidate.startsWith('dist/')) continue;
+      if (historicalContext.test(line)) continue;
+      if (!exists(candidate)) add(file, `line ${idx + 1}: unresolved project path \`${raw}\``);
     }
   });
-
-  return missing;
 }
 
-const files = scanFiles();
-const missing = files.flatMap(findMissingReferences);
+// 6. Stale current-implementation wording.
+const staleCurrentPatterns = [
+  /Save Overlay[^\n]*(当前主|current save|current implementation|主路径|主保存)/i,
+  /(当前主|current save|current implementation|主路径|主保存)[^\n]*Save Overlay/i,
+  /src\/features\/save-overlay/,
+  /src\/save-window/,
+  /quick-save\/content\.tsx/,
+  /verify:save-window-entry/,
+];
+for (const file of activeMdFiles) {
+  const lines = fs.readFileSync(file, 'utf8').split(/\r?\n/);
+  lines.forEach((line, idx) => {
+    if (historicalContext.test(line)) return;
+    if (staleCurrentPatterns.some((re) => re.test(line))) {
+      add(file, `line ${idx + 1}: stale save-surface wording in active docs`);
+    }
+  });
+}
 
-if (missing.length > 0) {
-  console.error("Documentation path check failed. Missing active references:");
-  for (const item of missing) {
-    console.error(`- ${item.file}:${item.line} -> ${item.reference}`);
-  }
-  console.error("\nMark future/proposed paths clearly, fix stale active paths, or exclude generated/historical records.");
+if (failures.length) {
+  console.error('docs:check failed with findings:\n');
+  for (const f of failures) console.error(`- ${f}`);
   process.exit(1);
 }
 
-console.log(`Documentation path check passed (${files.length} active files scanned).`);
+console.log(`docs:check passed (${activeMdFiles.length} active Markdown files, ${mdFiles.length} total Markdown files).`);
